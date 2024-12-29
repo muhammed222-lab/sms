@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "husky install" // Optional: Adds a script for Husky if you want Git hooks
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.1.4",
@@ -40,16 +41,25 @@
     "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
     "@types/react-slick": "^0.23.13",
     "autoprefixer": "^10.4.20",
-    "eslint": "^8",
+    "eslint": "^8.50.0",
     "eslint-config-next": "15.0.3",
     "nodemon": "^3.1.7",
     "postcss": "^8.4.49",
+<<<<<<< HEAD
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
+=======
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=16.0.0", // Ensures your Node.js version supports all dependencies
+    "npm": ">=8.0.0"
+>>>>>>> 9a1a93a9ab9a1922a73c8c75f00d04d9702ec03a
   }
 }
