@@ -30,7 +30,6 @@ const Header = () => {
   const [balance, setBalance] = useState<number>(0);
   const [convertedBalance, setConvertedBalance] = useState<number | null>(null);
   const [formattedBalance, setFormattedBalance] = useState<string>("");
-  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     const fetchUserLocation = async () => {
@@ -193,20 +192,6 @@ const Header = () => {
     convertCurrency();
   }, [currency, balance]);
 
-  useEffect(() => {
-    const handleOnlineStatus = () => {
-      setIsOnline(navigator.onLine);
-    };
-
-    window.addEventListener("online", handleOnlineStatus);
-    window.addEventListener("offline", handleOnlineStatus);
-
-    return () => {
-      window.removeEventListener("online", handleOnlineStatus);
-      window.removeEventListener("offline", handleOnlineStatus);
-    };
-  }, []);
-
   return (
     <header className="sticky top-0 z-50 bg-white border-b py-3 px-4">
       <div className="w-[90%] max-w-6xl mx-auto flex items-center justify-between">
@@ -226,7 +211,7 @@ const Header = () => {
           <div className="fixed inset-0 z-40 bg-black bg-opacity-50">
             <div
               ref={menuRef}
-              className="bg-white w-[60%] h-full absolute top-0 right-0 shadow-lg flex flex-col p-6"
+              className="bg-white w-[60%] h-screen absolute top-0 right-0 shadow-lg flex flex-col p-6"
             >
               <button
                 className="self-end text-xl text-gray-600"
@@ -372,18 +357,6 @@ const Header = () => {
           </div>
         </nav>
       </div>
-
-      {!isOnline && (
-        <div className="fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-2 z-50">
-          <span>You are offline. Check your internet connection.</span>
-          <button
-            className="absolute top-1 right-2 text-white"
-            onClick={() => setIsOnline(true)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
     </header>
   );
 };
