@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "husky install" // Optional: Adds a script for Husky if you want Git hooks
+    "prepare": "husky install"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.1.4",
@@ -50,16 +50,11 @@
     "eslint-config-next": "15.0.3",
     "nodemon": "^3.1.7",
     "postcss": "^8.4.49",
-<<<<<<< HEAD
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
-=======
-    "tailwindcss": "^3.4.15",
     "typescript": "^5.3.0"
   },
   "engines": {
-    "node": ">=16.0.0", // Ensures your Node.js version supports all dependencies
+    "node": ">=16.0.0",
     "npm": ">=8.0.0"
->>>>>>> 9a1a93a9ab9a1922a73c8c75f00d04d9702ec03a
   }
 }
