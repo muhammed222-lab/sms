@@ -1,12 +1,9 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import type { AppProps } from "next/app";
-import "../styles/globals.css"; // Adjust the path to your global CSS file
+import { AppProps } from "next/app";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const clerkFrontendApi = process.env.NEXT_PUBLIC_CLERK_FRONTEND_API;
-
   return (
-    <ClerkProvider publishableKey={clerkFrontendApi}>
+    <ClerkProvider>
       <Component {...pageProps} />
     </ClerkProvider>
   );
