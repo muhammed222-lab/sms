@@ -1,71 +1,102 @@
 "use client";
 
 import React, { useState } from "react";
-import { auth, db } from "../firebaseConfig"; // Ensure this is your correct path
+import { auth, db } from "../firebaseConfig";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
-import { collection, doc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { FirebaseError } from "firebase/app";
 
 const SignUp = () => {
-  const [firstName, setFirstName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [firstName, setFirstName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      // Create the user with email and password
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
 
-      // Update user profile with first name
       await updateProfile(userCredential.user, {
         displayName: firstName,
       });
 
-      // Send verification email
       await sendEmailVerification(userCredential.user);
 
-      // Add user data to Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
         first_name: firstName,
         email,
-        currency: "ngn", // Example default value
+        currency: "ngn",
         date: new Date().toISOString(),
-        verified: false, // Optional: Track verification status
+        verified: false,
       });
 
-      // Show success message and inform the user to verify their email
       alert(
         "Account created successfully! A verification email has been sent to your email address. Please verify your email to complete the registration."
       );
 
-      // Optionally redirect to a 'Check Email' page
       router.push("/verify-email");
-    } catch (err: any) {
-      console.error("Sign-up error:", err);
+    } catch (err) {
       setLoading(false);
 
-      // Handle Firebase errors
-      if (err.code === "auth/email-already-in-use") {
-        setError("This email is already in use. Please use a different email.");
-      } else if (err.code === "auth/weak-password") {
-        setError("Password should be at least 6 characters long.");
+      if (err instanceof FirebaseError) {
+        if (err.code === "auth/email-already-in-use") {
+          setError(
+            "This email is already in use. Please use a different email."
+          );
+        } else if (err.code === "auth/weak-password") {
+          setError("Password should be at least 6 characters long.");
+        } else {
+          setError("An error occurred. Please try again.");
+        }
       } else {
-        setError("An error occurred. Please try again.");
+        setError("An unexpected error occurred.");
+      }
+    }
+
+    setLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Add user data to Firestore (if necessary)
+      await setDoc(doc(db, "users", user.uid), {
+        first_name: user.displayName,
+        email: user.email,
+        currency: "ngn",
+        date: new Date().toISOString(),
+        verified: user.emailVerified,
+      });
+
+      router.push("/dashboard");
+    } catch (err) {
+      if (err instanceof FirebaseError) {
+        setError("Failed to sign in with Google. Please try again.");
+      } else {
+        setError("An unexpected error occurred.");
       }
     }
 
@@ -123,7 +154,11 @@ const SignUp = () => {
         </p>
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">OR</p>
-          <button className="w-full bg-red-500 text-white p-2 mt-2 rounded hover:bg-red-600">
+          <button
+            className="w-full bg-red-500 text-white p-2 mt-2 rounded hover:bg-red-600"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+          >
             Continue with Google
           </button>
         </div>

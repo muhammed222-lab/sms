@@ -3,28 +3,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
 const Header = () => {
-  const pathname = usePathname();
+  // const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [countries, setCountries] = useState<any[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [currency, setCurrency] = useState("");
-  const [flag, setFlag] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [currency, setCurrency] = useState<string>("NGN");
+  const [flag, setFlag] = useState<string>("");
   const [balance, setBalance] = useState<number>(0);
   const [formattedBalance, setFormattedBalance] = useState<string>("");
 
-  const [user, setUser] = useState<any>(null); // Store user data
+  const [user, setUser] = useState<User | null>(null); // Firebase user state
   const [isLoadingFlag, setIsLoadingFlag] = useState(true); // Track flag loading
   const [isLoadingImage, setIsLoadingImage] = useState(true); // Track image loading
-
-  const isActive = (path: string) => pathname === path;
 
   // Fetch user location and flag
   useEffect(() => {
@@ -125,7 +121,7 @@ const Header = () => {
           <Image src="/favicon.png" alt="Logo" width={100} height={40} />
         </Link>
 
-        {/* Balance (Visible on mobile and desktop) */}
+        {/* Balance */}
         <div className="flex items-center gap-2 lg:gap-4">
           {user && (
             <span

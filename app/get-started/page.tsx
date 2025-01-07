@@ -31,7 +31,8 @@ const GetStarted = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-800">Sign Up</h3>
               <p className="text-gray-600 mt-2">
-                Create your free account to get started. It's quick and easy!
+                Create your free account to get started. It&apos;s quick and
+                easy!
               </p>
               <Link
                 href="/signup"

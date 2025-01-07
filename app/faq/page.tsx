@@ -68,7 +68,7 @@ const FAQPage = () => {
         {/* Additional Questions */}
         <div className="text-center mt-12">
           <p className="text-lg text-gray-600">
-            Don't see your question? Contact our support team for further
+            Don&apos;t see your question? Contact our support team for further
             assistance.
           </p>
           <button className="mt-4 bg-red-500 text-white py-3 px-6 rounded-full text-lg hover:bg-red-600 transition-colors">

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebaseConfig"; // Import Firebase Auth and Firestore
-import { onAuthStateChanged } from "firebase/auth"; // Firebase Auth methods
+import { onAuthStateChanged, User } from "firebase/auth"; // Firebase Auth methods
 import { collection, addDoc } from "firebase/firestore"; // Firestore methods
 
 const Feedback = () => {
-  const [feedback, setFeedback] = useState("");
-  const [message, setMessage] = useState("");
-  const [user, setUser] = useState<any>(null); // Firebase user state
+  const [feedback, setFeedback] = useState<string>(""); // Feedback text state
+  const [message, setMessage] = useState<string>(""); // Feedback submission message
+  const [user, setUser] = useState<User | null>(null); // Firebase user state
 
   // Listen for user authentication state
   React.useEffect(() => {

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const Blog = () => {
   const blogPosts = [
@@ -50,7 +51,7 @@ const Blog = () => {
               key={post.id}
               className="bg-white rounded-lg border overflow-hidden hover:shadow-lg transition-shadow duration-300"
             >
-              <img
+              <Image
                 src={post.image}
                 alt={post.title}
                 className="w-full h-48 object-cover"

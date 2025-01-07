@@ -4,7 +4,7 @@ import RecentSmsOrders from "./RecentSmsOrders";
 interface Country {
   name_en: string;
   id: string;
-  country_code: string; // Add country code for flag URLs
+  country_code: string;
 }
 
 interface RentalData {
@@ -14,7 +14,6 @@ interface RentalData {
 }
 
 const RentNumbers: React.FC = () => {
-  // Dynamic API Base URL for development and production
   const API_BASE_URL =
     process.env.NODE_ENV === "development"
       ? "http://localhost:4001/api"
@@ -29,7 +28,6 @@ const RentNumbers: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
 
-  // Mapping for country IDs to names and flags
   const countryMapping: { [key: string]: { name: string; flagCode: string } } =
     {
       "12": { name: "Estonia", flagCode: "ee" },
@@ -49,7 +47,6 @@ const RentNumbers: React.FC = () => {
       "14": { name: "Uganda", flagCode: "ug" },
     };
 
-  // Fetch countries and map them
   useEffect(() => {
     const mappedCountries = Object.keys(countryMapping).map((id) => ({
       id,
@@ -57,9 +54,8 @@ const RentNumbers: React.FC = () => {
       country_code: countryMapping[id].flagCode,
     }));
     setCountries(mappedCountries);
-  }, []);
+  }, [countryMapping]);
 
-  // Fetch rental data for the selected country
   useEffect(() => {
     if (!selectedCountry) return;
 
@@ -93,7 +89,7 @@ const RentNumbers: React.FC = () => {
   const handleDecreaseHours = () =>
     setHours((prev) => (prev > 1 ? prev - 1 : 1));
 
-  const handleRentClick = async (countryId: string, cost: number) => {
+  const handleRentClick = async (countryId: string) => {
     setMessage("");
     try {
       const response = await fetch(
@@ -118,7 +114,6 @@ const RentNumbers: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6 text-center">Rent New Number</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Step 1: Select Country */}
         <div className="bg-white shadow p-4 rounded-lg">
           <h2 className="text-lg font-bold mb-4">1. Select Your Country</h2>
           <input
@@ -156,7 +151,6 @@ const RentNumbers: React.FC = () => {
           </div>
         </div>
 
-        {/* Step 2: Set Rent Duration */}
         <div className="bg-white shadow p-4 rounded-lg">
           <h2 className="text-lg font-bold mb-4">2. Set Rent Duration</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -193,7 +187,6 @@ const RentNumbers: React.FC = () => {
           )}
         </div>
 
-        {/* Step 3: Rent a Number */}
         <div className="bg-white shadow p-4 rounded-lg">
           <h2 className="text-lg font-bold mb-4">3. Rent a Number</h2>
           {loading ? (
@@ -208,12 +201,7 @@ const RentNumbers: React.FC = () => {
                   <span>{`Numbers: ${option.count}, Cost: ${option.cost}`}</span>
                   <button
                     className="px-4 py-2 bg-blue-500 text-white rounded"
-                    onClick={() =>
-                      handleRentClick(
-                        option.country_id,
-                        parseFloat(option.cost)
-                      )
-                    }
+                    onClick={() => handleRentClick(option.country_id)}
                   >
                     Rent
                   </button>

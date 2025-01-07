@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   FaSms,
   FaMobileAlt,
@@ -12,7 +12,6 @@ import {
   FaChevronDown,
   FaChevronUp,
 } from "react-icons/fa";
-import Select from "react-select";
 import DashboardBalance from "../components/DashboardBalance";
 import RentNumbers from "../components/RentNumbers";
 import Feedback from "../components/Feedback";
@@ -23,13 +22,6 @@ import Sms from "../components/Sms";
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState("Receive SMS");
-  const [balance, setBalance] = useState(0);
-  const [services, setServices] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
-  const [requestedNumber, setRequestedNumber] = useState(null);
-  const [smsCode, setSmsCode] = useState("");
 
   const sidebarLinks = [
     { label: "Receive SMS", id: "sms", icon: <FaSms /> },
@@ -39,57 +31,6 @@ const Dashboard = () => {
     { label: "Instructions", id: "instructions", icon: <FaInfoCircle /> },
     { label: "Feedback", id: "feedback", icon: <FaCommentDots /> },
   ];
-
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        const response = await fetch("http://localhost:4000/api/balance");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const data = await response.json();
-          setBalance(data.balance || 0);
-        } else {
-          throw new Error(
-            "Expected JSON response but received something else."
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      }
-    };
-
-    const fetchCountries = async () => {
-      try {
-        const response = await fetch("http://localhost:4000/api/countries");
-        const data = await response.json();
-        setCountries(
-          Object.values(data).map((c) => ({ label: c.title, value: c.id }))
-        );
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-      }
-    };
-
-    const fetchServices = async () => {
-      try {
-        const response = await fetch("http://localhost:4000/api/services");
-        const data = await response.json();
-        setServices(
-          Object.values(data).map((s) => ({ label: s.title, value: s.id }))
-        );
-      } catch (error) {
-        console.error("Error fetching services:", error);
-      }
-    };
-
-    fetchBalance();
-    fetchCountries();
-    fetchServices();
-  }, []);
 
   const renderContent = () => {
     switch (activePage) {

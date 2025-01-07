@@ -14,12 +14,12 @@ import { onAuthStateChanged } from "firebase/auth";
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<null | { email: string }>(null);
 
   // Monitor authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      setUser(currentUser ? { email: currentUser.email || "" } : null);
     });
     return () => unsubscribe();
   }, []);
@@ -35,7 +35,7 @@ export default function Home() {
   return (
     <div className="w-[80%] m-auto">
       <main>
-        <div className=" mx-auto px-4">
+        <div className="mx-auto px-4">
           <section className="hero py-10 lg:py-20">
             <div className="hero-content flex flex-col-reverse lg:flex-row items-center">
               {/* Text Section */}
@@ -69,7 +69,7 @@ export default function Home() {
 
             <div className="description mt-10 text-center lg:text-left text-gray-700">
               <p className="text-lg sm:text-xl">
-                In today's digital world, privacy is essential. Our service
+                In today&apos;s digital world, privacy is essential. Our service
                 provides temporary phone numbers for SMS verification, keeping
                 your personal number secure and protecting your online identity.
                 No more spam calls, no more unwanted messages—just a simple,

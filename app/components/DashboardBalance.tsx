@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { FaCheckCircle } from "react-icons/fa";
-import { auth, db } from "../firebaseConfig"; // Import Firebase Auth and Firestore
+import { auth, db } from "../firebaseConfig";
 import {
   collection,
   query,
@@ -9,23 +8,49 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  DocumentData,
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
+
+interface FlutterwaveCheckoutOptions {
+  public_key: string;
+  tx_ref: string;
+  amount: number;
+  currency: string;
+  payment_options: string;
+  customer: {
+    email: string;
+    phone_number: string;
+    name: string;
+  };
+  customizations: {
+    title: string;
+    description: string;
+    logo: string;
+  };
+  callback: (response: { status: string }) => void;
+  onclose: () => void;
+}
+
+declare global {
+  interface Window {
+    FlutterwaveCheckout: (options: FlutterwaveCheckoutOptions) => void;
+  }
+}
 
 const DashboardBalance: React.FC = () => {
-  const [user, setUser] = useState<any>(null); // Firebase user state
+  const [user, setUser] = useState<User | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<
     "flutterwave" | "bitcoin" | null
   >(null);
   const [amount, setAmount] = useState<number | null>(null);
-
-  const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY;
   const [balance, setBalance] = useState<number>(0);
-  const [convertedBalance, setConvertedBalance] = useState<number | null>(null);
-  const [formattedBalance, setFormattedBalance] = useState<string>("");
+  const [userCurrency, setUserCurrency] = useState<string>("USD");
+  const [exchangeRate, setExchangeRate] = useState<number>(1);
+
+  const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "";
 
   useEffect(() => {
-    // Load the Flutterwave script
     const script = document.createElement("script");
     script.src = "https://checkout.flutterwave.com/v3.js";
     script.async = true;
@@ -36,11 +61,9 @@ const DashboardBalance: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Listen for user authentication state
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -48,7 +71,7 @@ const DashboardBalance: React.FC = () => {
     const fetchUserBalance = async () => {
       if (user) {
         try {
-          const email = user.email || "default@example.com"; // Firebase user's email
+          const email = user.email || "default@example.com";
           const q = query(
             collection(db, "userDeposits"),
             where("email", "==", email)
@@ -57,7 +80,7 @@ const DashboardBalance: React.FC = () => {
 
           if (!querySnapshot.empty) {
             const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
+            const userData = userDoc.data() as DocumentData;
             setBalance(userData.amount ?? 0);
           } else {
             setBalance(0);
@@ -70,6 +93,27 @@ const DashboardBalance: React.FC = () => {
 
     fetchUserBalance();
   }, [user]);
+
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      try {
+        const response = await fetch(
+          "https://api.exchangerate-api.com/v4/latest/USD"
+        );
+        const data = await response.json();
+        if (data && data.rates) {
+          const userLocale = Intl.DateTimeFormat().resolvedOptions().locale;
+          const currency = userLocale.split("-")[1] || "USD";
+          setUserCurrency(currency);
+          setExchangeRate(data.rates[currency] || 1);
+        }
+      } catch (error) {
+        console.error("Error fetching exchange rates:", error);
+      }
+    };
+
+    fetchExchangeRates();
+  }, []);
 
   const handleTopUp = (method: "flutterwave" | "bitcoin") => {
     setSelectedMethod(method);
@@ -86,39 +130,35 @@ const DashboardBalance: React.FC = () => {
 
   const handleFlutterwavePayment = async () => {
     if (!amount) {
-      alert("Please enter a valid amount between 5,000 and 100,000 Naira.");
+      alert("Please enter a valid amount between 1,000 and 100,000 Naira.");
       return;
     }
 
-    // Flutterwave Checkout
-    (window as any).FlutterwaveCheckout({
+    window.FlutterwaveCheckout({
       public_key: publicKey,
       tx_ref: `TX-${Date.now()}`,
       amount: amount,
       currency: "NGN",
       payment_options: "card,banktransfer",
       customer: {
-        email: user?.email || "default@example.com", // Firebase user's email
-        phone_number: user?.phoneNumber || "08012345678", // Firebase user's phone number (if available)
-        name: user?.displayName || "John Doe", // Firebase user's display name
+        email: user?.email || "default@example.com",
+        phone_number: user?.phoneNumber || "08012345678",
+        name: user?.displayName || "John Doe",
       },
       customizations: {
         title: "Top Up Balance",
         description: `Deposit ${amount} Naira to your account.`,
-        logo: "/deemax.png", // Replace with your logo URL
+        logo: "/deemax.png",
       },
-      callback: async (response: any) => {
+      callback: async (response) => {
         if (response.status === "successful") {
           alert("Payment successful!");
-          setBalance((prevBalance) => prevBalance + amount); // Update balance
-          setSelectedMethod(null); // Reset selection
+          setBalance((prevBalance) => prevBalance + amount);
 
-          // Save or update user deposit in Firestore
           try {
             const email = user?.email || "default@example.com";
             const depositCollection = collection(db, "userDeposits");
 
-            // Check if a user with the email already exists
             const userQuery = query(
               depositCollection,
               where("email", "==", email)
@@ -127,21 +167,19 @@ const DashboardBalance: React.FC = () => {
 
             if (!querySnapshot.empty) {
               const docRef = querySnapshot.docs[0].ref;
-              const existingData = querySnapshot.docs[0].data();
+              const existingData = querySnapshot.docs[0].data() as DocumentData;
               const newAmount = (existingData.amount || 0) + amount;
 
               await updateDoc(docRef, { amount: newAmount });
-              console.log("User deposit updated!");
             } else {
               await addDoc(depositCollection, {
                 email,
                 amount,
                 date: new Date().toISOString(),
               });
-              console.log("New user deposit saved!");
             }
           } catch (error) {
-            console.error("Error saving transaction: ", error);
+            console.error("Error saving transaction:", error);
           }
         } else {
           alert("Payment failed. Please try again.");
@@ -153,6 +191,8 @@ const DashboardBalance: React.FC = () => {
     });
   };
 
+  const convertedBalance = (balance * exchangeRate).toFixed(2);
+
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <h1>Dashboard</h1>
@@ -163,10 +203,10 @@ const DashboardBalance: React.FC = () => {
               balance === 0 ? "text-red-600" : "text-green-600"
             }`}
           >
-            Current Balance: ₦{balance.toLocaleString()}
+            Current Balance: {userCurrency} {convertedBalance}
           </span>
         </h2>
-        <p>Hey, {user?.displayName || "User"}! Let's make a deposit.</p>
+        <p>Hey, {user?.displayName || "User"}! Let&apos;s make a deposit.</p>
       </div>
 
       {selectedMethod ? (

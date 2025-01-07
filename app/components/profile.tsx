@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig"; // Firebase configuration
-import { updateEmail } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { updateEmail, User } from "firebase/auth";
+import { doc, getDoc, setDoc, DocumentData } from "firebase/firestore";
 
 const Profile = () => {
-  const [user, setUser] = useState<any>(null);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
 
   // Fetch user data
   useEffect(() => {
@@ -23,7 +23,7 @@ const Profile = () => {
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-          const userData = userDoc.data();
+          const userData = userDoc.data() as DocumentData;
           setFirstName(userData.firstName || "");
           setLastName(userData.lastName || "");
           setEmail(currentUser.email || "");

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Footer from "../components/footer";
 import Image from "next/image";
 
 const About = () => {

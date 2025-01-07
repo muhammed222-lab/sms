@@ -14,13 +14,23 @@ import { onAuthStateChanged } from "firebase/auth";
 import { FaClipboard } from "react-icons/fa";
 import RecentSmsOrders from "./RecentSmsOrders";
 
+interface User {
+  email: string | null;
+  displayName: string | null;
+}
+
+interface RequestedNumber {
+  request_id: string;
+  number: string;
+}
+
 const Sms = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [countries, setCountries] = useState<
     Array<{ label: string; value: string }>
   >([]);
   const [services, setServices] = useState<
-    Array<{ label: string; value: string }>
+    Array<{ label: string; value: string; price: number }>
   >([]);
   const [selectedCountry, setSelectedCountry] = useState<{
     label: string;
@@ -29,19 +39,24 @@ const Sms = () => {
   const [selectedService, setSelectedService] = useState<{
     label: string;
     value: string;
+    price: number;
   } | null>(null);
-  const [balance, setBalance] = useState(0);
-  const [requestedNumber, setRequestedNumber] = useState<any>(null);
+  const [requestedNumber, setRequestedNumber] =
+    useState<RequestedNumber | null>(null);
   const [smsCode, setSmsCode] = useState("");
   const [message, setMessage] = useState({ type: "", content: "" });
   const [isFetchingCode, setIsFetchingCode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState<number>(0);
 
   // Fetch Firebase user and balance
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        setUser(currentUser);
+        setUser({
+          email: currentUser.email || null,
+          displayName: currentUser.displayName || null,
+        });
 
         try {
           const userEmail = currentUser.email || "";
@@ -76,11 +91,9 @@ const Sms = () => {
       try {
         const countriesResponse = await fetch(`/api/countries`);
         const countriesData = await countriesResponse.json();
-        console.log("Countries Data:", countriesData);
 
         const servicesResponse = await fetch(`/api/services`);
         const servicesData = await servicesResponse.json();
-        console.log("Services Data:", servicesData);
 
         // Convert object to array and map for Select
         const parsedCountries = (
@@ -92,10 +105,15 @@ const Sms = () => {
         setCountries(parsedCountries);
 
         const parsedServices = (
-          Object.values(servicesData) as { id: string; title: string }[]
+          Object.values(servicesData) as {
+            id: string;
+            title: string;
+            price: number;
+          }[]
         ).map((s) => ({
-          label: s.title,
+          label: `${s.title} - $${(s.price * 1.05).toFixed(2)}`, // Add 5% commission
           value: s.id,
+          price: s.price * 1.05,
         }));
         setServices(parsedServices);
       } catch (error) {
@@ -121,6 +139,14 @@ const Sms = () => {
       return;
     }
 
+    if (balance < selectedService.price) {
+      setMessage({
+        type: "error",
+        content: "Insufficient balance. Please top up your account.",
+      });
+      return;
+    }
+
     try {
       const response = await fetch(
         `/api/get-number?country_id=${selectedCountry.value}&application_id=${selectedService.value}`
@@ -130,17 +156,33 @@ const Sms = () => {
       }
       const data = await response.json();
       setRequestedNumber(data);
+
+      // Deduct the price from the user's balance
+      setBalance((prevBalance) => prevBalance - selectedService.price);
+
       setMessage({
         type: "success",
         content: `Number fetched: ${data.number}`,
       });
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error requesting number:", error.message);
-      } else {
-        console.error("Error requesting number:", error);
+
+      // Update the balance in Firestore
+      if (user?.email) {
+        const q = query(
+          collection(db, "userDeposits"),
+          where("email", "==", user.email)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const userDocRef = querySnapshot.docs[0].ref;
+          await updateDoc(userDocRef, {
+            amount: balance - selectedService.price,
+          });
+        }
       }
-      setMessage({ type: "error", content: (error as Error).message });
+    } catch (error) {
+      console.error("Error requesting number:", error);
+      setMessage({ type: "error", content: "Failed to request a number." });
     }
   };
 

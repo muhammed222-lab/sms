@@ -1,7 +1,18 @@
 import React from "react";
 
-const RecentSmsOrders = () => {
-  const data: any[] = []; // Replace with your data array
+interface SmsOrder {
+  orderId: string;
+  number: string;
+  code: string;
+  country: string;
+  service: string;
+  provider: string;
+  amount: number;
+  status: string;
+}
+
+const RecentSmsOrders: React.FC = () => {
+  const data: SmsOrder[] = []; // Replace with your data array
 
   return (
     <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm mt-5">
@@ -47,7 +58,9 @@ const RecentSmsOrders = () => {
         </table>
       </div>
       <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-        <span>0 of 0 row(s) selected.</span>
+        <span>
+          {data.length} of {data.length} row(s) selected.
+        </span>
         <div className="space-x-2">
           <button className="px-4 py-2 rounded border border-gray-300 text-gray-500 bg-white hover:bg-gray-100">
             Previous

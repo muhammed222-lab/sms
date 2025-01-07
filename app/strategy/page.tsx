@@ -13,8 +13,8 @@ const StrategyPage = () => {
         </h1>
         <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
           At SmsGlobe, we provide innovative virtual verification solutions that
-          are designed to meet the security needs of the digital world. Here's
-          how our approach works to keep you safe and efficient.
+          are designed to meet the security needs of the digital world.
+          Here&apos;s how our approach works to keep you safe and efficient.
         </p>
       </div>
 
