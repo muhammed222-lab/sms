@@ -4,10 +4,6 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
     "./app/**/*.{js,ts,jsx,tsx}", // If you're using the new `app` directory (Next.js 13+)
   ],
-  env: {
-    SERVER_URL: process.env.SERVER_URL,
-    RENT_SERVER_URL: process.env.RENT_SERVER_URL,
-  },
   theme: {
     extend: {
       animation: {
