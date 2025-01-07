@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* globals.css */
+:root {
+  --font-geist-sans: "Geist Sans", sans-serif;
+  --font-geist-mono: "Geist Mono", monospace;
+
+  /* Add light theme colors */
+  --color-bg: #ffffff; /* Background color */
+  --color-text: #000000; /* Text color */
+  --color-primary: #ff0000; /* Red button color */
+}
+
+body {
+  font-family: var(--font-geist-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  padding: 0;
+  
+  /* Create a gradient overlay and set background images */
+  background: linear-gradient(
+      rgba(255, 255, 255, 0.8), 
+      rgba(255, 255, 255, 0.8)
+    ),
+    url('/bg.svg'),
+    url('/bg3.svg'),
+    url('/bg2.svg');
+  
+  background-size: cover, cover, contain; /* Ensure images cover the area appropriately */
+  background-position: center, center, center; /* Center images */
+  background-repeat: no-repeat, no-repeat, no-repeat;
+
+  margin: 0 auto;
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  
+  /* Add blur and blending effect */
+  backdrop-filter: blur(10px); /* Blur the background */
+  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+  font-size: 13px !important;
+}
+
+
