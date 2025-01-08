@@ -22,6 +22,17 @@ interface User {
   displayName: string | null;
 }
 
+interface Country {
+  id: string;
+  title: string;
+}
+
+interface Service {
+  id: string;
+  title: string;
+  price?: number;
+}
+
 interface RequestedNumber {
   request_id: string;
   number: string;
@@ -93,22 +104,22 @@ const Sms = () => {
 
     try {
       // Parse country list
-      const parsedCountries = Object.values(countryList).map(
-        (country: any) => ({
-          label: country.title,
-          value: country.id,
-        })
-      );
+      const parsedCountries = Object.values(
+        countryList as unknown as Country[]
+      ).map((country) => ({
+        label: country.title,
+        value: country.id,
+      }));
       setCountries(parsedCountries);
 
       // Parse services list
-      const parsedServices = Object.values(servicesList).map(
-        (service: any) => ({
-          label: service.title,
-          value: service.id,
-          price: service.price || 0, // Ensure default price if not available
-        })
-      );
+      const parsedServices = Object.values(
+        servicesList as unknown as Service[]
+      ).map((service) => ({
+        label: service.title,
+        value: service.id,
+        price: service.price || 0, // Ensure default price if not available
+      }));
       setServices(parsedServices);
     } catch (error) {
       console.error("Error loading local data:", error);
