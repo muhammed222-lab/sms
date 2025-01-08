@@ -14,6 +14,9 @@ import { onAuthStateChanged } from "firebase/auth";
 import { FaClipboard } from "react-icons/fa";
 import RecentSmsOrders from "./RecentSmsOrders";
 
+import countryList from "../../api/countryList.json"; // Import country list
+import servicesList from "../../api/servicesList.json"; // Import service list
+
 interface User {
   email: string | null;
   displayName: string | null;
@@ -84,50 +87,38 @@ const Sms = () => {
     return () => unsubscribe();
   }, []);
 
-  // Fetch countries and services
+  // Load countries and services from local JSON
   useEffect(() => {
-    const fetchOptions = async () => {
-      setLoading(true);
-      try {
-        const countriesResponse = await fetch(`/api/countries`);
-        const countriesData = await countriesResponse.json();
+    setLoading(true);
 
-        const servicesResponse = await fetch(`/api/services`);
-        const servicesData = await servicesResponse.json();
+    try {
+      // Parse country list
+      const parsedCountries = Object.values(countryList).map(
+        (country: any) => ({
+          label: country.title,
+          value: country.id,
+        })
+      );
+      setCountries(parsedCountries);
 
-        // Convert object to array and map for Select
-        const parsedCountries = (
-          Object.values(countriesData) as { id: string; title: string }[]
-        ).map((c) => ({
-          label: c.title,
-          value: c.id,
-        }));
-        setCountries(parsedCountries);
-
-        const parsedServices = (
-          Object.values(servicesData) as {
-            id: string;
-            title: string;
-            price: number;
-          }[]
-        ).map((s) => ({
-          label: `${s.title} - $${(s.price * 1.05).toFixed(2)}`, // Add 5% commission
-          value: s.id,
-          price: s.price * 1.05,
-        }));
-        setServices(parsedServices);
-      } catch (error) {
-        console.error("Error fetching options:", error);
-        setMessage({
-          type: "error",
-          content: "Error fetching data. Please check your connection.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOptions();
+      // Parse services list
+      const parsedServices = Object.values(servicesList).map(
+        (service: any) => ({
+          label: service.title,
+          value: service.id,
+          price: service.price || 0, // Ensure default price if not available
+        })
+      );
+      setServices(parsedServices);
+    } catch (error) {
+      console.error("Error loading local data:", error);
+      setMessage({
+        type: "error",
+        content: "Error loading local data. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const handleRequestNumber = async () => {
@@ -139,7 +130,9 @@ const Sms = () => {
       return;
     }
 
-    if (balance < selectedService.price) {
+    const servicePriceWithCommission = selectedService.price * 1.05; // Add 5% commission
+
+    if (balance < servicePriceWithCommission) {
       setMessage({
         type: "error",
         content: "Insufficient balance. Please top up your account.",
@@ -149,36 +142,38 @@ const Sms = () => {
 
     try {
       const response = await fetch(
-        `/api/limits-set-status?action=get-number&country_id=${selectedCountry.value}&application_id=${selectedService.value}`
+        `https://api.sms-man.com/control/get-number?token=${process.env.NEXT_PUBLIC_SMS_API_KEY}&country_id=${selectedCountry.value}&application_id=${selectedService.value}`
       );
-      if (!response.ok) {
-        throw new Error("Failed to request a number");
-      }
+
       const data = await response.json();
-      setRequestedNumber(data);
 
-      // Deduct the price from the user's balance
-      setBalance((prevBalance) => prevBalance - selectedService.price);
+      if (data.number) {
+        setRequestedNumber(data); // Save the request_id and number for future use
+        setMessage({
+          type: "success",
+          content: `Number fetched: ${data.number}`,
+        });
 
-      setMessage({
-        type: "success",
-        content: `Number fetched: ${data.number}`,
-      });
+        // Deduct the price from the user's balance
+        setBalance((prevBalance) => prevBalance - servicePriceWithCommission);
 
-      // Update the balance in Firestore
-      if (user?.email) {
-        const q = query(
-          collection(db, "userDeposits"),
-          where("email", "==", user.email)
-        );
-        const querySnapshot = await getDocs(q);
+        // Update the balance in Firestore
+        if (user?.email) {
+          const q = query(
+            collection(db, "userDeposits"),
+            where("email", "==", user.email)
+          );
+          const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.empty) {
-          const userDocRef = querySnapshot.docs[0].ref;
-          await updateDoc(userDocRef, {
-            amount: balance - selectedService.price,
-          });
+          if (!querySnapshot.empty) {
+            const userDocRef = querySnapshot.docs[0].ref;
+            await updateDoc(userDocRef, {
+              amount: balance - servicePriceWithCommission,
+            });
+          }
         }
+      } else {
+        throw new Error(data.error_msg || "Failed to fetch number.");
       }
     } catch (error) {
       console.error("Error requesting number:", error);
@@ -196,15 +191,17 @@ const Sms = () => {
 
     try {
       const response = await fetch(
-        `/api/get-sms?request_id=${requestedNumber.request_id}`
+        `https://api.sms-man.com/control/get-sms?token=${process.env.NEXT_PUBLIC_SMS_API_KEY}&request_id=${requestedNumber.request_id}`
       );
       const data = await response.json();
 
-      if (data.error_msg === "Still waiting...") {
-        setMessage({ type: "info", content: "Still waiting for SMS..." });
-      } else if (data.sms_code) {
+      if (data.sms_code) {
         setSmsCode(data.sms_code);
         setMessage({ type: "success", content: "SMS code received." });
+      } else if (data.error_code === "wait_sms") {
+        setMessage({ type: "info", content: "Still waiting for SMS..." });
+      } else {
+        throw new Error(data.error_msg || "Failed to fetch SMS.");
       }
     } catch (error) {
       console.error("Error fetching SMS code:", error);

@@ -6,10 +6,11 @@ import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
+import { useRouter } from "next/navigation";
 
 const Header = () => {
-  // const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -112,6 +113,15 @@ const Header = () => {
       document.body.style.overflow = "";
     };
   }, [isMenuOpen]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push("/signin"); // Redirect to sign-in page after sign-out
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b py-3 px-4">
@@ -230,7 +240,7 @@ const Header = () => {
                     </li>
                     <li>
                       <button
-                        onClick={() => signOut(auth)}
+                        onClick={handleSignOut}
                         className="bg-red-500 text-white w-full py-2 rounded hover:bg-red-600"
                       >
                         Sign Out
@@ -305,7 +315,7 @@ const Header = () => {
                 Balance: {formattedBalance || "Loading..."}
               </span>
               <button
-                onClick={() => signOut(auth)}
+                onClick={handleSignOut}
                 className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
               >
                 Sign Out

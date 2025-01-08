@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         });
         data = limitsData.limits.map((limit) => ({
           id: limit.country_id,
-          name_en: `Country ${limit.country_id}`, // Placeholder name
+          name_en: `Country ${limit.country_id}`, // Replace with actual country names if available
           count: limit.count,
           cost: limit.cost,
         }));
@@ -74,8 +74,14 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Invalid action parameter" });
     }
 
+    // Validate if the data is returned correctly
+    if (!data) {
+      return res.status(404).json({ error: "Data not found." });
+    }
+
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(`Error in rent-handler: ${error.message}`);
+    res.status(500).json({ error: "Internal server error" });
   }
 }

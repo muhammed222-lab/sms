@@ -28,33 +28,26 @@ const RentNumbers: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
 
-  const countryMapping: { [key: string]: { name: string; flagCode: string } } =
-    {
-      "12": { name: "Estonia", flagCode: "ee" },
-      "100": { name: "Czechia", flagCode: "cz" },
-      "103": { name: "Sweden", flagCode: "se" },
-      "107": { name: "Netherlands", flagCode: "nl" },
-      "115": { name: "Portugal", flagCode: "pt" },
-      "123": { name: "Laos", flagCode: "la" },
-      "126": { name: "Thailand", flagCode: "th" },
-      "128": { name: "Germany", flagCode: "de" },
-      "132": { name: "Poland", flagCode: "pl" },
-      "141": { name: "Lithuania", flagCode: "lt" },
-      "152": { name: "Latvia", flagCode: "lv" },
-      "263": { name: "South Africa", flagCode: "za" },
-      "41": { name: "Nigeria", flagCode: "ng" },
-      "24": { name: "United Kingdom", flagCode: "gb" },
-      "14": { name: "Uganda", flagCode: "ug" },
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/rent-handler?action=get-countries`
+        );
+        if (!response.ok) throw new Error("Failed to fetch countries");
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+        setMessage("Failed to load countries. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-  useEffect(() => {
-    const mappedCountries = Object.keys(countryMapping).map((id) => ({
-      id,
-      name_en: countryMapping[id].name,
-      country_code: countryMapping[id].flagCode,
-    }));
-    setCountries(mappedCountries);
-  }, [countryMapping]);
+    fetchCountries();
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     if (!selectedCountry) return;
@@ -75,7 +68,6 @@ const RentNumbers: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching rental data:", error);
-        setRentalData([]);
         setMessage("Failed to load rental data. Please try again later.");
       } finally {
         setLoading(false);
