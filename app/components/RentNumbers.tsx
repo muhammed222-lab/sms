@@ -63,7 +63,7 @@ const RentNumbers: React.FC = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `${API_BASE_URL}/status-handler?action=get-limit&country_id=${selectedCountry}&type=${duration}&time=${hours}`
+          `${API_BASE_URL}/rent-handler?action=get-limits&country_id=${selectedCountry}&type=${duration}&time=${hours}`
         );
         if (!response.ok) throw new Error("Failed to fetch rental data.");
         const data = await response.json();
@@ -93,7 +93,7 @@ const RentNumbers: React.FC = () => {
     setMessage("");
     try {
       const response = await fetch(
-        `${API_BASE_URL}/status-handler?action=set-status&country_id=${countryId}&type=${duration}&time=${hours}`
+        `${API_BASE_URL}/rent-handler?action=get-number&country_id=${countryId}&type=${duration}&time=${hours}`
       );
       const data = await response.json();
       if (data.error) {
