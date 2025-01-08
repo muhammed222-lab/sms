@@ -149,7 +149,7 @@ const Sms = () => {
 
     try {
       const response = await fetch(
-        `/api/get-number?country_id=${selectedCountry.value}&application_id=${selectedService.value}`
+        `/api/limits-set-status?action=get-number&country_id=${selectedCountry.value}&application_id=${selectedService.value}`
       );
       if (!response.ok) {
         throw new Error("Failed to request a number");
