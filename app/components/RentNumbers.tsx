@@ -1,9 +1,30 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import RecentSmsOrders from "./RecentSmsOrders";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+
+const countryMap: { [key: string]: string } = {
+  12: "United States",
+  100: "United Kingdom",
+  103: "Canada",
+  106: "Nigeria",
+  107: "India",
+  115: "Germany",
+  123: "France",
+  126: "South Africa",
+  128: "Australia",
+  132: "Brazil",
+  135: "China",
+  141: "Japan",
+  152: "Russia",
+  263: "Mexico",
+};
+
+const currencyOptions = ["NGN", "USD", "EUR", "GBP", "CAD"];
 
 interface Country {
-  name_en: string;
   id: string;
+  name_en: string;
   country_code: string;
 }
 
@@ -13,31 +34,65 @@ interface RentalData {
   cost: string;
 }
 
+interface LimitItem {
+  country_id: string;
+  count: string;
+  cost: string;
+}
+
 const RentNumbers: React.FC = () => {
   const API_BASE_URL =
     process.env.NODE_ENV === "development"
-      ? "http://localhost:4001/api"
+      ? "http://localhost:3000/api"
       : "/api";
 
+  const RENT_API_KEY = process.env.NEXT_PUBLIC_RENT_API_KEY;
+
   const [countries, setCountries] = useState<Country[]>([]);
-  const [searchCountry, setSearchCountry] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [duration, setDuration] = useState<string>("hour");
-  const [hours, setHours] = useState<number>(1);
+  const [time, setTime] = useState<number>(1);
   const [rentalData, setRentalData] = useState<RentalData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
+
+  const [currency, setCurrency] = useState<string>("NGN");
+  const [exchangeRates] = useState<{ [key: string]: number }>({
+    NGN: 1,
+    USD: 0.0013,
+    EUR: 0.0012,
+    GBP: 0.0011,
+    CAD: 0.0018,
+  });
+
+  const convertPrice = (priceInNaira: number): string => {
+    const rate = exchangeRates[currency] || 1;
+    const convertedPrice = priceInNaira * rate;
+    return `${convertedPrice.toFixed(2)} ${currency}`;
+  };
 
   useEffect(() => {
     const fetchCountries = async () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `${API_BASE_URL}/rent-handler?action=get-countries`
+          `${API_BASE_URL}/proxy-rent?action=limits&token=${RENT_API_KEY}&type=${duration}&time=${time}`
         );
         if (!response.ok) throw new Error("Failed to fetch countries");
         const data = await response.json();
-        setCountries(data);
+
+        if (data.limits && Array.isArray(data.limits)) {
+          const mappedCountries = data.limits.map((item: LimitItem) => ({
+            id: item.country_id,
+            name_en:
+              countryMap[item.country_id] || `Country ID ${item.country_id}`,
+            country_code: "unknown",
+          }));
+          setCountries(mappedCountries);
+        } else {
+          setCountries([]);
+          setMessage("No countries available.");
+        }
       } catch (error) {
         console.error("Error fetching countries:", error);
         setMessage("Failed to load countries. Please try again later.");
@@ -47,7 +102,7 @@ const RentNumbers: React.FC = () => {
     };
 
     fetchCountries();
-  }, [API_BASE_URL]);
+  }, [API_BASE_URL, duration, time, RENT_API_KEY]);
 
   useEffect(() => {
     if (!selectedCountry) return;
@@ -56,12 +111,13 @@ const RentNumbers: React.FC = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `${API_BASE_URL}/rent-handler?action=get-limits&country_id=${selectedCountry}&type=${duration}&time=${hours}`
+          `${API_BASE_URL}/proxy-rent?action=limits&token=${RENT_API_KEY}&country_id=${selectedCountry}&type=${duration}&time=${time}`
         );
-        if (!response.ok) throw new Error("Failed to fetch rental data.");
+        if (!response.ok) throw new Error("Failed to fetch rental data");
         const data = await response.json();
-        if (Array.isArray(data)) {
-          setRentalData(data);
+
+        if (data.limits && Array.isArray(data.limits)) {
+          setRentalData(data.limits);
         } else {
           setRentalData([]);
           setMessage("No rental options available.");
@@ -75,21 +131,22 @@ const RentNumbers: React.FC = () => {
     };
 
     fetchRentalData();
-  }, [selectedCountry, duration, hours, API_BASE_URL]);
-
-  const handleIncreaseHours = () => setHours((prev) => prev + 1);
-  const handleDecreaseHours = () =>
-    setHours((prev) => (prev > 1 ? prev - 1 : 1));
+  }, [selectedCountry, duration, time, API_BASE_URL, RENT_API_KEY]);
 
   const handleRentClick = async (countryId: string) => {
     setMessage("");
     try {
+      setLoading(true);
       const response = await fetch(
-        `${API_BASE_URL}/rent-handler?action=get-number&country_id=${countryId}&type=${duration}&time=${hours}`
+        `${API_BASE_URL}/proxy-rent?action=get-number&token=${RENT_API_KEY}&country_id=${countryId}&type=${duration}&time=${time}`
       );
       const data = await response.json();
       if (data.error) {
-        setMessage("Sorry, we will get back to you.");
+        setMessage(
+          data.error.includes("balance")
+            ? "Service temporarily unavailable due to insufficient funds on our end."
+            : "Failed to rent a number. Please try again."
+        );
       } else if (data.request_id) {
         setMessage(`Number rented successfully: ${data.number}`);
       } else {
@@ -98,80 +155,70 @@ const RentNumbers: React.FC = () => {
     } catch (error) {
       console.error("Error renting number:", error);
       setMessage("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col p-6 rounded-lg bg-gray-100 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-center">Rent New Number</h1>
+    <div className="flex flex-col max-w-6xl mx-auto p-6 bg-gray-100 rounded-lg">
+      <h1 className="text-2xl font-bold text-center mb-6">Rent New Number</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white shadow p-4 rounded-lg">
-          <h2 className="text-lg font-bold mb-4">1. Select Your Country</h2>
-          <input
-            type="text"
-            className="border px-4 py-2 mb-4 w-full rounded"
-            placeholder="Search by country"
-            value={searchCountry}
-            onChange={(e) => setSearchCountry(e.target.value)}
-          />
+        {/* Country Selection */}
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="font-bold text-lg mb-4">1. Select Your Country</h2>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {countries
-              .filter((country) =>
-                country.name_en
-                  .toLowerCase()
-                  .includes(searchCountry.toLowerCase())
-              )
-              .map((country) => (
-                <div
+            {countries.length ? (
+              countries.map((country) => (
+                <button
                   key={country.id}
-                  className={`p-2 rounded cursor-pointer flex items-center gap-2 ${
+                  className={`block w-full text-left p-2 rounded ${
                     selectedCountry === country.id
                       ? "bg-blue-100"
-                      : "bg-gray-50 hover:bg-gray-200"
+                      : "hover:bg-gray-200"
                   }`}
                   onClick={() => setSelectedCountry(country.id)}
                 >
-                  <img
-                    src={`https://flagcdn.com/w40/${country.country_code}.png`}
-                    alt={country.name_en}
-                    className="w-6 h-4"
-                  />
-                  <span>{country.name_en}</span>
-                </div>
-              ))}
+                  {country.name_en}
+                </button>
+              ))
+            ) : (
+              <p className="text-gray-500">No countries available.</p>
+            )}
           </div>
         </div>
 
-        <div className="bg-white shadow p-4 rounded-lg">
-          <h2 className="text-lg font-bold mb-4">2. Set Rent Duration</h2>
+        {/* Duration Selection */}
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="font-bold text-lg mb-4">2. Set Rent Duration</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
             {["hour", "day", "week", "month"].map((type) => (
               <button
                 key={type}
-                className={`p-2 rounded border ${
+                className={`w-full p-2 rounded ${
                   duration === type
-                    ? "bg-blue-100 border-blue-500"
+                    ? "bg-blue-100 border border-blue-500"
                     : "bg-gray-50 hover:bg-gray-200"
                 }`}
                 onClick={() => setDuration(type)}
               >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
+                {type}
               </button>
             ))}
           </div>
           {duration === "hour" && (
             <div className="flex items-center justify-center">
               <button
-                className="px-4 py-2 bg-gray-200"
-                onClick={handleDecreaseHours}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300"
+                onClick={() => setTime((prev) => Math.max(1, prev - 1))}
               >
                 -
               </button>
-              <span className="px-6 py-2">{hours}</span>
+              <span className="px-6 py-2">{time}</span>
               <button
-                className="px-4 py-2 bg-gray-200"
-                onClick={handleIncreaseHours}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300"
+                onClick={() => setTime((prev) => prev + 1)}
               >
                 +
               </button>
@@ -179,35 +226,54 @@ const RentNumbers: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-white shadow p-4 rounded-lg">
-          <h2 className="text-lg font-bold mb-4">3. Rent a Number</h2>
+        {/* Rent a Number */}
+        <div className="bg-white shadow rounded-lg p-4">
+          <h2 className="font-bold text-lg mb-4">3. Rent a Number</h2>
           {loading ? (
-            <p>Loading rental options...</p>
-          ) : rentalData.length > 0 ? (
-            <div className="space-y-2">
-              {rentalData.map((option) => (
-                <div
-                  key={option.country_id}
-                  className="p-2 rounded border bg-gray-50 flex justify-between items-center"
-                >
-                  <span>{`Numbers: ${option.count}, Cost: ${option.cost}`}</span>
-                  <button
-                    className="px-4 py-2 bg-blue-500 text-white rounded"
-                    onClick={() => handleRentClick(option.country_id)}
-                  >
-                    Rent
-                  </button>
-                </div>
-              ))}
+            <div className="flex items-center justify-center">
+              <AiOutlineLoading3Quarters className="animate-spin text-2xl" />
             </div>
+          ) : rentalData.length ? (
+            rentalData.map((option) => (
+              <div
+                key={option.country_id}
+                className="p-2 flex justify-between items-center border-b"
+              >
+                <span>{`Numbers: ${option.count}, Cost: ${convertPrice(
+                  parseFloat(option.cost) * 1.05
+                )}`}</span>
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  onClick={() => handleRentClick(option.country_id)}
+                >
+                  Rent
+                </button>
+              </div>
+            ))
           ) : (
             <p className="text-gray-500">No rental options available.</p>
           )}
         </div>
       </div>
 
-      {message && <p className="mt-4 text-center text-red-500">{message}</p>}
-      <RecentSmsOrders />
+      <div className="mt-6">
+        <h3 className="font-bold">Select Currency:</h3>
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="border p-2 rounded"
+        >
+          {currencyOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {message && (
+        <div className="mt-4 text-center text-red-500">{message}</div>
+      )}
     </div>
   );
 };

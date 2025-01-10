@@ -13,17 +13,17 @@ const Header = () => {
   const router = useRouter();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedCountry, setSelectedCountry] = useState<string>("Unknown");
   const [currency, setCurrency] = useState<string>("NGN");
   const [flag, setFlag] = useState<string>("");
   const [balance, setBalance] = useState<number>(0);
-  const [formattedBalance, setFormattedBalance] = useState<string>("");
+  const [convertedBalance, setConvertedBalance] = useState<string>("0.00");
 
   const [user, setUser] = useState<User | null>(null); // Firebase user state
   const [isLoadingFlag, setIsLoadingFlag] = useState(true); // Track flag loading
   const [isLoadingImage, setIsLoadingImage] = useState(true); // Track image loading
 
-  // Fetch user location and flag
+  // Fetch user location, currency, and flag
   useEffect(() => {
     const fetchUserLocation = async () => {
       try {
@@ -81,18 +81,33 @@ const Header = () => {
     }
   };
 
+  // Fetch exchange rates and convert balance
   useEffect(() => {
-    const formatBalance = () => {
-      setFormattedBalance(
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: currency || "NGN",
-        }).format(balance)
-      );
+    const convertBalance = async () => {
+      try {
+        const response = await fetch(
+          "https://api.exchangerate-api.com/v4/latest/NGN"
+        );
+        const data = await response.json();
+        const conversionRate = data.rates[currency] || 1;
+        const converted = (balance * conversionRate).toFixed(2);
+
+        setConvertedBalance(
+          new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency,
+          }).format(parseFloat(converted))
+        );
+      } catch (error) {
+        console.error("Error converting balance:", error);
+        setConvertedBalance("0.00");
+      }
     };
 
-    formatBalance();
-  }, [currency, balance]);
+    if (currency) {
+      convertBalance();
+    }
+  }, [balance, currency]);
 
   const handleClickOutside = (event: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -139,7 +154,7 @@ const Header = () => {
                 balance === 0 ? "text-red-600" : "text-green-600"
               }`}
             >
-              Balance: {formattedBalance || "Loading..."}
+              Balance: {convertedBalance || "Loading..."}
             </span>
           )}
 
@@ -312,7 +327,7 @@ const Header = () => {
                   balance === 0 ? "text-red-600" : "text-green-600"
                 }`}
               >
-                Balance: {formattedBalance || "Loading..."}
+                Balance: {convertedBalance || "Loading..."}
               </span>
               <button
                 onClick={handleSignOut}

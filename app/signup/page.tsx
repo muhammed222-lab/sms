@@ -9,7 +9,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import Image from "next/image";
@@ -64,12 +64,20 @@ const SignUp = () => {
 
       await sendEmailVerification(userCredential.user);
 
+      // Add user to 'users' collection
       await setDoc(doc(db, "users", userCredential.user.uid), {
         first_name: firstName,
         email,
         currency: "ngn",
         date: new Date().toISOString(),
         verified: false,
+      });
+
+      // Add user to 'userDeposits' collection
+      await addDoc(collection(db, "userDeposits"), {
+        email,
+        amount: 0.0, // Default amount
+        date: new Date().toISOString(),
       });
 
       alert(
@@ -107,12 +115,20 @@ const SignUp = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
+      // Add user to 'users' collection
       await setDoc(doc(db, "users", user.uid), {
         first_name: user.displayName,
         email: user.email,
         currency: "ngn",
         date: new Date().toISOString(),
         verified: user.emailVerified,
+      });
+
+      // Add user to 'userDeposits' collection
+      await addDoc(collection(db, "userDeposits"), {
+        email: user.email,
+        amount: 0.0, // Default amount
+        date: new Date().toISOString(),
       });
 
       router.push("/dashboard");

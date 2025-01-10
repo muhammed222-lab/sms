@@ -45,8 +45,6 @@ const DashboardBalance: React.FC = () => {
   >(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [balance, setBalance] = useState<number>(0);
-  const [userCurrency, setUserCurrency] = useState<string>("USD");
-  const [exchangeRate, setExchangeRate] = useState<number>(1);
 
   const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "";
 
@@ -94,27 +92,6 @@ const DashboardBalance: React.FC = () => {
     fetchUserBalance();
   }, [user]);
 
-  useEffect(() => {
-    const fetchExchangeRates = async () => {
-      try {
-        const response = await fetch(
-          "https://api.exchangerate-api.com/v4/latest/USD"
-        );
-        const data = await response.json();
-        if (data && data.rates) {
-          const userLocale = Intl.DateTimeFormat().resolvedOptions().locale;
-          const currency = userLocale.split("-")[1] || "USD";
-          setUserCurrency(currency);
-          setExchangeRate(data.rates[currency] || 1);
-        }
-      } catch (error) {
-        console.error("Error fetching exchange rates:", error);
-      }
-    };
-
-    fetchExchangeRates();
-  }, []);
-
   const handleTopUp = (method: "flutterwave" | "bitcoin") => {
     setSelectedMethod(method);
   };
@@ -153,7 +130,6 @@ const DashboardBalance: React.FC = () => {
       callback: async (response) => {
         if (response.status === "successful") {
           alert("Payment successful!");
-          setBalance((prevBalance) => prevBalance + amount);
 
           try {
             const email = user?.email || "default@example.com";
@@ -166,20 +142,24 @@ const DashboardBalance: React.FC = () => {
             const querySnapshot = await getDocs(userQuery);
 
             if (!querySnapshot.empty) {
+              // Update the existing document
               const docRef = querySnapshot.docs[0].ref;
               const existingData = querySnapshot.docs[0].data() as DocumentData;
               const newAmount = (existingData.amount || 0) + amount;
 
               await updateDoc(docRef, { amount: newAmount });
             } else {
+              // Create a new document if not found
               await addDoc(depositCollection, {
                 email,
                 amount,
                 date: new Date().toISOString(),
               });
             }
+
+            setBalance((prevBalance) => prevBalance + amount); // Update UI balance
           } catch (error) {
-            console.error("Error saving transaction:", error);
+            console.error("Error updating balance:", error);
           }
         } else {
           alert("Payment failed. Please try again.");
@@ -191,20 +171,12 @@ const DashboardBalance: React.FC = () => {
     });
   };
 
-  const convertedBalance = (balance * exchangeRate).toFixed(2);
-
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <h1>Dashboard</h1>
       <div style={{ marginBottom: "20px" }}>
         <h2>
-          <span
-            className={`text-sm ${
-              balance === 0 ? "text-red-600" : "text-green-600"
-            }`}
-          >
-            Current Balance: {userCurrency} {convertedBalance}
-          </span>
+          Current Balance: <strong>{balance} NGN</strong>
         </h2>
         <p>Hey, {user?.displayName || "User"}! Let&apos;s make a deposit.</p>
       </div>

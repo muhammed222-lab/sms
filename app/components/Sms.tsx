@@ -17,20 +17,27 @@ import RecentSmsOrders from "./RecentSmsOrders";
 import countryList from "../../api/countryList.json"; // Import country list
 import servicesList from "../../api/servicesList.json"; // Import service list
 
+// Define proper interfaces for Country and Service
 interface User {
   email: string | null;
   displayName: string | null;
 }
 
 interface Country {
-  id: string;
   title: string;
+  id: string;
 }
 
 interface Service {
-  id: string;
   title: string;
+  id: string;
+  code: string;
   price?: number;
+}
+
+interface SelectOption {
+  label: string;
+  value: string;
 }
 
 interface RequestedNumber {
@@ -40,21 +47,16 @@ interface RequestedNumber {
 
 const Sms = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [countries, setCountries] = useState<
-    Array<{ label: string; value: string }>
-  >([]);
+  const [countries, setCountries] = useState<SelectOption[]>([]);
   const [services, setServices] = useState<
-    Array<{ label: string; value: string; price: number }>
+    Array<SelectOption & { price: number }>
   >([]);
-  const [selectedCountry, setSelectedCountry] = useState<{
-    label: string;
-    value: string;
-  } | null>(null);
-  const [selectedService, setSelectedService] = useState<{
-    label: string;
-    value: string;
-    price: number;
-  } | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(
+    null
+  );
+  const [selectedService, setSelectedService] = useState<
+    SelectOption & { price: number }
+  >();
   const [requestedNumber, setRequestedNumber] =
     useState<RequestedNumber | null>(null);
   const [smsCode, setSmsCode] = useState("");
@@ -103,23 +105,21 @@ const Sms = () => {
     setLoading(true);
 
     try {
-      // Parse country list
-      const parsedCountries = Object.values(
-        countryList as unknown as Country[]
-      ).map((country) => ({
-        label: country.title,
-        value: country.id,
-      }));
+      const parsedCountries = Object.values(countryList).map(
+        (country: Country) => ({
+          label: country.title,
+          value: country.id,
+        })
+      );
       setCountries(parsedCountries);
 
-      // Parse services list
-      const parsedServices = Object.values(
-        servicesList as unknown as Service[]
-      ).map((service) => ({
-        label: service.title,
-        value: service.id,
-        price: service.price || 0, // Ensure default price if not available
-      }));
+      const parsedServices = Object.values(servicesList).map(
+        (service: Service) => ({
+          label: service.title,
+          value: service.id,
+          price: service.price || 0,
+        })
+      );
       setServices(parsedServices);
     } catch (error) {
       console.error("Error loading local data:", error);
@@ -141,7 +141,7 @@ const Sms = () => {
       return;
     }
 
-    const servicePriceWithCommission = selectedService.price * 1.05; // Add 5% commission
+    const servicePriceWithCommission = selectedService.price * 1.05;
 
     if (balance < servicePriceWithCommission) {
       setMessage({
@@ -151,24 +151,35 @@ const Sms = () => {
       return;
     }
 
+    setLoading(true);
+    setMessage({ type: "", content: "" });
+
     try {
       const response = await fetch(
-        `https://api.sms-man.com/control/get-number?token=${process.env.NEXT_PUBLIC_SMS_API_KEY}&country_id=${selectedCountry.value}&application_id=${selectedService.value}`
+        `/api/proxy-sms?action=get-number&country_id=${selectedCountry.value}&application_id=${selectedService.value}`
       );
 
       const data = await response.json();
 
+      if (data.error_code === "balance") {
+        setMessage({
+          type: "error",
+          content:
+            "Service is temporarily unavailable due to insufficient funds on our end. We apologize for the inconvenience.",
+        });
+        return;
+      }
+
       if (data.number) {
-        setRequestedNumber(data); // Save the request_id and number for future use
+        setRequestedNumber(data);
         setMessage({
           type: "success",
-          content: `Number fetched: ${data.number}`,
+          content: `Number fetched successfully: ${data.number}`,
         });
 
-        // Deduct the price from the user's balance
-        setBalance((prevBalance) => prevBalance - servicePriceWithCommission);
+        const newBalance = balance - servicePriceWithCommission;
+        setBalance(newBalance);
 
-        // Update the balance in Firestore
         if (user?.email) {
           const q = query(
             collection(db, "userDeposits"),
@@ -178,17 +189,20 @@ const Sms = () => {
 
           if (!querySnapshot.empty) {
             const userDocRef = querySnapshot.docs[0].ref;
-            await updateDoc(userDocRef, {
-              amount: balance - servicePriceWithCommission,
-            });
+            await updateDoc(userDocRef, { amount: newBalance });
           }
         }
       } else {
-        throw new Error(data.error_msg || "Failed to fetch number.");
+        throw new Error("Failed to fetch number.");
       }
     } catch (error) {
       console.error("Error requesting number:", error);
-      setMessage({ type: "error", content: "Failed to request a number." });
+      setMessage({
+        type: "error",
+        content: "Failed to request a number. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -202,7 +216,7 @@ const Sms = () => {
 
     try {
       const response = await fetch(
-        `https://api.sms-man.com/control/get-sms?token=${process.env.NEXT_PUBLIC_SMS_API_KEY}&request_id=${requestedNumber.request_id}`
+        `/api/proxy-sms?action=get-sms&request_id=${requestedNumber.request_id}`
       );
       const data = await response.json();
 
@@ -210,9 +224,12 @@ const Sms = () => {
         setSmsCode(data.sms_code);
         setMessage({ type: "success", content: "SMS code received." });
       } else if (data.error_code === "wait_sms") {
-        setMessage({ type: "info", content: "Still waiting for SMS..." });
+        setMessage({
+          type: "info",
+          content: "Waiting for SMS. Please check back shortly.",
+        });
       } else {
-        throw new Error(data.error_msg || "Failed to fetch SMS.");
+        throw new Error(data.error || "Failed to fetch SMS.");
       }
     } catch (error) {
       console.error("Error fetching SMS code:", error);
@@ -259,7 +276,9 @@ const Sms = () => {
         <Select
           options={services}
           value={selectedService}
-          onChange={setSelectedService}
+          onChange={(option) =>
+            setSelectedService(option as (typeof services)[0])
+          }
           placeholder="Search by service..."
           isLoading={loading}
         />
@@ -267,10 +286,12 @@ const Sms = () => {
 
       <button
         onClick={handleRequestNumber}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        className={`bg-blue-500 text-white px-4 py-2 rounded ${
+          loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+        }`}
         disabled={loading}
       >
-        Get Number
+        {loading ? "Processing..." : "Get Number"}
       </button>
 
       {requestedNumber && (
