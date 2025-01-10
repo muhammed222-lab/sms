@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const rentApiKey = process.env.NEXT_PUBLIC_RENT_API_KEY;
+  const rentApiKey = "dV7cFg6-45PTQ2lanH6hEjNe5IjX1dEm";
   if (!rentApiKey) {
     return NextResponse.json(
       { error: "Rent API Key is missing." },
