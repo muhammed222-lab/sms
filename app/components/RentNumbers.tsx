@@ -47,6 +47,7 @@ const RentNumbers: React.FC = () => {
       : "/api";
 
   const RENT_API_KEY = process.env.NEXT_PUBLIC_RENT_API_KEY;
+  const EXCHANGE_API_URL = "https://api.exchangerate-api.com/v4/latest/NGN";
 
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
@@ -57,13 +58,25 @@ const RentNumbers: React.FC = () => {
   const [message, setMessage] = useState<string>("");
 
   const [currency, setCurrency] = useState<string>("NGN");
-  const [exchangeRates] = useState<{ [key: string]: number }>({
-    NGN: 1,
-    USD: 0.0013,
-    EUR: 0.0012,
-    GBP: 0.0011,
-    CAD: 0.0018,
-  });
+  const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>(
+    {}
+  );
+
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      try {
+        const response = await fetch(EXCHANGE_API_URL);
+        if (!response.ok) throw new Error("Failed to fetch exchange rates.");
+        const data = await response.json();
+        setExchangeRates(data.rates);
+      } catch (error) {
+        console.error("Error fetching exchange rates:", error);
+        setMessage("Failed to load exchange rates. Using default values.");
+      }
+    };
+
+    fetchExchangeRates();
+  }, []);
 
   const convertPrice = (priceInNaira: number): string => {
     const rate = exchangeRates[currency] || 1;
@@ -164,6 +177,21 @@ const RentNumbers: React.FC = () => {
     <div className="flex flex-col max-w-6xl mx-auto p-6 bg-gray-100 rounded-lg">
       <h1 className="text-2xl font-bold text-center mb-6">Rent New Number</h1>
 
+      <div className="mb-4">
+        <h3 className="font-bold">Select Currency:</h3>
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="border p-2 rounded"
+        >
+          {currencyOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Country Selection */}
         <div className="bg-white shadow rounded-lg p-4">
@@ -254,21 +282,6 @@ const RentNumbers: React.FC = () => {
             <p className="text-gray-500">No rental options available.</p>
           )}
         </div>
-      </div>
-
-      <div className="mt-6">
-        <h3 className="font-bold">Select Currency:</h3>
-        <select
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          className="border p-2 rounded"
-        >
-          {currencyOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
       </div>
 
       {message && (

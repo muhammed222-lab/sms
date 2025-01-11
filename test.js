@@ -1,26 +1,23 @@
-const saveUserToDb = async () => {
-  try {
-    const response = await fetch("/api/saveUser", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        balance: 0, // Default balance
-        generatedNumber: "", // Default generated number
-      }),
-    });
+import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
-    if (response.ok) {
-      console.log("User saved to the database.");
-    } else {
-      const data = await response.json();
-      console.error("Error saving user data:", data.message);
+const addReferralCodeField = async () => {
+  const usersCollectionRef = collection(db, "users");
+  const usersSnapshot = await getDocs(usersCollectionRef);
+
+  usersSnapshot.forEach(async (userDoc) => {
+    const userData = userDoc.data();
+
+    if (!userData.referral_code) {
+      const userDocRef = doc(db, "users", userDoc.id);
+      await updateDoc(userDocRef, {
+        referral_code: "", // Empty field
+      });
+      console.log(`Added referral_code field to user ${userDoc.id}`);
     }
-  } catch (error) {
-    console.error("Error saving user data to DB:", error);
-  }
+  });
 };
+
+addReferralCodeField()
+  .then(() => console.log("Finished updating users"))
+  .catch((error) => console.error("Error updating users:", error));

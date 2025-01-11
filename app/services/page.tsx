@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-
+import Header from "../components/header";
 const Services = () => {
   const services = [
     {
@@ -43,31 +43,36 @@ const Services = () => {
   ];
 
   return (
-    <section className="b py-12 px-4 w-[80%] m-auto">
-      <div className="max-w-7xl mx-auto text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-6">Our Services</h1>
-        <p className="text-lg text-gray-600 mb-12">
-          SmsGlobe provides virtual verification solutions designed to ensure
-          privacy, security, and convenience. Explore our core services below:
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg border p-6 transition-transform transform hover:scale-105"
-            >
-              <div className="flex items-center justify-center h-16 w-16 bg-green-100 text-green-600 rounded-full mb-4 mx-auto">
-                <i className={service.icon + " text-3xl"}></i>
+    <>
+      <Header />
+      <section className="b py-12 px-4 w-[80%] m-auto">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-4xl font-bold text-gray-800 mb-6">
+            Our Services
+          </h1>
+          <p className="text-lg text-gray-600 mb-12">
+            SmsGlobe provides virtual verification solutions designed to ensure
+            privacy, security, and convenience. Explore our core services below:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.map((service, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg border p-6 transition-transform transform hover:scale-105"
+              >
+                <div className="flex items-center justify-center h-16 w-16 bg-green-100 text-green-600 rounded-full mb-4 mx-auto">
+                  <i className={service.icon + " text-3xl"}></i>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-3">
+                  {service.title}
+                </h2>
+                <p className="text-gray-600">{service.description}</p>
               </div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-3">
-                {service.title}
-              </h2>
-              <p className="text-gray-600">{service.description}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 

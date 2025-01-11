@@ -18,6 +18,7 @@ import Feedback from "../components/Feedback";
 import Profile from "../components/profile";
 import Tutor from "../components/Tutor";
 import Sms from "../components/Sms";
+import Header from "../components/header";
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -57,58 +58,63 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Sidebar (Responsive as Tabs on Mobile) */}
-      <nav
-        className={`bg-gray-800 text-white transition-all duration-300 ${
-          isSidebarOpen ? "block" : "hidden lg:flex"
-        } flex-col lg:flex-row lg:w-64 w-full lg:relative`}
-      >
-        <div className="lg:hidden flex justify-between items-center p-2">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="text-white flex items-center gap-2"
-          >
-            <FaBars />
-            <span>Menu</span>
-          </button>
-        </div>
-        <div
-          className={`flex flex-col lg:flex-col lg:space-y-2 space-y-2 lg:space-x-0 p-4 w-full`}
+    <>
+      <Header />
+      <div className="min-h-screen flex flex-col lg:flex-row">
+        {/* Sidebar (Responsive as Tabs on Mobile) */}
+        <nav
+          className={`bg-gray-800 text-white transition-all duration-300 ${
+            isSidebarOpen ? "block" : "hidden lg:flex"
+          } flex-col lg:flex-row lg:w-64 w-full lg:relative`}
         >
-          {sidebarLinks.map((link) => (
+          <div className="lg:hidden flex justify-between items-center p-2">
             <button
-              key={link.id}
-              onClick={() => setActivePage(link.label)}
-              className={`flex items-center gap-2 lg:w-full px-4 py-2 rounded transition ${
-                activePage === link.label ? "bg-gray-700" : "hover:bg-gray-700"
-              }`}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="text-white flex items-center gap-2"
             >
-              {link.icon}
-              <span className="block lg:inline">{link.label}</span>
+              <FaBars />
+              <span>Menu</span>
             </button>
-          ))}
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main
-        className={`flex-1 p-4 transition-all duration-300 ${
-          isSidebarOpen ? "mt-16 lg:mt-0" : "mt-0"
-        } lg:ml-64`}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-lg font-bold">Dashboard</h1>
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="lg:hidden text-white flex items-center gap-2 bg-gray-800 p-2 rounded"
+          </div>
+          <div
+            className={`flex flex-col lg:flex-col lg:space-y-2 space-y-2 lg:space-x-0 p-4 w-full`}
           >
-            {isSidebarOpen ? <FaChevronUp /> : <FaChevronDown />}
-          </button>
-        </div>
-        {renderContent()}
-      </main>
-    </div>
+            {sidebarLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => setActivePage(link.label)}
+                className={`flex items-center gap-2 lg:w-full px-4 py-2 rounded transition ${
+                  activePage === link.label
+                    ? "bg-gray-700"
+                    : "hover:bg-gray-700"
+                }`}
+              >
+                {link.icon}
+                <span className="block lg:inline">{link.label}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main
+          className={`flex-1 p-4 transition-all duration-300 ${
+            isSidebarOpen ? "mt-16 lg:mt-0" : "mt-0"
+          } lg:ml-64`}
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-lg font-bold">Dashboard</h1>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="lg:hidden text-white flex items-center gap-2 bg-gray-800 p-2 rounded"
+            >
+              {isSidebarOpen ? <FaChevronUp /> : <FaChevronDown />}
+            </button>
+          </div>
+          {renderContent()}
+        </main>
+      </div>
+    </>
   );
 };
 

@@ -61,8 +61,10 @@ const Header = () => {
   }, []);
 
   // Fetch user balance from Firestore
+  // Fetch user balance from Firestore
   const fetchUserBalance = async (email: string) => {
     try {
+      console.log("Fetching balance for email:", email); // Debug log
       const q = query(
         collection(db, "userDeposits"),
         where("email", "==", email)
@@ -72,8 +74,10 @@ const Header = () => {
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
+        console.log("User balance data:", userData); // Debug log
         setBalance(userData.amount ?? 0);
       } else {
+        console.warn("No balance record found for email:", email); // Debug log
         setBalance(0);
       }
     } catch (error) {

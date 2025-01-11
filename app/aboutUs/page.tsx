@@ -2,10 +2,12 @@
 
 import React from "react";
 import Image from "next/image";
+import Header from "../components/header";
 
 const About = () => {
   return (
     <div className="w-[80%] m-auto  text-gray-800 py-12 px-4 mb-5">
+      <Header />
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-12">

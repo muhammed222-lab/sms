@@ -80,6 +80,31 @@ const SignUp = () => {
         date: new Date().toISOString(),
       });
 
+      // Check for referrer data in local storage
+      const referrerData = localStorage.getItem("referrer");
+      if (referrerData) {
+        const referrer = JSON.parse(referrerData);
+
+        // Add referral data to 'refers' collection
+        await addDoc(collection(db, "refers"), {
+          user_email: email,
+          user_name: firstName,
+          refer_by_email: referrer.email,
+          refer_by_name: referrer.name,
+          refer_date: new Date(),
+        });
+
+        // Clear referrer from local storage
+        localStorage.removeItem("referrer");
+      }
+
+      // Add user to 'userDeposits' collection
+      await addDoc(collection(db, "userDeposits"), {
+        email,
+        amount: 0.0, // Default amount
+        date: new Date().toISOString(),
+      });
+
       alert(
         "Account created successfully! A verification email has been sent to your email address. Please verify your email to complete the registration."
       );

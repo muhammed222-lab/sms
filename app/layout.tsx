@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Header from "./components/header";
+
 import Footer from "./components/footer";
 import { AuthProvider } from "./components/AuthProvider"; // Assuming this manages Firebase auth
 
@@ -32,6 +32,10 @@ export default function RootLayout({
     <AuthProvider>
       <html lang="en">
         <head>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+          />
           <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -40,7 +44,6 @@ export default function RootLayout({
         <body
           className={`container ${geistSans.variable} ${geistMono.variable}`}
         >
-          <Header />
           {children}
           <Footer />
         </body>

@@ -11,6 +11,7 @@ import Cooperation from "./components/cooperation";
 import { useRouter } from "next/navigation";
 import { auth } from "./firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
+import Header from "./components/header";
 
 export default function Home() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function Home() {
 
   return (
     <div className="w-[80%] m-auto">
+      <Header />
       <main>
         <div className="mx-auto px-4">
           <section className="hero py-10 lg:py-20">
