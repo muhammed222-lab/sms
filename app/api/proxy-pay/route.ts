@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Flutterwave from "flutterwave-node-v3";
 
 // Initialize Flutterwave SDK
-const FLW_PUBLIC_KEY = process.env.FLW_PUBLIC_KEY || ""; // Replace with your public key
+const FLW_PUBLIC_KEY = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || ""; // Replace with your public key
 const FLW_SECRET_KEY = process.env.FLW_SECRET_KEY || ""; // Replace with your secret key
 const flw = new Flutterwave(FLW_PUBLIC_KEY, FLW_SECRET_KEY);
 

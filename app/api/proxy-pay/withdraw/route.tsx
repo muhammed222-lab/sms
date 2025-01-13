@@ -3,7 +3,7 @@ import Flutterwave from "flutterwave-node-v3";
 
 // Initialize Flutterwave SDK with your keys
 const flw = new Flutterwave(
-  process.env.FLW_PUBLIC_KEY || "",
+  process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "",
   process.env.FLW_SECRET_KEY || ""
 );
 

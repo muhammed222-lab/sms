@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Flutterwave from "flutterwave-node-v3";
 
 const flw = new Flutterwave(
-  process.env.FLW_PUBLIC_KEY as string,
+  process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY as string,
   process.env.FLW_SECRET_KEY as string
 );
 
