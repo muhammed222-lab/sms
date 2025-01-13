@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
 import {
   createUserWithEmailAndPassword,
@@ -23,7 +23,20 @@ const SignUp = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [referrer, setReferrer] = useState<null | {
+    name: string;
+    email: string;
+  }>(null);
+
   const router = useRouter();
+
+  // Check for referrer details in local storage
+  useEffect(() => {
+    const referrerData = localStorage.getItem("referrer");
+    if (referrerData) {
+      setReferrer(JSON.parse(referrerData));
+    }
+  }, []);
 
   // Password validation checks
   const isPasswordValid = (password: string): boolean => {
@@ -80,12 +93,8 @@ const SignUp = () => {
         date: new Date().toISOString(),
       });
 
-      // Check for referrer data in local storage
-      const referrerData = localStorage.getItem("referrer");
-      if (referrerData) {
-        const referrer = JSON.parse(referrerData);
-
-        // Add referral data to 'refers' collection
+      // If referrer data exists, save to 'refers' collection
+      if (referrer) {
         await addDoc(collection(db, "refers"), {
           user_email: email,
           user_name: firstName,
@@ -97,13 +106,6 @@ const SignUp = () => {
         // Clear referrer from local storage
         localStorage.removeItem("referrer");
       }
-
-      // Add user to 'userDeposits' collection
-      await addDoc(collection(db, "userDeposits"), {
-        email,
-        amount: 0.0, // Default amount
-        date: new Date().toISOString(),
-      });
 
       alert(
         "Account created successfully! A verification email has been sent to your email address. Please verify your email to complete the registration."
@@ -155,6 +157,20 @@ const SignUp = () => {
         amount: 0.0, // Default amount
         date: new Date().toISOString(),
       });
+
+      // If referrer data exists, save to 'refers' collection
+      if (referrer) {
+        await addDoc(collection(db, "refers"), {
+          user_email: user.email,
+          user_name: user.displayName,
+          refer_by_email: referrer.email,
+          refer_by_name: referrer.name,
+          refer_date: new Date(),
+        });
+
+        // Clear referrer from local storage
+        localStorage.removeItem("referrer");
+      }
 
       router.push("/dashboard");
     } catch (err) {

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { auth, db } from "../firebaseConfig";
@@ -9,6 +11,7 @@ import {
   addDoc,
   updateDoc,
   DocumentData,
+  doc,
 } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
 
@@ -157,6 +160,9 @@ const DashboardBalance: React.FC = () => {
               });
             }
 
+            // Update referral commission if applicable
+            await handleReferralCommission(email, amount);
+
             setBalance((prevBalance) => prevBalance + amount); // Update UI balance
           } catch (error) {
             console.error("Error updating balance:", error);
@@ -169,6 +175,39 @@ const DashboardBalance: React.FC = () => {
         alert("Payment window closed.");
       },
     });
+  };
+
+  const handleReferralCommission = async (
+    email: string,
+    depositAmount: number
+  ) => {
+    try {
+      const q = query(
+        collection(db, "refers"),
+        where("user_email", "==", email)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const referralDoc = querySnapshot.docs[0];
+        const referralData = referralDoc.data();
+
+        if (referralData?.bonus_applied && balance <= 2000) {
+          const commission = depositAmount * 0.05; // 5% commission
+          const referralRef = doc(db, "refers", referralDoc.id);
+
+          await updateDoc(referralRef, {
+            commission: commission,
+          });
+
+          console.log(
+            `Commission of ${commission} NGN applied for referrer of ${email}`
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error handling referral commission:", error);
+    }
   };
 
   return (

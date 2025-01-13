@@ -16,10 +16,15 @@ const InvitePage: React.FC = () => {
 
   useEffect(() => {
     const fetchInviter = async () => {
-      const referralCode = window.location.pathname.split("/").pop(); // Extract referral code
-      if (!referralCode) return;
+      // Extract referral code from the URL path
+      const referralCode = window.location.pathname.split("/").pop();
+      if (!referralCode) {
+        setError("No referral code found in the URL.");
+        return;
+      }
 
       try {
+        // Query Firestore for the user with the referral code
         const usersCollection = collection(db, "users");
         const q = query(
           usersCollection,

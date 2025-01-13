@@ -4,7 +4,14 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +23,7 @@ const Header = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>("Unknown");
   const [currency, setCurrency] = useState<string>("NGN");
   const [flag, setFlag] = useState<string>("");
+
   const [balance, setBalance] = useState<number>(0);
   const [convertedBalance, setConvertedBalance] = useState<string>("0.00");
 
@@ -48,9 +56,10 @@ const Header = () => {
 
   // Monitor authentication state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser && currentUser.email) {
+        await checkAndApplyReferralBonus(currentUser.email);
         fetchUserBalance(currentUser.email);
       } else {
         setBalance(0);
@@ -61,10 +70,8 @@ const Header = () => {
   }, []);
 
   // Fetch user balance from Firestore
-  // Fetch user balance from Firestore
   const fetchUserBalance = async (email: string) => {
     try {
-      console.log("Fetching balance for email:", email); // Debug log
       const q = query(
         collection(db, "userDeposits"),
         where("email", "==", email)
@@ -74,14 +81,56 @@ const Header = () => {
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
-        console.log("User balance data:", userData); // Debug log
         setBalance(userData.amount ?? 0);
       } else {
-        console.warn("No balance record found for email:", email); // Debug log
         setBalance(0);
       }
     } catch (error) {
       console.error("Error fetching user balance:", error);
+    }
+  };
+
+  // Check and apply referral bonus if applicable
+  const checkAndApplyReferralBonus = async (email: string) => {
+    try {
+      const q = query(
+        collection(db, "refers"),
+        where("user_email", "==", email)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const referralDoc = querySnapshot.docs[0];
+        const referralData = referralDoc.data();
+
+        if (!referralData?.bonus_applied) {
+          const userDepositQuery = query(
+            collection(db, "userDeposits"),
+            where("email", "==", email)
+          );
+          const depositSnapshot = await getDocs(userDepositQuery);
+
+          if (!depositSnapshot.empty) {
+            const depositDoc = depositSnapshot.docs[0];
+            const depositRef = doc(db, "userDeposits", depositDoc.id);
+
+            // Add 2,000 to the user's balance
+            await updateDoc(depositRef, {
+              amount: (depositDoc.data().amount ?? 0) + 2000,
+            });
+
+            // Update the referral document to mark bonus as applied
+            const referralRef = doc(db, "refers", referralDoc.id);
+            await updateDoc(referralRef, {
+              bonus_applied: true,
+            });
+
+            console.log("Referral bonus applied for", email);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error applying referral bonus:", error);
     }
   };
 
@@ -158,7 +207,7 @@ const Header = () => {
                 balance === 0 ? "text-red-600" : "text-green-600"
               }`}
             >
-              Balance: {convertedBalance || "Loading..."}
+              {convertedBalance || "Loading..."}
             </span>
           )}
 

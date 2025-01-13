@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig"; // Firebase configuration
-import { updateEmail, User } from "firebase/auth";
+import {
+  updateEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  sendPasswordResetEmail,
+  User,
+} from "firebase/auth";
 import { doc, getDoc, setDoc, DocumentData } from "firebase/firestore";
 import Refer from "./Refer";
 import Rewards from "./Rewards";
@@ -13,7 +20,12 @@ const Profile = () => {
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [message, setMessage] = useState<string>("");
+  const [passwordMessage, setPasswordMessage] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("profile");
+
+  // Password fields
+  const [currentPassword, setCurrentPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
 
   // Fetch user data
   useEffect(() => {
@@ -60,6 +72,49 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       setMessage("Failed to update profile. Please try again.");
+    }
+  };
+
+  // Handle password update
+  const handlePasswordUpdate = async () => {
+    if (!user || !currentPassword || !newPassword) {
+      setPasswordMessage("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const credential = EmailAuthProvider.credential(
+        user.email!,
+        currentPassword
+      );
+      await reauthenticateWithCredential(user, credential); // Re-authenticate user
+      await updatePassword(user, newPassword); // Update password
+      setPasswordMessage("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      setPasswordMessage(
+        "Failed to update password. Please check your current password and try again."
+      );
+    }
+  };
+
+  // Handle forgotten password
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setPasswordMessage("Please provide your email.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setPasswordMessage("Password reset email sent! Check your inbox.");
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      setPasswordMessage(
+        "Failed to send password reset email. Please try again."
+      );
     }
   };
 
@@ -152,12 +207,49 @@ const Profile = () => {
             </p>
           )}
 
-          <div className="mt-6 text-center">
-            <img
-              src={user?.photoURL || "https://www.gravatar.com/avatar?d=mp"} // Default profile image
-              alt="User profile"
-              className="rounded-full w-24 h-24 mx-auto"
+          <div className="mt-6">
+            <h4 className="text-md font-medium mb-2">Change Password</h4>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="border-gray-300 rounded-lg w-full px-4 py-2 mb-4 bg-gray-100"
+              placeholder="Current Password"
+              required
             />
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="border-gray-300 rounded-lg w-full px-4 py-2 mb-4 bg-gray-100"
+              placeholder="New Password"
+              required
+            />
+            <button
+              onClick={handlePasswordUpdate}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+            >
+              Update Password
+            </button>
+            <button
+              onClick={handleForgotPassword}
+              className="ml-2 text-blue-500 text-sm hover:underline"
+            >
+              Forgot Password?
+            </button>
+
+            {passwordMessage && (
+              <p
+                className={`mt-4 text-sm ${
+                  passwordMessage.includes("successfully") ||
+                  passwordMessage.includes("sent")
+                    ? "text-green-500"
+                    : "text-red-500"
+                }`}
+              >
+                {passwordMessage}
+              </p>
+            )}
           </div>
         </div>
       )}
