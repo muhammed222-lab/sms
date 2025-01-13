@@ -36,6 +36,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ status: "error", message: data.message });
     } catch (error) {
+      console.error("Error fetching banks:", error); // Use the error variable
       return NextResponse.json({
         status: "error",
         message: "Failed to fetch banks",
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
         message: response.message,
       });
     } catch (error) {
-      console.error("Error in /verify route:", error);
+      console.error("Error in /verify route:", error); // Use the error variable
       return NextResponse.json({
         status: "error",
         message: "Failed to verify account",
@@ -119,7 +120,7 @@ export async function POST(request: Request) {
         message: response.message || "Withdrawal failed.",
       });
     } catch (error) {
-      console.error("Error processing withdrawal:", error);
+      console.error("Error processing withdrawal:", error); // Use the error variable
       return NextResponse.json({
         status: "error",
         message: "Failed to process withdrawal",

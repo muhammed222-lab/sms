@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-const Flutterwave = require("flutterwave-node-v3");
+import Flutterwave from "flutterwave-node-v3";
 
 // Initialize Flutterwave SDK with your keys
 const flw = new Flutterwave(
-  process.env.FLW_PUBLIC_KEY,
-  process.env.FLW_SECRET_KEY
+  process.env.FLW_PUBLIC_KEY || "",
+  process.env.FLW_SECRET_KEY || ""
 );
 
 export async function POST(request: Request) {

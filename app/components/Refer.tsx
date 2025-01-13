@@ -17,7 +17,7 @@ import { assignReferralCode } from "../utils/referralUtils";
 const Refer: React.FC = () => {
   const [referralLink, setReferralLink] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [copySuccess] = useState<boolean>(false);
   const [invitedUsers, setInvitedUsers] = useState<
     {
       name: string;
@@ -31,7 +31,9 @@ const Refer: React.FC = () => {
   const [totalCommission, setTotalCommission] = useState<number>(0);
   const [accountNumber, setAccountNumber] = useState<string>("");
   const [bankName, setBankName] = useState<string>("");
-  const [bankSuggestions, setBankSuggestions] = useState<string[]>([]);
+  const [bankSuggestions, setBankSuggestions] = useState<
+    { name: string; code: string }[]
+  >([]);
   const [selectedBankCode, setSelectedBankCode] = useState<string>("");
   const [accountName, setAccountName] = useState<string | null>(null);
   const [verifyingAccount, setVerifyingAccount] = useState<boolean>(false);
@@ -135,6 +137,7 @@ const Refer: React.FC = () => {
       const data = await response.json();
 
       if (data.status === "success") {
+        // Ensure the structure is { name: string, code: string }
         setBankSuggestions(
           data.banks.map((bank: { name: string; code: string }) => ({
             name: bank.name,
@@ -146,6 +149,7 @@ const Refer: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching bank suggestions:", error);
+      setBankSuggestions([]);
     }
   };
 
@@ -250,6 +254,7 @@ const Refer: React.FC = () => {
   };
 
   function handleCopy(event: React.MouseEvent<HTMLButtonElement>): void {
+    event.preventDefault(); // Example usage to prevent default behavior
     throw new Error("Function not implemented.");
   }
 

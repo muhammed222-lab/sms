@@ -30,7 +30,8 @@
     "app/lib/**/*.ts",
     "app/api/save-user.js",
     "app/api/users.js",
-    "app/utils/db.js"
+    "app/utils/db.js",
+    "src/types/**/*" // Include custom type definitions
   ],
   "exclude": ["node_modules"]
 }

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-const Flutterwave = require("flutterwave-node-v3");
+import Flutterwave from "flutterwave-node-v3";
 
 const flw = new Flutterwave(
-  process.env.FLW_PUBLIC_KEY,
-  process.env.FLW_SECRET_KEY
+  process.env.FLW_PUBLIC_KEY as string,
+  process.env.FLW_SECRET_KEY as string
 );
 
 export async function POST(request: Request) {
@@ -17,8 +17,8 @@ export async function POST(request: Request) {
       });
     }
 
-    console.log("Account Number:", account_number);
-    console.log("Bank Code:", account_bank);
+    // console.log("Account Number:", account_number);
+    // console.log("Bank Code:", account_bank);
 
     // Verify the account using Flutterwave SDK
     const response = await flw.Misc.verify_Account({
