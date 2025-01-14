@@ -3,7 +3,7 @@ import axios from "axios";
 
 const rentRouter = express.Router();
 const API_BASE_URL = "https://api.sms-man.com/stubs/handler_api.php";
-const RENT_API_KEY = "dV7cFg6-45PTQ2lanH6hEjNe5IjX1dEm"; // Use a separate API key
+const RENT_API_KEY = "xHwwy2zvDS9Uig1vTphq9ngvkVNBCEwf"; // Use a separate API key
 
 // Axios instance with increased limits
 const axiosInstance = axios.create({

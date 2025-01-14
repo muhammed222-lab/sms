@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const status = searchParams.get("status");
 
   // Check if the SMS API key exists
-  const smsApiKey = "dV7cFg6-45PTQ2lanH6hEjNe5IjX1dEm";
+  const smsApiKey = "xHwwy2zvDS9Uig1vTphq9ngvkVNBCEwf";
   if (!smsApiKey) {
     console.error("SMS API Key is missing.");
     return NextResponse.json(
