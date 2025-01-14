@@ -31,7 +31,7 @@ interface FlutterwaveCheckoutOptions {
     description: string;
     logo: string;
   };
-  callback: (response: { status: string }) => void;
+  callback: (response: { transaction_id: any; status: string }) => void;
   onclose: () => void;
 }
 
@@ -114,9 +114,11 @@ const DashboardBalance: React.FC = () => {
       return;
     }
 
+    const transactionRef = `TX-${Date.now()}`; // Generate a unique transaction reference
+
     window.FlutterwaveCheckout({
       public_key: publicKey,
-      tx_ref: `TX-${Date.now()}`,
+      tx_ref: transactionRef,
       amount: amount,
       currency: "NGN",
       payment_options: "card,banktransfer",
@@ -131,10 +133,27 @@ const DashboardBalance: React.FC = () => {
         logo: "/deemax.png",
       },
       callback: async (response) => {
-        if (response.status === "successful") {
-          alert("Payment successful!");
+        // After the Flutterwave checkout, verify the transaction
+        try {
+          const verifyResponse = await fetch("/api/verify-transaction", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transactionId: response.transaction_id }),
+          });
 
-          try {
+          const verifyData = await verifyResponse.json();
+
+          if (
+            verifyData.status === "success" &&
+            verifyData.data.status === "successful" &&
+            verifyData.data.amount === amount &&
+            verifyData.data.currency === "NGN"
+          ) {
+            alert("Payment verified successfully!");
+
+            // Update the user's balance in Firestore
             const email = user?.email || "default@example.com";
             const depositCollection = collection(db, "userDeposits");
 
@@ -160,15 +179,14 @@ const DashboardBalance: React.FC = () => {
               });
             }
 
-            // Update referral commission if applicable
-            await handleReferralCommission(email, amount);
-
-            setBalance((prevBalance) => prevBalance + amount); // Update UI balance
-          } catch (error) {
-            console.error("Error updating balance:", error);
+            // Update UI balance
+            setBalance((prevBalance) => prevBalance + amount);
+          } else {
+            alert("Payment verification failed. Please try again.");
           }
-        } else {
-          alert("Payment failed. Please try again.");
+        } catch (error) {
+          console.error("Error verifying transaction:", error);
+          alert("An error occurred during payment verification.");
         }
       },
       onclose: () => {

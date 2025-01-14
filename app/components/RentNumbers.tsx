@@ -176,7 +176,6 @@ const RentNumbers: React.FC = () => {
   return (
     <div className="flex flex-col max-w-6xl mx-auto p-6 bg-gray-100 rounded-lg">
       <h1 className="text-2xl font-bold text-center mb-6">Rent New Number</h1>
-
       <div className="mb-4">
         <h3 className="font-bold">Select Currency:</h3>
         <select
@@ -191,11 +190,47 @@ const RentNumbers: React.FC = () => {
           ))}
         </select>
       </div>
+      {/* Duration Selection */}
+      <div className="bg-white border rounded-lg p-4 mb-6">
+        <h2 className="font-bold text-lg mb-4">1. Set Rent Duration</h2>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {["hour", "day", "week", "month"].map((type) => (
+            <button
+              key={type}
+              className={`w-full p-2 rounded ${
+                duration === type
+                  ? "bg-blue-100 border border-blue-500"
+                  : "bg-gray-50 hover:bg-gray-200"
+              }`}
+              onClick={() => setDuration(type)}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+        {duration === "hour" && (
+          <div className="flex items-center justify-center">
+            <button
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300"
+              onClick={() => setTime((prev) => Math.max(1, prev - 1))}
+            >
+              -
+            </button>
+            <span className="px-6 py-2">{time}</span>
+            <button
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300"
+              onClick={() => setTime((prev) => prev + 1)}
+            >
+              +
+            </button>
+          </div>
+        )}
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Country Selection */}
-        <div className="bg-white shadow rounded-lg p-4">
-          <h2 className="font-bold text-lg mb-4">1. Select Your Country</h2>
+        <div className="bg-white border rounded-lg p-4">
+          <h2 className="font-bold text-lg mb-4">2. Select Your Country</h2>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {countries.length ? (
               countries.map((country) => (
@@ -217,45 +252,8 @@ const RentNumbers: React.FC = () => {
           </div>
         </div>
 
-        {/* Duration Selection */}
-        <div className="bg-white shadow rounded-lg p-4">
-          <h2 className="font-bold text-lg mb-4">2. Set Rent Duration</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {["hour", "day", "week", "month"].map((type) => (
-              <button
-                key={type}
-                className={`w-full p-2 rounded ${
-                  duration === type
-                    ? "bg-blue-100 border border-blue-500"
-                    : "bg-gray-50 hover:bg-gray-200"
-                }`}
-                onClick={() => setDuration(type)}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-          {duration === "hour" && (
-            <div className="flex items-center justify-center">
-              <button
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300"
-                onClick={() => setTime((prev) => Math.max(1, prev - 1))}
-              >
-                -
-              </button>
-              <span className="px-6 py-2">{time}</span>
-              <button
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300"
-                onClick={() => setTime((prev) => prev + 1)}
-              >
-                +
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* Rent a Number */}
-        <div className="bg-white shadow rounded-lg p-4">
+        <div className="bg-white border rounded-lg p-4">
           <h2 className="font-bold text-lg mb-4">3. Rent a Number</h2>
           {loading ? (
             <div className="flex items-center justify-center">

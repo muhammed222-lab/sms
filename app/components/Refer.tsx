@@ -17,7 +17,7 @@ import { assignReferralCode } from "../utils/referralUtils";
 const Refer: React.FC = () => {
   const [referralLink, setReferralLink] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [copySuccess] = useState<boolean>(false);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [invitedUsers, setInvitedUsers] = useState<
     {
       name: string;
@@ -267,11 +267,23 @@ const Refer: React.FC = () => {
       <div className="bg-gray-100 p-4 rounded-lg">
         <p className="text-sm mb-2">Your Referral Link:</p>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">
+          <span
+            className="text-sm text-gray-500 truncate overflow-hidden max-w-[80%]"
+            title={loading ? "Loading..." : referralLink} // Tooltip for full link on hover
+          >
             {loading ? "Loading..." : referralLink}
           </span>
           <button
-            onClick={handleCopy}
+            onClick={() => {
+              if (!referralLink) return;
+              navigator.clipboard
+                .writeText(referralLink)
+                .then(() => {
+                  setCopySuccess(true);
+                  setTimeout(() => setCopySuccess(false), 2000); // Reset after 2 seconds
+                })
+                .catch(() => alert("Failed to copy the referral link."));
+            }}
             className="flex items-center gap-2 text-blue-500 text-sm"
             disabled={!referralLink}
           >
@@ -360,21 +372,29 @@ const Refer: React.FC = () => {
           </div>
         ) : (
           <div className="mt-4">
-            {invitedUsers.map((user, index) => (
-              <div
-                key={index}
-                className="flex justify-between bg-white p-3 rounded-lg mb-2 shadow"
-              >
-                <div>
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-gray-500">{user.email}</p>
+            {invitedUsers.map((user, index) => {
+              const truncatedEmail = user.email.replace(
+                /^(.{3}).+(.{3}@.+)$/,
+                "$1......$2"
+              );
+
+              return (
+                <div
+                  key={index}
+                  className="flex justify-between bg-white p-3 rounded-lg mb-2 shadow"
+                >
+                  <div>
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-sm text-gray-500">{truncatedEmail}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">{user.referDate}</p>
+                    <p className="text-sm text-blue-500">{user.status}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">{user.referDate}</p>
-                  <p className="text-sm text-blue-500">{user.status}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
+
             <p className="text-sm text-gray-500 mt-4">
               You will earn a 5% commission on the first deposit of each invited
               user. Your earnings are withdrawable.

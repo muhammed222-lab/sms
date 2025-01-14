@@ -41,6 +41,7 @@ declare module "flutterwave-node-v3" {
   }
 
   class Flutterwave {
+    Transaction: any;
     constructor(publicKey: string, secretKey: string);
 
     Misc: Miscellaneous;

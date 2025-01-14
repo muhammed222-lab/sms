@@ -19,8 +19,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "sms globe",
-  description: "Secure & Instant",
+  title: "Smsglobe",
+  description: "Secure an Instant SMS Verification",
 };
 
 export default function RootLayout({
