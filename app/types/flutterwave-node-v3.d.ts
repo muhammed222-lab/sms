@@ -19,33 +19,38 @@ declare module "flutterwave-node-v3" {
       currency: string;
       created_at: string;
       [key: string]: unknown; // Add additional fields as necessary
-    }; // Replace `any` with the actual structure of the transfer response if known
+    };
+  }
+
+  interface VerifyAccountDetails {
+    account_number: string;
+    account_bank: string;
+  }
+
+  interface InitiateTransferDetails {
+    account_bank: string;
+    account_number: string;
+    amount: number;
+    narration?: string;
+    currency: string;
+    reference: string;
   }
 
   interface Miscellaneous {
-    verify_Account(details: {
-      account_number: string;
-      account_bank: string;
-    }): Promise<VerifyAccountResponse>;
+    verify_Account(
+      details: VerifyAccountDetails
+    ): Promise<VerifyAccountResponse>;
   }
 
   interface Transfer {
-    initiate(details: {
-      account_bank: string;
-      account_number: string;
-      amount: number;
-      narration?: string;
-      currency: string;
-      reference: string;
-    }): Promise<TransferResponse>;
+    initiate(details: InitiateTransferDetails): Promise<TransferResponse>;
   }
 
   class Flutterwave {
-    Transaction: any;
-    constructor(publicKey: string, secretKey: string);
-
     Misc: Miscellaneous;
     Transfer: Transfer;
+
+    constructor(publicKey: string, secretKey: string);
   }
 
   export default Flutterwave;

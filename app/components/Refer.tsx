@@ -253,11 +253,6 @@ const Refer: React.FC = () => {
     }
   };
 
-  function handleCopy(event: React.MouseEvent<HTMLButtonElement>): void {
-    event.preventDefault(); // Example usage to prevent default behavior
-    throw new Error("Function not implemented.");
-  }
-
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Referral</h3>
@@ -280,12 +275,12 @@ const Refer: React.FC = () => {
                 .writeText(referralLink)
                 .then(() => {
                   setCopySuccess(true);
-                  setTimeout(() => setCopySuccess(false), 2000); // Reset after 2 seconds
+                  setTimeout(() => setCopySuccess(false), 2000);
                 })
                 .catch(() => alert("Failed to copy the referral link."));
             }}
             className="flex items-center gap-2 text-blue-500 text-sm"
-            disabled={!referralLink}
+            disabled={!referralLink || copySuccess} // Disable while copy is in progress
           >
             {copySuccess ? (
               <>
