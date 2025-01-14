@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
-import Flutterwave from "flutterwave-node-v3";
 
-const flw = new Flutterwave(
-  process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "",
-  process.env.FLW_SECRET_KEY || ""
-);
+// Environment variables
+const FLW_SECRET_KEY = process.env.FLW_SECRET_KEY || "";
 
 export async function POST(request: Request) {
   try {
+    // Parse the incoming request payload
     const { transactionId } = await request.json();
 
     if (!transactionId) {
@@ -17,24 +15,48 @@ export async function POST(request: Request) {
       });
     }
 
-    const response = await flw.Transaction.verify({ id: transactionId });
+    console.log("Verifying transaction with ID:", transactionId);
 
-    if (response.status === "success") {
+    // Make the API request to verify the transaction
+    const response = await fetch(
+      `https://api.flutterwave.com/v3/transactions/${transactionId}/verify`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${FLW_SECRET_KEY}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.status === "success") {
+      console.log("Transaction verification successful:", data.data);
       return NextResponse.json({
         status: "success",
-        data: response.data,
+        data: data.data,
       });
     } else {
+      console.error("Transaction verification failed:", data.message);
       return NextResponse.json({
         status: "error",
-        message: response.message || "Transaction verification failed.",
+        message: data.message || "Transaction verification failed.",
       });
     }
-  } catch (error) {
-    console.error("Error verifying transaction:", error);
-    return NextResponse.json({
-      status: "error",
-      message: "Failed to verify transaction.",
-    });
+  } catch (error: unknown) {
+    // Handle error safely by narrowing the type
+    if (error instanceof Error) {
+      console.error("Error verifying transaction:", error.message);
+      return NextResponse.json({
+        status: "error",
+        message: error.message || "Failed to verify transaction.",
+      });
+    } else {
+      console.error("Error verifying transaction:", error);
+      return NextResponse.json({
+        status: "error",
+        message: "Failed to verify transaction.",
+      });
+    }
   }
 }

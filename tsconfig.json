@@ -1,26 +1,42 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "types": [
+      "node"
+    ], // Ensure Node.js types are included
+    "baseUrl": ".", // Set base URL for paths
+    "paths": {
+      "@/*": [
+        "./*"
+      ], // Alias for absolute imports
+      "types/*": [
+        "src/types/*"
+      ] // Include custom type definitions
+    },
+    "allowSyntheticDefaultImports": true, // Ensure compatibility with default imports
+    "forceConsistentCasingInFileNames": true // Enforce consistent casing
+    ,
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
+    ]
   },
   "include": [
     "next-env.d.ts",
@@ -28,10 +44,13 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "app/lib/**/*.ts",
-    "app/api/save-user.js",
-    "app/api/users.js",
-    "app/utils/db.js",
-    "src/types/**/*" // Include custom type definitions
+    "app/api/**/*.js", // Ensure API files are included
+    "app/utils/**/*.js",
+    "src/types/**/*.d.ts" // Ensure custom types are included
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist"
+  ] // Exclude unnecessary directories
 }
