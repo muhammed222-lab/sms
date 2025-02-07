@@ -38,6 +38,7 @@ const Refer: React.FC = () => {
   const [accountName, setAccountName] = useState<string | null>(null);
   const [verifyingAccount, setVerifyingAccount] = useState<boolean>(false);
   const [withdrawing, setWithdrawing] = useState<boolean>(false);
+  const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
 
   useEffect(() => {
     const fetchAndAssignReferralCode = async () => {
@@ -91,7 +92,6 @@ const Refer: React.FC = () => {
           where("refer_by_email", "==", currentUser.email)
         );
         const querySnapshot = await getDocs(q);
-
         let total = 0;
         const users = querySnapshot.docs.map((doc) => {
           const data = doc.data();
@@ -322,7 +322,6 @@ const Refer: React.FC = () => {
                 ))}
               </ul>
             )}
-
             <input
               type="text"
               placeholder="Account Number"
@@ -330,9 +329,29 @@ const Refer: React.FC = () => {
               onChange={(e) => setAccountNumber(e.target.value)}
               className="border p-2 rounded w-full mb-2"
             />
+
+            <section className="bg-gray-200 p-4 mt-4">
+              <h2 className="text-green-800 f">Select Amount to withdraw</h2>
+              {/* amount field */}
+              <h2>Total Commission: {totalCommission} NGN</h2>{" "}
+              {/* Display total */}
+              <label htmlFor="withdrawAmount">
+                Withdraw Amount (Min: 100 NGN, Max: {totalCommission} NGN):
+              </label>
+              <input
+                type="number"
+                id="withdrawAmount"
+                value={withdrawAmount}
+                className="w-32 p-2 border-2 mr-2 rounded-md"
+                min={100}
+                max={totalCommission}
+                onChange={(e) => setWithdrawAmount(Number(e.target.value))}
+              />
+              {/* amount field */}
+            </section>
             <button
               onClick={handleVerifyAccount}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4 mr-2"
               disabled={verifyingAccount}
             >
               {verifyingAccount ? "Verifying..." : "Verify Account"}
@@ -342,6 +361,7 @@ const Refer: React.FC = () => {
                 Account Name: {accountName}
               </p>
             )}
+
             <button
               onClick={handleWithdraw}
               className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -362,7 +382,7 @@ const Refer: React.FC = () => {
             <p>You have not invited any users yet.</p>
             <p className="text-sm mt-2">
               Share your referral link to invite users and earn a 5% commission
-              on their first deposit.
+              on their all deposit.
             </p>
           </div>
         ) : (
@@ -391,8 +411,8 @@ const Refer: React.FC = () => {
             })}
 
             <p className="text-sm text-gray-500 mt-4">
-              You will earn a 5% commission on the first deposit of each invited
-              user. Your earnings are withdrawable.
+              You will earn a 5% commission on all deposit of each invited user.
+              Your earnings are withdrawable.
             </p>
           </div>
         )}

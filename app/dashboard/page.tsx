@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaSms,
   FaMobileAlt,
@@ -11,28 +11,34 @@ import {
   FaBars,
   FaChevronDown,
   FaChevronUp,
+  FaHistory,
 } from "react-icons/fa";
 import DashboardBalance from "../components/DashboardBalance";
 import RentNumbers from "../components/RentNumbers";
 import Feedback from "../components/Feedback";
 import Profile from "../components/profile";
 import Tutor from "../components/Tutor";
+import History from "../components/history";
 import Sms from "../components/Sms";
 import Header from "../components/header";
+import Auth from "../components/Auth";
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState("Receive SMS");
 
+  // Sidebar links data
   const sidebarLinks = [
     { label: "Receive SMS", id: "sms", icon: <FaSms /> },
     { label: "Rent Numbers", id: "rent", icon: <FaMobileAlt /> },
     { label: "Profile", id: "profile", icon: <FaUser /> },
+    { label: "History", id: "history", icon: <FaHistory /> },
     { label: "Top Up Balance", id: "balance", icon: <FaWallet /> },
     { label: "Instructions", id: "instructions", icon: <FaInfoCircle /> },
     { label: "Feedback", id: "feedback", icon: <FaCommentDots /> },
   ];
 
+  // Render content based on the active tab
   const renderContent = () => {
     switch (activePage) {
       case "Receive SMS":
@@ -43,6 +49,8 @@ const Dashboard = () => {
         return <RentNumbers />;
       case "Profile":
         return <Profile />;
+      case "History":
+        return <History />;
       case "Instructions":
         return <Tutor />;
       case "Feedback":
@@ -57,9 +65,23 @@ const Dashboard = () => {
     }
   };
 
+  // Save active page to localStorage whenever it changes
+  useEffect(() => {
+    const storedPage = localStorage.getItem("activePage");
+    if (storedPage) {
+      setActivePage(storedPage); // Set active page from localStorage
+    }
+  }, []);
+
+  const handleTabChange = (label: string) => {
+    setActivePage(label);
+    localStorage.setItem("activePage", label); // Store the active page in localStorage
+  };
+
   return (
     <>
       <Header />
+      <Auth />
       <div className="min-h-screen flex flex-col lg:flex-row">
         {/* Sidebar (Responsive as Tabs on Mobile) */}
         <nav
@@ -82,7 +104,7 @@ const Dashboard = () => {
             {sidebarLinks.map((link) => (
               <button
                 key={link.id}
-                onClick={() => setActivePage(link.label)}
+                onClick={() => handleTabChange(link.label)}
                 className={`flex items-center gap-2 lg:w-full px-4 py-2 rounded transition ${
                   activePage === link.label
                     ? "bg-gray-700"

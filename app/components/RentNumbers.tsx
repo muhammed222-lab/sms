@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig";
 
 const countryMap: { [key: string]: string } = {
   12: "United States",
@@ -61,6 +64,11 @@ const RentNumbers: React.FC = () => {
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>(
     {}
   );
+  const [rentedNumbers, setRentedNumbers] = useState<
+    { number: string; duration: string; country: string }[]
+  >([]);
+  const [, setUser] = useState<User | null>(null);
+  const [balance, setBalance] = useState<number>(0);
 
   useEffect(() => {
     const fetchExchangeRates = async () => {
@@ -146,22 +154,102 @@ const RentNumbers: React.FC = () => {
     fetchRentalData();
   }, [selectedCountry, duration, time, API_BASE_URL, RENT_API_KEY]);
 
-  const handleRentClick = async (countryId: string) => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser && currentUser.email) {
+        fetchUserBalance(currentUser.email);
+      } else {
+        setBalance(0);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch user balance from Firestore
+  const fetchUserBalance = async (email: string) => {
+    try {
+      const q = query(
+        collection(db, "userDeposits"),
+        where("email", "==", email)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
+        setBalance(userData.amount ?? 0);
+      } else {
+        setBalance(0);
+      }
+    } catch (error) {
+      console.error("Error fetching user balance:", error);
+    }
+  };
+
+  const handleRentClick = async (countryId: string, cost: string) => {
     setMessage("");
     try {
       setLoading(true);
-      const response = await fetch(
+
+      // Fetch the latest balance from the proxy endpoint
+      const balanceResponse = await fetch(`${API_BASE_URL}/proxy-balance`);
+      const balanceData = await balanceResponse.json();
+      const smsManBalance = parseFloat(balanceData.balance);
+
+      console.log("Firebase User Balance:", balance);
+      console.log("SMS-Man Balance:", smsManBalance);
+      console.log("Number Cost:", cost);
+
+      const numberCost = parseFloat(cost); // Assuming `cost` is fetched or calculated earlier
+      const totalCost = numberCost * 1.1; // Add 10% service fee
+
+      console.log("Total Cost (with service fee):", totalCost);
+
+      // Step 2: Check if user has sufficient balance
+      if (balance < totalCost) {
+        setMessage(
+          "Sorry, insufficient balance for the service. Please top up your account."
+        );
+        return;
+      }
+
+      // Step 3: Check if SMS-Man has sufficient balance
+      if (smsManBalance < totalCost) {
+        setMessage(
+          "Service temporarily unavailable due to insufficient funds on our end. Please try again later."
+        );
+        return;
+      }
+
+      // Step 4: Proceed to rent the number
+      const rentResponse = await fetch(
         `${API_BASE_URL}/proxy-rent?action=get-number&token=${RENT_API_KEY}&country_id=${countryId}&type=${duration}&time=${time}`
       );
-      const data = await response.json();
-      if (data.error) {
+
+      const rentData = await rentResponse.json();
+
+      console.log("Rent API Response:", rentData);
+
+      if (rentData.error) {
         setMessage(
-          data.error.includes("balance")
+          rentData.error.includes("balance")
             ? "Service temporarily unavailable due to insufficient funds on our end."
             : "Failed to rent a number. Please try again."
         );
-      } else if (data.request_id) {
-        setMessage(`Number rented successfully: ${data.number}`);
+      } else if (rentData.request_id) {
+        setMessage(`Number rented successfully: ${rentData.number}`);
+
+        // Add the rented number to the table
+        setRentedNumbers((prev) => [
+          ...prev,
+          {
+            number: rentData.number,
+            duration: `${time} ${duration}`,
+            country: countryMap[countryId] || `Country ID ${countryId}`,
+          },
+        ]);
       } else {
         setMessage("Failed to rent a number. Please try again.");
       }
@@ -270,7 +358,9 @@ const RentNumbers: React.FC = () => {
                 )}`}</span>
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded"
-                  onClick={() => handleRentClick(option.country_id)}
+                  onClick={() =>
+                    handleRentClick(option.country_id, option.cost)
+                  }
                 >
                   Rent
                 </button>
@@ -284,6 +374,42 @@ const RentNumbers: React.FC = () => {
 
       {message && (
         <div className="mt-4 text-center text-red-500">{message}</div>
+      )}
+
+      <div className="mt-6 bg-white border rounded-lg p-4">
+        <h2 className="font-bold text-lg mb-4">Rented Numbers</h2>
+        {rentedNumbers.length > 0 ? (
+          <table className="w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border p-2">Number</th>
+                <th className="border p-2">Country</th>
+                <th className="border p-2">Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rentedNumbers.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="border p-2 text-center">{item.number}</td>
+                  <td className="border p-2 text-center">{item.country}</td>
+                  <td className="border p-2 text-center">{item.duration}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-gray-500">No numbers rented yet.</p>
+        )}
+      </div>
+
+      {message && (
+        <p
+          className={`mt-4 text-center ${
+            message.includes("successfully") ? "text-green-500" : "text-red-500"
+          }`}
+        >
+          {message}
+        </p>
       )}
     </div>
   );

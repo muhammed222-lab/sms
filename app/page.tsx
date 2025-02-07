@@ -47,7 +47,7 @@ export default function Home() {
                 </h1>
                 <p className="text-lg sm:text-xl text-gray-600">
                   Generate temporary phone numbers for SMS verification on any
-                  platform—Facebook, WhatsApp, Instagram, and more. Safe,
+                  platform like Facebook, WhatsApp, Instagram, and more. Safe,
                   affordable, and accessible worldwide.
                 </p>
                 <div className="flex justify-center lg:justify-start space-x-4">
@@ -57,7 +57,10 @@ export default function Home() {
                   >
                     Get Started Now
                   </button>
-                  <button className="cta-btn py-2 px-6 rounded-md border border-gray-800 hover:bg-gray-100 transition duration-300">
+                  <button
+                    className="cta-btn py-2 px-6 rounded-md border border-gray-800 hover:bg-gray-100 transition duration-300"
+                    onClick={() => router.push("/about")}
+                  >
                     Learn More
                   </button>
                 </div>
@@ -74,7 +77,7 @@ export default function Home() {
                 In today&apos;s digital world, privacy is essential. Our service
                 provides temporary phone numbers for SMS verification, keeping
                 your personal number secure and protecting your online identity.
-                No more spam calls, no more unwanted messages—just a simple,
+                No more spam calls, no more unwanted messages, just a simple,
                 seamless solution.
               </p>
             </div>

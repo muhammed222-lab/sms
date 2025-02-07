@@ -20,7 +20,7 @@ const Header = () => {
   const router = useRouter();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string>("Unknown");
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [currency, setCurrency] = useState<string>("NGN");
   const [flag, setFlag] = useState<string>("");
 

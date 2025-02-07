@@ -43,7 +43,7 @@ const SignIn = () => {
             );
             break;
           default:
-            setError("An unexpected error occurred. Please try again later.");
+            setError("Details not correct. Please try again later.");
         }
       } else {
         setError("An unexpected error occurred.");

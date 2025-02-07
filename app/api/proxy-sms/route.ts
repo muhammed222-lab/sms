@@ -1,5 +1,23 @@
 import { NextResponse } from "next/server";
 
+import dotenv from "dotenv";
+
+// Load environment variables from .env.local file
+dotenv.config({ path: ".env.local" });
+
+// Replace with your SMS-Man API key
+const smsApiKey = process.env.RENT_API_KEY;
+
+// Function to fetch SMS-Man balance
+const checkSmsManBalance = async (smsApiKey: string) => {
+  const response = await fetch(
+    `https://api.sms-man.com/control/get-balance?token=${smsApiKey}`
+  );
+
+  const data = await response.json();
+  return data.balance; // Return the balance from SMS-Man API
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get("action");
@@ -8,14 +26,28 @@ export async function GET(request: Request) {
   const request_id = searchParams.get("request_id");
   const status = searchParams.get("status");
 
-  // Check if the SMS API key exists
-  const smsApiKey = "xHwwy2zvDS9Uig1vTphq9ngvkVNBCEwf";
+  // const smsApiKey = process.env.RENT_API_KEY;
+
   if (!smsApiKey) {
     console.error("SMS API Key is missing.");
     return NextResponse.json(
       { error: "SMS API Key is missing." },
       { status: 500 }
     );
+  }
+
+  // If action is 'get-balance', return the balance from SMS-Man
+  if (action === "get-balance") {
+    try {
+      const balance = await checkSmsManBalance(smsApiKey);
+      return NextResponse.json({ balance }, { status: 200 });
+    } catch (error) {
+      console.error("Error fetching SMS-Man balance:", error);
+      return NextResponse.json(
+        { error: "Error fetching SMS-Man balance." },
+        { status: 500 }
+      );
+    }
   }
 
   // Build the API URL dynamically based on the requested action

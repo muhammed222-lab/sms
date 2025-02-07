@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "speedapp",
+      "source": "@speedapp/v1.0#1yvdxbi1tltr3iep6",
+      "integrity": "sha512-3BMDLpHVf7OWaa2YJiQxxS55uLnr1Rqn7O8wm6YWeTUc8Ny5J/dZOGQj2HrL+HcKojK7PPCXt+syjdfU/U0EIw==",
+      "installerVersion": "6.1.2"
+    }
+  ]
+}

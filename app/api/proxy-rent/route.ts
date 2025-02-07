@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 
-interface LimitItem {
-  country_id: string;
-  count: string;
-  cost: string;
-}
+// Replace with your SMS-Man API key
+import dotenv from "dotenv";
+
+// Load environment variables from .env.local file
+dotenv.config({ path: ".env.local" });
+
+// Replace with your SMS-Man API key
+const RENT_API_KEY = process.env.RENT_API_KEY;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -23,24 +26,44 @@ export async function GET(request: Request) {
     );
   }
 
-  const rentApiKey = "xHwwy2zvDS9Uig1vTphq9ngvkVNBCEwf";
-  if (!rentApiKey) {
-    return NextResponse.json(
-      { error: "Rent API Key is missing." },
-      { status: 500 }
-    );
-  }
-
   let apiUrl;
-  if (action === "get-countries") {
-    apiUrl = `https://api.sms-man.com/rent-api/limits?token=${rentApiKey}&type=hour&time=1`;
-  } else {
-    apiUrl = `https://api.sms-man.com/rent-api/${action}?token=${rentApiKey}`;
-    if (country_id) apiUrl += `&country_id=${country_id}`;
-    if (type) apiUrl += `&type=${type}`;
-    if (time) apiUrl += `&time=${time}`;
-    if (request_id) apiUrl += `&request_id=${request_id}`;
-    if (status) apiUrl += `&status=${status}`;
+  switch (action) {
+    case "get-balance":
+      apiUrl = `https://api.sms-man.com/rent-api/get-balance?token=${RENT_API_KEY}`;
+      break;
+    case "limits":
+      apiUrl = `https://api.sms-man.com/rent-api/limits?token=${RENT_API_KEY}`;
+      if (country_id) apiUrl += `&country_id=${country_id}`;
+      if (type) apiUrl += `&type=${type}`;
+      if (time) apiUrl += `&time=${time}`;
+      break;
+    case "get-number":
+      apiUrl = `https://api.sms-man.com/rent-api/get-number?token=${RENT_API_KEY}`;
+      if (country_id) apiUrl += `&country_id=${country_id}`;
+      if (type) apiUrl += `&type=${type}`;
+      if (time) apiUrl += `&time=${time}`;
+      break;
+    case "set-status":
+      apiUrl = `https://api.sms-man.com/rent-api/set-status?token=${RENT_API_KEY}`;
+      if (request_id) apiUrl += `&request_id=${request_id}`;
+      if (status) apiUrl += `&status=${status}`;
+      break;
+    case "get-sms":
+      apiUrl = `https://api.sms-man.com/rent-api/get-sms?token=${RENT_API_KEY}`;
+      if (request_id) apiUrl += `&request_id=${request_id}`;
+      break;
+    case "get-all-sms":
+      apiUrl = `https://api.sms-man.com/rent-api/get-all-sms?token=${RENT_API_KEY}`;
+      if (request_id) apiUrl += `&request_id=${request_id}`;
+      break;
+    case "get-all-requests":
+      apiUrl = `https://api.sms-man.com/rent-api/get-all-requests?token=${RENT_API_KEY}`;
+      break;
+    default:
+      return NextResponse.json(
+        { error: "Invalid action parameter." },
+        { status: 400 }
+      );
   }
 
   try {
@@ -71,23 +94,6 @@ export async function GET(request: Request) {
     }
 
     const data = JSON.parse(responseText);
-
-    // Special case for `get-countries`
-    if (action === "get-countries") {
-      const countries =
-        data.limits?.length > 0
-          ? data.limits.map((item: LimitItem) => ({
-              id: item.country_id,
-              name: `Country ${item.country_id}`,
-              count: item.count,
-              cost: item.cost,
-            }))
-          : [
-              { id: "0", name: "Default Country", count: "0", cost: "0.00" }, // Fallback
-            ];
-      return NextResponse.json(countries, { status: 200 });
-    }
-
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Error in proxy-rent API:", error);

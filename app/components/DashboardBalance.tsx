@@ -13,6 +13,7 @@ import {
   DocumentData,
 } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
+import Crypto from "./Crypto";
 
 interface FlutterwaveCheckoutOptions {
   public_key: string;
@@ -132,7 +133,6 @@ const DashboardBalance: React.FC = () => {
         logo: "/deemax.png",
       },
       callback: async (response) => {
-        // After the Flutterwave checkout, verify the transaction
         try {
           const verifyResponse = await fetch("/api/verify-transaction", {
             method: "POST",
@@ -152,10 +152,10 @@ const DashboardBalance: React.FC = () => {
           ) {
             alert("Payment verified successfully!");
 
-            // Update the user's balance in Firestore
             const email = user?.email || "default@example.com";
             const depositCollection = collection(db, "userDeposits");
 
+            // Update user's balance
             const userQuery = query(
               depositCollection,
               where("email", "==", email)
@@ -163,14 +163,12 @@ const DashboardBalance: React.FC = () => {
             const querySnapshot = await getDocs(userQuery);
 
             if (!querySnapshot.empty) {
-              // Update the existing document
               const docRef = querySnapshot.docs[0].ref;
               const existingData = querySnapshot.docs[0].data() as DocumentData;
               const newAmount = (existingData.amount || 0) + amount;
 
               await updateDoc(docRef, { amount: newAmount });
             } else {
-              // Create a new document if not found
               await addDoc(depositCollection, {
                 email,
                 amount,
@@ -178,20 +176,96 @@ const DashboardBalance: React.FC = () => {
               });
             }
 
-            // Update UI balance
             setBalance((prevBalance) => prevBalance + amount);
+
+            // Insert deposit history
+            const depositHistoryCollection = collection(db, "deposit_history");
+            await addDoc(depositHistoryCollection, {
+              user_email: email,
+              amount,
+              date: new Date(),
+              mode: "Flutterwave",
+              status: "success",
+            });
+
+            // Check if the user was referred
+            const refersQuery = query(
+              collection(db, "refers"),
+              where("user_email", "==", email)
+            );
+            const refersSnapshot = await getDocs(refersQuery);
+
+            if (!refersSnapshot.empty) {
+              const referrerDoc = refersSnapshot.docs[0];
+              const referrerData = referrerDoc.data() as DocumentData;
+
+              const referrerEmail = referrerData.refer_by_email;
+              const referrerCommission = referrerData.commission || 0;
+
+              // Calculate 5% commission
+              const commission = (5 / 100) * amount;
+
+              // Update the referrer's commission
+              const referrerRef = referrerDoc.ref;
+              await updateDoc(referrerRef, {
+                commission: referrerCommission + commission,
+              });
+
+              console.log(
+                `Commission of ${commission} added to referrer: ${referrerEmail}`
+              );
+            }
           } else {
             alert("Payment verification failed. Please try again.");
+
+            // Insert failed deposit history
+            const depositHistoryCollection = collection(db, "deposit_history");
+            await addDoc(depositHistoryCollection, {
+              user_email: user?.email || "default@example.com",
+              amount,
+              date: new Date(),
+              mode: "Flutterwave",
+              status: "failed",
+            });
           }
         } catch (error) {
           console.error("Error verifying transaction:", error);
           alert("An error occurred during payment verification.");
+
+          // Insert failed deposit history
+          const depositHistoryCollection = collection(db, "deposit_history");
+          await addDoc(depositHistoryCollection, {
+            user_email: user?.email || "default@example.com",
+            amount,
+            date: new Date(),
+            mode: "Flutterwave",
+            status: "failed",
+          });
         }
       },
       onclose: () => {
         alert("Payment window closed.");
+
+        // Insert pending deposit history
+        const depositHistoryCollection = collection(db, "deposit_history");
+        addDoc(depositHistoryCollection, {
+          user_email: user?.email || "default@example.com",
+          amount,
+          date: new Date(),
+          mode: "Flutterwave",
+          status: "pending",
+        });
       },
     });
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   return (
@@ -199,7 +273,7 @@ const DashboardBalance: React.FC = () => {
       <h1>Dashboard</h1>
       <div style={{ marginBottom: "20px" }}>
         <h2>
-          Current Balance: <strong>{balance} NGN</strong>
+          Current Balance: <strong>{formatCurrency(balance)}</strong>
         </h2>
         <p>Hey, {user?.displayName || "User"}! Let&apos;s make a deposit.</p>
       </div>
@@ -257,6 +331,7 @@ const DashboardBalance: React.FC = () => {
               </button>
             </div>
           )}
+          {selectedMethod === "bitcoin" && <Crypto />}
         </div>
       ) : (
         <div>
@@ -278,6 +353,18 @@ const DashboardBalance: React.FC = () => {
                 height={100}
                 alt="Flutterwave"
               />
+            </button>
+            <button
+              onClick={() => handleTopUp("bitcoin")}
+              style={{
+                padding: "10px",
+                border: "1px solid gray",
+                borderRadius: "8px",
+                backgroundColor: "white",
+                cursor: "pointer",
+              }}
+            >
+              <Image src="/bitcoin.png" width={50} height={50} alt="Bitcoin" />
             </button>
           </div>
         </div>

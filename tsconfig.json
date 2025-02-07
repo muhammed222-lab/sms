@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,21 +13,14 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": [
-      "node"
-    ], // Ensure Node.js types are included
+    "types": ["node"], // Ensure Node.js types are included
     "baseUrl": ".", // Set base URL for paths
     "paths": {
-      "@/*": [
-        "./*"
-      ], // Alias for absolute imports
-      "types/*": [
-        "src/types/*"
-      ] // Include custom type definitions
+      "@/*": ["./*"], // Alias for absolute imports
+      "types/*": ["src/types/*"] // Include custom type definitions
     },
     "allowSyntheticDefaultImports": true, // Ensure compatibility with default imports
-    "forceConsistentCasingInFileNames": true // Enforce consistent casing
-    ,
+    "forceConsistentCasingInFileNames": true, // Enforce consistent casing
     "plugins": [
       {
         "name": "next"
@@ -48,9 +37,5 @@
     "app/utils/**/*.js",
     "src/types/**/*.d.ts" // Ensure custom types are included
   ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist"
-  ] // Exclude unnecessary directories
+  "exclude": ["node_modules", "build", "dist"] // Exclude unnecessary directories
 }

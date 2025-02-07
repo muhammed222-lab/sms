@@ -28,6 +28,13 @@ function Tutor() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Tutorials</h1>
+      <iframe
+        src="https://scribehow.com/embed/How_To_Use_Our_Service_on_smsglobenet_To_get_virtual_number_and_rent_a_number__5GxvQ4uUSAyLprtZs4QHng?as=scrollable"
+        width="100%"
+        height="640"
+        allowFullScreen
+        frameBorder="0"
+      ></iframe>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {tutorials_items.map((tutorial, index) => (
           <div

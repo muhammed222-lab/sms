@@ -1,0 +1,2586 @@
+[
+  {
+    "question": "How do I get a phone number for SMS verification?",
+    "answer": "To get a phone number, you need to select a country and a service. Once you choose the options, the system will generate a number for you."
+  },
+  {
+    "question": "Why can't I receive an SMS on my number?",
+    "answer": "If you're not receiving SMS, please make sure you've selected the correct country and service. Sometimes there may also be delays, so try again after a few minutes."
+  },
+  {
+    "question": "Can I use the same phone number multiple times?",
+    "answer": "No, each phone number can only be used for one SMS verification at a time. Once used, it will be marked as 'used' and cannot be reused."
+  },
+  {
+    "question": "What do I do if the SMS code is not working?",
+    "answer": "If the code is not working, make sure the code you entered matches the one received. If it's expired, you can request a new code."
+  },
+  {
+    "question": "How long does it take to receive an SMS?",
+    "answer": "It typically takes a few minutes, but in some cases, it may take up to 10 minutes, depending on the service and network."
+  },
+  {
+    "question": "Why is my account balance low?",
+    "answer": "Your balance may be low due to recent SMS purchases. Please check your usage history and refill your balance to continue using the service."
+  },
+  {
+    "question": "How can I check my account balance?",
+    "answer": "You can check your account balance by logging into your dashboard and viewing the balance section."
+  },
+  {
+    "question": "How can I top-up my account?",
+    "answer": "To top-up your account, go to the 'Payments' section of your account, and choose your preferred payment method to add funds."
+  },
+  {
+    "question": "What should I do if I accidentally selected the wrong country?",
+    "answer": "If you selected the wrong country, you can simply go back to the country selection page and choose the correct one."
+  },
+  {
+    "question": "Is there a refund policy?",
+    "answer": "Unfortunately, we do not offer refunds once a number has been used for SMS verification. Please make sure to double-check your selections before proceeding."
+  },
+  {
+    "question": "Can I use the service in all countries?",
+    "answer": "Our service supports SMS verification in many countries. You can check the list of supported countries on the 'Supported Countries' page."
+  },
+  {
+    "question": "Do you support WhatsApp or Telegram SMS verification?",
+    "answer": "Yes, we support SMS verification for services like WhatsApp, Telegram, and many more. Simply select the service when choosing your number."
+  },
+  {
+    "question": "Why did my number get blocked?",
+    "answer": "If your number got blocked, it could be due to misuse or violation of terms. Please check the terms of service or contact support for more information."
+  },
+  {
+    "question": "Can I change my registered email?",
+    "answer": "At the moment, changing your email address is not possible. You would need to create a new account with a different email if needed."
+  },
+  {
+    "question": "How can I delete my account?",
+    "answer": "To delete your account, please contact customer support, and they will assist you in deactivating and deleting your account."
+  },
+  {
+    "question": "How do I report a problem with a number?",
+    "answer": "If you are having an issue with a number, please report it through the 'Support' section. Include the number and issue details for quick assistance."
+  },
+  {
+    "question": "Can I use SMSglobe for online game verification?",
+    "answer": "Yes, our service works for most online platforms, including gaming services. Just select the appropriate service when generating your number."
+  },
+  {
+    "question": "Hi",
+    "answer": "Hello, how can we be of assist?"
+  },
+  {
+    "question": "Why am I being charged more for a number?",
+    "answer": "Some countries or services may have higher rates due to the cost of providing the number. Check the pricing section for details on different services."
+  },
+  {
+    "question": "Can I get a custom number for my business?",
+    "answer": "Currently, we only provide random numbers, but we may offer custom number services in the future. Stay tuned for updates."
+  },
+  {
+    "question": "What do I do if my payment is unsuccessful?",
+    "answer": "If your payment fails, please double-check your payment details or try using a different payment method. Contact support if the issue persists."
+  },
+  {
+    "question": "Can I use the same number for multiple verifications?",
+    "answer": "No, each number can only be used once for a verification process. Once used, it will be marked as 'used' and cannot be reused."
+  },
+  {
+    "question": "How do I know if a number is valid?",
+    "answer": "When you request a number, it will be verified for validity before it's sent to you. If there's an issue, you can request a new one."
+  },
+  {
+    "question": "How do I contact customer support?",
+    "answer": "You can contact customer support through the 'Help' section of our website or by emailing support@smsgloabe.net."
+  },
+  {
+    "question": "Can I cancel a number request?",
+    "answer": "Once a number request is processed, it cannot be canceled. Please ensure you’ve selected the correct country and service before confirming."
+  },
+  {
+    "question": "What if I don’t get an SMS within the expected time?",
+    "answer": "Sometimes, it may take longer due to service delays. If you're still not receiving the SMS after 10 minutes, please contact support."
+  },
+  {
+    "question": "What countries are supported by Smsglobe?",
+    "answer": "We support SMS verification in over 100 countries. You can view the full list of supported countries on our website."
+  },
+  {
+    "question": "How do I update my payment method?",
+    "answer": "To update your payment method, visit the 'Payment Methods' section in your account settings and select your preferred method."
+  },
+  {
+    "question": "Is it safe to use Smsglobe?",
+    "answer": "Yes, Smsglobe uses industry-standard encryption to protect your personal and payment information. Your data is safe with us."
+  },
+  {
+    "question": "Can I use Smsglobe to verify multiple accounts at once?",
+    "answer": "Yes, you can generate different phone numbers for multiple accounts. However, each number can only be used for one verification at a time."
+  },
+  {
+    "question": "Why does the SMS code expire so quickly?",
+    "answer": "SMS codes typically expire within a few minutes for security reasons. If the code expires, you can request a new one."
+  },
+  {
+    "question": "Can I get a refund if I didn’t receive the SMS?",
+    "answer": "Unfortunately, we do not provide refunds for undelivered messages. However, you can try requesting a new number or contact support."
+  },
+  {
+    "question": "How can I upgrade my Smsglobe account?",
+    "answer": "To upgrade your account, go to your profile settings and select 'Upgrade Account.' You can choose the plan that suits you best."
+  },
+  {
+    "question": "How do I know if the number I got is working?",
+    "answer": "Once you receive a number, it should work immediately. If there are any issues, you can contact support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for international verifications?",
+    "answer": "Yes, you can use Smsglobe for international SMS verification. Just select the desired country and service."
+  },
+  {
+    "question": "Why was my account suspended?",
+    "answer": "Accounts can be suspended due to violating terms of service. Please check the terms or contact support for more information."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I reset my password?",
+    "answer": "To reset your password, click on the 'Forgot Password' link on the login page and follow the instructions to reset your password."
+  },
+  {
+    "question": "Can I view my SMS history?",
+    "answer": "Yes, you can view your SMS history by logging into your account and navigating to the 'SMS History' section."
+  },
+  {
+    "question": "What payment methods are accepted?",
+    "answer": "We accept various payment methods including credit/debit cards, PayPal, and other online payment systems. Check the 'Payments' section for more details."
+  },
+  {
+    "question": "How do I update my profile information?",
+    "answer": "To update your profile information, log into your account and go to the 'Profile' section where you can edit your details."
+  },
+  {
+    "question": "Why am I not receiving SMS notifications?",
+    "answer": "Ensure that your notification settings are enabled and that your phone number is correct. If the issue persists, contact support."
+  },
+  {
+    "question": "Can I use Smsglobe for two-factor authentication (2FA)?",
+    "answer": "Yes, Smsglobe can be used for two-factor authentication. Select the appropriate service when generating your number."
+  },
+  {
+    "question": "How do I unsubscribe from promotional emails?",
+    "answer": "To unsubscribe from promotional emails, click the 'Unsubscribe' link at the bottom of any promotional email you received from us."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Is there a limit to the number of SMS verifications I can request?",
+    "answer": "There is no limit to the number of SMS verifications you can request, but each number can only be used once."
+  },
+  {
+    "question": "How do I verify my email address?",
+    "answer": "To verify your email address, click on the verification link sent to your email after registration. If you didn't receive it, request a new one."
+  },
+
+  {
+    "question": "How do I reset my password?",
+    "answer": "To reset your password, click on the 'Forgot Password' link on the login page and follow the instructions to reset your password."
+  },
+  {
+    "question": "Can I view my SMS history?",
+    "answer": "Yes, you can view your SMS history by logging into your account and navigating to the 'SMS History' section."
+  },
+  {
+    "question": "What payment methods are accepted?",
+    "answer": "We accept various payment methods including credit/debit cards, PayPal, and other online payment systems. Check the 'Payments' section for more details."
+  },
+  {
+    "question": "How do I update my profile information?",
+    "answer": "To update your profile information, log into your account and go to the 'Profile' section where you can edit your details."
+  },
+  {
+    "question": "Why am I not receiving SMS notifications?",
+    "answer": "Ensure that your notification settings are enabled and that your phone number is correct. If the issue persists, contact support."
+  },
+  {
+    "question": "Can I use Smsglobe for two-factor authentication (2FA)?",
+    "answer": "Yes, Smsglobe can be used for two-factor authentication. Select the appropriate service when generating your number."
+  },
+  {
+    "question": "How do I unsubscribe from promotional emails?",
+    "answer": "To unsubscribe from promotional emails, click the 'Unsubscribe' link at the bottom of any promotional email you received from us."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Is there a limit to the number of SMS verifications I can request?",
+    "answer": "There is no limit to the number of SMS verifications you can request, but each number can only be used once."
+  },
+  {
+    "question": "How do I verify my email address?",
+    "answer": "To verify your email address, click on the verification link sent to your email after registration. If you didn't receive it, request a new one."
+  },
+  {
+    "question": "Can I use Smsglobe for Facebook verification?",
+    "answer": "Yes, Smsglobe supports Facebook verification. Select Facebook as the service when generating your number."
+  },
+  {
+    "question": "How do I change my password?",
+    "answer": "To change your password, go to the 'Account Settings' section and select 'Change Password.' Follow the instructions to update your password."
+  },
+  {
+    "question": "What should I do if I suspect unauthorized access to my account?",
+    "answer": "If you suspect unauthorized access, immediately change your password and contact customer support for further assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Google account verification?",
+    "answer": "Yes, Smsglobe supports Google account verification. Select Google as the service when generating your number."
+  },
+  {
+    "question": "How do I enable two-factor authentication (2FA) on my account?",
+    "answer": "To enable 2FA, go to the 'Security Settings' section of your account and follow the instructions to set up two-factor authentication."
+  },
+  {
+    "question": "Can I use Smsglobe for Twitter verification?",
+    "answer": "Yes, Smsglobe supports Twitter verification. Select Twitter as the service when generating your number."
+  },
+  {
+    "question": "How do I update my billing information?",
+    "answer": "To update your billing information, log into your account and go to the 'Billing' section where you can update your details."
+  },
+  {
+    "question": "What should I do if I encounter a payment issue?",
+    "answer": "If you encounter a payment issue, please contact customer support with your payment details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Instagram verification?",
+    "answer": "Yes, Smsglobe supports Instagram verification. Select Instagram as the service when generating your number."
+  },
+  {
+    "question": "How do I deactivate my account?",
+    "answer": "To deactivate your account, please contact customer support, and they will assist you in deactivating your account."
+  },
+  {
+    "question": "Can I use Smsglobe for LinkedIn verification?",
+    "answer": "Yes, Smsglobe supports LinkedIn verification. Select LinkedIn as the service when generating your number."
+  },
+  {
+    "question": "How do I change my notification preferences?",
+    "answer": "To change your notification preferences, log into your account and go to the 'Notification Settings' section."
+  },
+  {
+    "question": "What should I do if I forget my password?",
+    "answer": "If you forget your password, click on the 'Forgot Password' link on the login page and follow the instructions to reset your password."
+  },
+  {
+    "question": "Can I use Smsglobe for Microsoft account verification?",
+    "answer": "Yes, Smsglobe supports Microsoft account verification. Select Microsoft as the service when generating your number."
+  },
+  {
+    "question": "How do I view my transaction history?",
+    "answer": "To view your transaction history, log into your account and go to the 'Transaction History' section."
+  },
+
+  {
+    "question": "Can I use Smsglobe for Apple ID verification?",
+    "answer": "Yes, Smsglobe supports Apple ID verification. Select Apple ID as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact information?",
+    "answer": "To update your contact information, log into your account and go to the 'Contact Information' section where you can edit your details."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for PayPal verification?",
+    "answer": "Yes, Smsglobe supports PayPal verification. Select PayPal as the service when generating your number."
+  },
+  {
+    "question": "How do I enable email notifications?",
+    "answer": "To enable email notifications, log into your account and go to the 'Notification Settings' section where you can enable email notifications."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Snapchat verification?",
+    "answer": "Yes, Smsglobe supports Snapchat verification. Select Snapchat as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security settings?",
+    "answer": "To update your security settings, log into your account and go to the 'Security Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Uber verification?",
+    "answer": "Yes, Smsglobe supports Uber verification. Select Uber as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Airbnb verification?",
+    "answer": "Yes, Smsglobe supports Airbnb verification. Select Airbnb as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email address?",
+    "answer": "To update your email address, log into your account and go to the 'Email Settings' section where you can update your email address."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Amazon verification?",
+    "answer": "Yes, Smsglobe supports Amazon verification. Select Amazon as the service when generating your number."
+  },
+  {
+    "question": "How do I update my phone number?",
+    "answer": "To update your phone number, log into your account and go to the 'Phone Settings' section where you can update your phone number."
+  },
+  {
+    "question": "What should I do if I encounter a payment issue?",
+    "answer": "If you encounter a payment issue, please contact customer support with your payment details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for eBay verification?",
+    "answer": "Yes, Smsglobe supports eBay verification. Select eBay as the service when generating your number."
+  },
+  {
+    "question": "How do I update my address?",
+    "answer": "To update your address, log into your account and go to the 'Address Settings' section where you can update your address."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for LinkedIn verification?",
+    "answer": "Yes, Smsglobe supports LinkedIn verification. Select LinkedIn as the service when generating your number."
+  },
+  {
+    "question": "How do I update my profile picture?",
+    "answer": "To update your profile picture, log into your account and go to the 'Profile Settings' section where you can update your profile picture."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Skype verification?",
+    "answer": "Yes, Smsglobe supports Skype verification. Select Skype as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Viber verification?",
+    "answer": "Yes, Smsglobe supports Viber verification. Select Viber as the service when generating your number."
+  },
+  {
+    "question": "How do I update my notification settings?",
+    "answer": "To update your notification settings, log into your account and go to the 'Notification Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WeChat verification?",
+    "answer": "Yes, Smsglobe supports WeChat verification. Select WeChat as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security questions?",
+    "answer": "To update your security questions, log into your account and go to the 'Security Settings' section where you can update your security questions."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment information?",
+    "answer": "To update your payment information, log into your account and go to the 'Payment Settings' section where you can update your payment information."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "Can I use Smsglobe for Pinterest verification?",
+    "answer": "Yes, Smsglobe supports Pinterest verification. Select Pinterest as the service when generating your number."
+  },
+  {
+    "question": "How do I update my language preferences?",
+    "answer": "To update your language preferences, log into your account and go to the 'Language Preferences' section where you can select your preferred language."
+  },
+  {
+    "question": "What should I do if I encounter a language issue?",
+    "answer": "If you encounter a language issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Reddit verification?",
+    "answer": "Yes, Smsglobe supports Reddit verification. Select Reddit as the service when generating your number."
+  },
+  {
+    "question": "How do I update my timezone settings?",
+    "answer": "To update your timezone settings, log into your account and go to the 'Timezone Settings' section where you can select your preferred timezone."
+  },
+  {
+    "question": "What should I do if I encounter a timezone issue?",
+    "answer": "If you encounter a timezone issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Spotify verification?",
+    "answer": "Yes, Smsglobe supports Spotify verification. Select Spotify as the service when generating your number."
+  },
+  {
+    "question": "How do I update my subscription plan?",
+    "answer": "To update your subscription plan, log into your account and go to the 'Subscription Plan' section where you can select a new plan."
+  },
+  {
+    "question": "What should I do if I encounter a subscription issue?",
+    "answer": "If you encounter a subscription issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for TikTok verification?",
+    "answer": "Yes, Smsglobe supports TikTok verification. Select TikTok as the service when generating your number."
+  },
+  {
+    "question": "How do I update my notification preferences?",
+    "answer": "To update your notification preferences, log into your account and go to the 'Notification Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Venmo verification?",
+    "answer": "Yes, Smsglobe supports Venmo verification. Select Venmo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my privacy settings?",
+    "answer": "To update your privacy settings, log into your account and go to the 'Privacy Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a privacy issue?",
+    "answer": "If you encounter a privacy issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security settings?",
+    "answer": "To update your security settings, log into your account and go to the 'Security Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for PayPal verification?",
+    "answer": "Yes, Smsglobe supports PayPal verification. Select PayPal as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment information?",
+    "answer": "To update your payment information, log into your account and go to the 'Payment Information' section where you can update your details."
+  },
+  {
+    "question": "What should I do if I encounter a payment issue?",
+    "answer": "If you encounter a payment issue, please contact customer support with your payment details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for eBay verification?",
+    "answer": "Yes, Smsglobe supports eBay verification. Select eBay as the service when generating your number."
+  },
+  {
+    "question": "How do I update my address?",
+    "answer": "To update your address, log into your account and go to the 'Address Settings' section where you can update your address."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for LinkedIn verification?",
+    "answer": "Yes, Smsglobe supports LinkedIn verification. Select LinkedIn as the service when generating your number."
+  },
+  {
+    "question": "How do I update my profile picture?",
+    "answer": "To update your profile picture, log into your account and go to the 'Profile Settings' section where you can update your profile picture."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Skype verification?",
+    "answer": "Yes, Smsglobe supports Skype verification. Select Skype as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Viber verification?",
+    "answer": "Yes, Smsglobe supports Viber verification. Select Viber as the service when generating your number."
+  },
+  {
+    "question": "How do I update my notification settings?",
+    "answer": "To update your notification settings, log into your account and go to the 'Notification Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WeChat verification?",
+    "answer": "Yes, Smsglobe supports WeChat verification. Select WeChat as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security questions?",
+    "answer": "To update your security questions, log into your account and go to the 'Security Settings' section where you can update your security questions."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment information?",
+    "answer": "To update your payment information, log into your account and go to the 'Payment Settings' section where you can update your payment information."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support"
+  },
+  {
+    "question": "Hello",
+    "answer": "Hi there! How can we assist you today?"
+  },
+  {
+    "question": "Hi",
+    "answer": "Hello! How can we help you?"
+  },
+  {
+    "question": "Hey",
+    "answer": "Hey! What can we do for you?"
+  },
+  {
+    "question": "Good morning",
+    "answer": "Good morning! How can we assist you today?"
+  },
+  {
+    "question": "Good afternoon",
+    "answer": "Good afternoon! How can we help you?"
+  },
+  {
+    "question": "Good evening",
+    "answer": "Good evening! What can we do for you?"
+  },
+  {
+    "question": "Greetings",
+    "answer": "Greetings! How can we assist you?"
+  },
+  {
+    "question": "Hi there",
+    "answer": "Hello! How can we help you today?"
+  },
+  {
+    "question": "Hello there",
+    "answer": "Hi! How can we assist you?"
+  },
+  {
+    "question": "Hey there",
+    "answer": "Hey! What can we do for you today?"
+  },
+  {
+    "question": "Hiya",
+    "answer": "Hi! How can we assist you today?"
+  },
+  {
+    "question": "Howdy",
+    "answer": "Howdy! How can we help you?"
+  },
+  {
+    "question": "What's up",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Yo",
+    "answer": "Hey! How can we help you?"
+  },
+  {
+    "question": "Hi everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hi all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hi folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hi guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hello all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hello folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey everyone",
+    "answer": "Hey! How can we assist you today?"
+  },
+  {
+    "question": "Hey all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hey folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hi there everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hi there all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hi there folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi there team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hi there guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello there everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hello there all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hello there folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello there team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello there guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey there everyone",
+    "answer": "Hey! How can we assist you today?"
+  },
+  {
+    "question": "Hey there all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hey there folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey there team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey there guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "wassup",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Can I use the same phone number multiple times?",
+    "answer": "No, each phone number can only be used for one SMS verification at a time. Once used, it will be marked as 'used' and cannot be reused."
+  },
+  {
+    "question": "What do I do if the SMS code is not working?",
+    "answer": "If the code is not working, make sure the code you entered matches the one received. If it's expired, you can request a new code."
+  },
+  {
+    "question": "How long does it take to receive an SMS?",
+    "answer": "It typically takes a few minutes, but in some cases, it may take up to 10 minutes, depending on the service and network."
+  },
+  {
+    "question": "Why is my account balance low?",
+    "answer": "Your balance may be low due to recent SMS purchases. Please check your usage history and refill your balance to continue using the service."
+  },
+  {
+    "question": "How can I check my account balance?",
+    "answer": "You can check your account balance by logging into your dashboard and viewing the balance section."
+  },
+  {
+    "question": "How can I top-up my account?",
+    "answer": "To top-up your account, go to the 'Payments' section of your account, and choose your preferred payment method to add funds."
+  },
+  {
+    "question": "What should I do if I accidentally selected the wrong country?",
+    "answer": "If you selected the wrong country, you can simply go back to the country selection page and choose the correct one."
+  },
+  {
+    "question": "Is there a refund policy?",
+    "answer": "Unfortunately, we do not offer refunds once a number has been used for SMS verification. Please make sure to double-check your selections before proceeding."
+  },
+  {
+    "question": "Can I use the service in all countries?",
+    "answer": "Our service supports SMS verification in many countries. You can check the list of supported countries on the 'Supported Countries' page."
+  },
+  {
+    "question": "Do you support WhatsApp or Telegram SMS verification?",
+    "answer": "Yes, we support SMS verification for services like WhatsApp, Telegram, and many more. Simply select the service when choosing your number."
+  },
+  {
+    "question": "Why did my number get blocked?",
+    "answer": "If your number got blocked, it could be due to misuse or violation of terms. Please check the terms of service or contact support for more information."
+  },
+  {
+    "question": "Can I change my registered email?",
+    "answer": "At the moment, changing your email address is not possible. You would need to create a new account with a different email if needed."
+  },
+  {
+    "question": "How can I delete my account?",
+    "answer": "To delete your account, please contact customer support, and they will assist you in deactivating and deleting your account."
+  },
+  {
+    "question": "How do I report a problem with a number?",
+    "answer": "If you are having an issue with a number, please report it through the 'Support' section. Include the number and issue details for quick assistance."
+  },
+  {
+    "question": "Can I use SMSglobe for online game verification?",
+    "answer": "Yes, our service works for most online platforms, including gaming services. Just select the appropriate service when generating your number."
+  },
+  {
+    "question": "Hi",
+    "answer": "Hello, how can we be of assist?"
+  },
+  {
+    "question": "Why am I being charged more for a number?",
+    "answer": "Some countries or services may have higher rates due to the cost of providing the number. Check the pricing section for details on different services."
+  },
+  {
+    "question": "Can I get a custom number for my business?",
+    "answer": "Currently, we only provide random numbers, but we may offer custom number services in the future. Stay tuned for updates."
+  },
+  {
+    "question": "What do I do if my payment is unsuccessful?",
+    "answer": "If your payment fails, please double-check your payment details or try using a different payment method. Contact support if the issue persists."
+  },
+  {
+    "question": "Can I use the same number for multiple verifications?",
+    "answer": "No, each number can only be used once for a verification process. Once used, it will be marked as 'used' and cannot be reused."
+  },
+  {
+    "question": "How do I know if a number is valid?",
+    "answer": "When you request a number, it will be verified for validity before it's sent to you. If there's an issue, you can request a new one."
+  },
+  {
+    "question": "How do I contact customer support?",
+    "answer": "You can contact customer support through the 'Help' section of our website or by emailing support@smsgloabe.net."
+  },
+  {
+    "question": "Can I cancel a number request?",
+    "answer": "Once a number request is processed, it cannot be canceled. Please ensure you’ve selected the correct country and service before confirming."
+  },
+  {
+    "question": "What if I don’t get an SMS within the expected time?",
+    "answer": "Sometimes, it may take longer due to service delays. If you're still not receiving the SMS after 10 minutes, please contact support."
+  },
+  {
+    "question": "What countries are supported by Smsglobe?",
+    "answer": "We support SMS verification in over 100 countries. You can view the full list of supported countries on our website."
+  },
+  {
+    "question": "How do I update my payment method?",
+    "answer": "To update your payment method, visit the 'Payment Methods' section in your account settings and select your preferred method."
+  },
+  {
+    "question": "Is it safe to use Smsglobe?",
+    "answer": "Yes, Smsglobe uses industry-standard encryption to protect your personal and payment information. Your data is safe with us."
+  },
+  {
+    "question": "Can I use Smsglobe to verify multiple accounts at once?",
+    "answer": "Yes, you can generate different phone numbers for multiple accounts. However, each number can only be used for one verification at a time."
+  },
+  {
+    "question": "Why does the SMS code expire so quickly?",
+    "answer": "SMS codes typically expire within a few minutes for security reasons. If the code expires, you can request a new one."
+  },
+  {
+    "question": "Can I get a refund if I didn’t receive the SMS?",
+    "answer": "Unfortunately, we do not provide refunds for undelivered messages. However, you can try requesting a new number or contact support."
+  },
+  {
+    "question": "How can I upgrade my Smsglobe account?",
+    "answer": "To upgrade your account, go to your profile settings and select 'Upgrade Account.' You can choose the plan that suits you best."
+  },
+  {
+    "question": "How do I know if the number I got is working?",
+    "answer": "Once you receive a number, it should work immediately. If there are any issues, you can contact support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for international verifications?",
+    "answer": "Yes, you can use Smsglobe for international SMS verification. Just select the desired country and service."
+  },
+  {
+    "question": "Why was my account suspended?",
+    "answer": "Accounts can be suspended due to violating terms of service. Please check the terms or contact support for more information."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I reset my password?",
+    "answer": "To reset your password, click on the 'Forgot Password' link on the login page and follow the instructions to reset your password."
+  },
+  {
+    "question": "Can I view my SMS history?",
+    "answer": "Yes, you can view your SMS history by logging into your account and navigating to the 'SMS History' section."
+  },
+  {
+    "question": "What payment methods are accepted?",
+    "answer": "We accept various payment methods including credit/debit cards, PayPal, and other online payment systems. Check the 'Payments' section for more details."
+  },
+  {
+    "question": "How do I update my profile information?",
+    "answer": "To update your profile information, log into your account and go to the 'Profile' section where you can edit your details."
+  },
+  {
+    "question": "Why am I not receiving SMS notifications?",
+    "answer": "Ensure that your notification settings are enabled and that your phone number is correct. If the issue persists, contact support."
+  },
+  {
+    "question": "Can I use Smsglobe for two-factor authentication (2FA)?",
+    "answer": "Yes, Smsglobe can be used for two-factor authentication. Select the appropriate service when generating your number."
+  },
+  {
+    "question": "How do I unsubscribe from promotional emails?",
+    "answer": "To unsubscribe from promotional emails, click the 'Unsubscribe' link at the bottom of any promotional email you received from us."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Is there a limit to the number of SMS verifications I can request?",
+    "answer": "There is no limit to the number of SMS verifications you can request, but each number can only be used once."
+  },
+  {
+    "question": "How do I verify my email address?",
+    "answer": "To verify your email address, click on the verification link sent to your email after registration. If you didn't receive it, request a new one."
+  },
+
+  {
+    "question": "How do I reset my password?",
+    "answer": "To reset your password, click on the 'Forgot Password' link on the login page and follow the instructions to reset your password."
+  },
+  {
+    "question": "Can I view my SMS history?",
+    "answer": "Yes, you can view your SMS history by logging into your account and navigating to the 'SMS History' section."
+  },
+  {
+    "question": "What payment methods are accepted?",
+    "answer": "We accept various payment methods including credit/debit cards, PayPal, and other online payment systems. Check the 'Payments' section for more details."
+  },
+  {
+    "question": "How do I update my profile information?",
+    "answer": "To update your profile information, log into your account and go to the 'Profile' section where you can edit your details."
+  },
+  {
+    "question": "Why am I not receiving SMS notifications?",
+    "answer": "Ensure that your notification settings are enabled and that your phone number is correct. If the issue persists, contact support."
+  },
+  {
+    "question": "Can I use Smsglobe for two-factor authentication (2FA)?",
+    "answer": "Yes, Smsglobe can be used for two-factor authentication. Select the appropriate service when generating your number."
+  },
+  {
+    "question": "How do I unsubscribe from promotional emails?",
+    "answer": "To unsubscribe from promotional emails, click the 'Unsubscribe' link at the bottom of any promotional email you received from us."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Is there a limit to the number of SMS verifications I can request?",
+    "answer": "There is no limit to the number of SMS verifications you can request, but each number can only be used once."
+  },
+  {
+    "question": "How do I verify my email address?",
+    "answer": "To verify your email address, click on the verification link sent to your email after registration. If you didn't receive it, request a new one."
+  },
+  {
+    "question": "Can I use Smsglobe for Facebook verification?",
+    "answer": "Yes, Smsglobe supports Facebook verification. Select Facebook as the service when generating your number."
+  },
+  {
+    "question": "How do I change my password?",
+    "answer": "To change your password, go to the 'Account Settings' section and select 'Change Password.' Follow the instructions to update your password."
+  },
+  {
+    "question": "What should I do if I suspect unauthorized access to my account?",
+    "answer": "If you suspect unauthorized access, immediately change your password and contact customer support for further assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Google account verification?",
+    "answer": "Yes, Smsglobe supports Google account verification. Select Google as the service when generating your number."
+  },
+  {
+    "question": "How do I enable two-factor authentication (2FA) on my account?",
+    "answer": "To enable 2FA, go to the 'Security Settings' section of your account and follow the instructions to set up two-factor authentication."
+  },
+  {
+    "question": "Can I use Smsglobe for Twitter verification?",
+    "answer": "Yes, Smsglobe supports Twitter verification. Select Twitter as the service when generating your number."
+  },
+  {
+    "question": "How do I update my billing information?",
+    "answer": "To update your billing information, log into your account and go to the 'Billing' section where you can update your details."
+  },
+  {
+    "question": "What should I do if I encounter a payment issue?",
+    "answer": "If you encounter a payment issue, please contact customer support with your payment details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Instagram verification?",
+    "answer": "Yes, Smsglobe supports Instagram verification. Select Instagram as the service when generating your number."
+  },
+  {
+    "question": "How do I deactivate my account?",
+    "answer": "To deactivate your account, please contact customer support, and they will assist you in deactivating your account."
+  },
+  {
+    "question": "Can I use Smsglobe for LinkedIn verification?",
+    "answer": "Yes, Smsglobe supports LinkedIn verification. Select LinkedIn as the service when generating your number."
+  },
+  {
+    "question": "How do I change my notification preferences?",
+    "answer": "To change your notification preferences, log into your account and go to the 'Notification Settings' section."
+  },
+  {
+    "question": "What should I do if I forget my password?",
+    "answer": "If you forget your password, click on the 'Forgot Password' link on the login page and follow the instructions to reset your password."
+  },
+  {
+    "question": "Can I use Smsglobe for Microsoft account verification?",
+    "answer": "Yes, Smsglobe supports Microsoft account verification. Select Microsoft as the service when generating your number."
+  },
+  {
+    "question": "How do I view my transaction history?",
+    "answer": "To view your transaction history, log into your account and go to the 'Transaction History' section."
+  },
+
+  {
+    "question": "Can I use Smsglobe for Apple ID verification?",
+    "answer": "Yes, Smsglobe supports Apple ID verification. Select Apple ID as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact information?",
+    "answer": "To update your contact information, log into your account and go to the 'Contact Information' section where you can edit your details."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for PayPal verification?",
+    "answer": "Yes, Smsglobe supports PayPal verification. Select PayPal as the service when generating your number."
+  },
+  {
+    "question": "How do I enable email notifications?",
+    "answer": "To enable email notifications, log into your account and go to the 'Notification Settings' section where you can enable email notifications."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Snapchat verification?",
+    "answer": "Yes, Smsglobe supports Snapchat verification. Select Snapchat as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security settings?",
+    "answer": "To update your security settings, log into your account and go to the 'Security Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Uber verification?",
+    "answer": "Yes, Smsglobe supports Uber verification. Select Uber as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Airbnb verification?",
+    "answer": "Yes, Smsglobe supports Airbnb verification. Select Airbnb as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email address?",
+    "answer": "To update your email address, log into your account and go to the 'Email Settings' section where you can update your email address."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Amazon verification?",
+    "answer": "Yes, Smsglobe supports Amazon verification. Select Amazon as the service when generating your number."
+  },
+  {
+    "question": "How do I update my phone number?",
+    "answer": "To update your phone number, log into your account and go to the 'Phone Settings' section where you can update your phone number."
+  },
+  {
+    "question": "What should I do if I encounter a payment issue?",
+    "answer": "If you encounter a payment issue, please contact customer support with your payment details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for eBay verification?",
+    "answer": "Yes, Smsglobe supports eBay verification. Select eBay as the service when generating your number."
+  },
+  {
+    "question": "How do I update my address?",
+    "answer": "To update your address, log into your account and go to the 'Address Settings' section where you can update your address."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for LinkedIn verification?",
+    "answer": "Yes, Smsglobe supports LinkedIn verification. Select LinkedIn as the service when generating your number."
+  },
+  {
+    "question": "How do I update my profile picture?",
+    "answer": "To update your profile picture, log into your account and go to the 'Profile Settings' section where you can update your profile picture."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Skype verification?",
+    "answer": "Yes, Smsglobe supports Skype verification. Select Skype as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Viber verification?",
+    "answer": "Yes, Smsglobe supports Viber verification. Select Viber as the service when generating your number."
+  },
+  {
+    "question": "How do I update my notification settings?",
+    "answer": "To update your notification settings, log into your account and go to the 'Notification Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WeChat verification?",
+    "answer": "Yes, Smsglobe supports WeChat verification. Select WeChat as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security questions?",
+    "answer": "To update your security questions, log into your account and go to the 'Security Settings' section where you can update your security questions."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment information?",
+    "answer": "To update your payment information, log into your account and go to the 'Payment Settings' section where you can update your payment information."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "Can I use Smsglobe for Pinterest verification?",
+    "answer": "Yes, Smsglobe supports Pinterest verification. Select Pinterest as the service when generating your number."
+  },
+  {
+    "question": "How do I update my language preferences?",
+    "answer": "To update your language preferences, log into your account and go to the 'Language Preferences' section where you can select your preferred language."
+  },
+  {
+    "question": "What should I do if I encounter a language issue?",
+    "answer": "If you encounter a language issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Reddit verification?",
+    "answer": "Yes, Smsglobe supports Reddit verification. Select Reddit as the service when generating your number."
+  },
+  {
+    "question": "How do I update my timezone settings?",
+    "answer": "To update your timezone settings, log into your account and go to the 'Timezone Settings' section where you can select your preferred timezone."
+  },
+  {
+    "question": "What should I do if I encounter a timezone issue?",
+    "answer": "If you encounter a timezone issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Spotify verification?",
+    "answer": "Yes, Smsglobe supports Spotify verification. Select Spotify as the service when generating your number."
+  },
+  {
+    "question": "How do I update my subscription plan?",
+    "answer": "To update your subscription plan, log into your account and go to the 'Subscription Plan' section where you can select a new plan."
+  },
+  {
+    "question": "What should I do if I encounter a subscription issue?",
+    "answer": "If you encounter a subscription issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for TikTok verification?",
+    "answer": "Yes, Smsglobe supports TikTok verification. Select TikTok as the service when generating your number."
+  },
+  {
+    "question": "How do I update my notification preferences?",
+    "answer": "To update your notification preferences, log into your account and go to the 'Notification Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Venmo verification?",
+    "answer": "Yes, Smsglobe supports Venmo verification. Select Venmo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my privacy settings?",
+    "answer": "To update your privacy settings, log into your account and go to the 'Privacy Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a privacy issue?",
+    "answer": "If you encounter a privacy issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security settings?",
+    "answer": "To update your security settings, log into your account and go to the 'Security Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for PayPal verification?",
+    "answer": "Yes, Smsglobe supports PayPal verification. Select PayPal as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment information?",
+    "answer": "To update your payment information, log into your account and go to the 'Payment Information' section where you can update your details."
+  },
+  {
+    "question": "What should I do if I encounter a payment issue?",
+    "answer": "If you encounter a payment issue, please contact customer support with your payment details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for eBay verification?",
+    "answer": "Yes, Smsglobe supports eBay verification. Select eBay as the service when generating your number."
+  },
+  {
+    "question": "How do I update my address?",
+    "answer": "To update your address, log into your account and go to the 'Address Settings' section where you can update your address."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for LinkedIn verification?",
+    "answer": "Yes, Smsglobe supports LinkedIn verification. Select LinkedIn as the service when generating your number."
+  },
+  {
+    "question": "How do I update my profile picture?",
+    "answer": "To update your profile picture, log into your account and go to the 'Profile Settings' section where you can update your profile picture."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Skype verification?",
+    "answer": "Yes, Smsglobe supports Skype verification. Select Skype as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Viber verification?",
+    "answer": "Yes, Smsglobe supports Viber verification. Select Viber as the service when generating your number."
+  },
+  {
+    "question": "How do I update my notification settings?",
+    "answer": "To update your notification settings, log into your account and go to the 'Notification Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WeChat verification?",
+    "answer": "Yes, Smsglobe supports WeChat verification. Select WeChat as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security questions?",
+    "answer": "To update your security questions, log into your account and go to the 'Security Settings' section where you can update your security questions."
+  },
+  {
+    "question": "What should I do if I encounter a security issue?",
+    "answer": "If you encounter a security issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment information?",
+    "answer": "To update your payment information, log into your account and go to the 'Payment Settings' section where you can update your payment information."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support with your billing details for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Zalo verification?",
+    "answer": "Yes, Smsglobe supports Zalo verification. Select Zalo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account preferences?",
+    "answer": "To update your account preferences, log into your account and go to the 'Account Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a technical issue?",
+    "answer": "If you encounter a technical issue, please report it through the 'Support' section with detailed information about the problem."
+  },
+  {
+    "question": "Can I use Smsglobe for Zoom verification?",
+    "answer": "Yes, Smsglobe supports Zoom verification. Select Zoom as the service when generating your number."
+  },
+  {
+    "question": "How do I update my email preferences?",
+    "answer": "To update your email preferences, log into your account and go to the 'Email Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a notification issue?",
+    "answer": "If you encounter a notification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Telegram verification?",
+    "answer": "Yes, Smsglobe supports Telegram verification. Select Telegram as the service when generating your number."
+  },
+  {
+    "question": "How do I update my contact preferences?",
+    "answer": "To update your contact preferences, log into your account and go to the 'Contact Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a profile issue?",
+    "answer": "If you encounter a profile issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  },
+  {
+    "question": "How do I update my security preferences?",
+    "answer": "To update your security preferences, log into your account and go to the 'Security Preferences' section where you can update your preferences."
+  },
+  {
+    "question": "What should I do if I encounter a login issue?",
+    "answer": "If you encounter a login issue, please try resetting your password or contact customer support for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for WhatsApp verification?",
+    "answer": "Yes, Smsglobe supports WhatsApp verification. Select WhatsApp as the service when generating your number."
+  },
+  {
+    "question": "How do I update my account settings?",
+    "answer": "To update your account settings, log into your account and go to the 'Account Settings' section where you can update your settings."
+  },
+  {
+    "question": "What should I do if I encounter a verification issue?",
+    "answer": "If you encounter a verification issue, please contact customer support with the details of the issue for assistance."
+  },
+  {
+    "question": "Can I use Smsglobe for Yahoo verification?",
+    "answer": "Yes, Smsglobe supports Yahoo verification. Select Yahoo as the service when generating your number."
+  },
+  {
+    "question": "How do I update my payment settings?",
+    "answer": "To update your payment settings, log into your account and go to the 'Payment Settings' section where you can update your payment settings."
+  },
+  {
+    "question": "What should I do if I encounter a billing issue?",
+    "answer": "If you encounter a billing issue, please contact customer support"
+  },
+  {
+    "question": "Hello",
+    "answer": "Hi there! How can we assist you today?"
+  },
+  {
+    "question": "Hi",
+    "answer": "Hello! How can we help you?"
+  },
+  {
+    "question": "Hey",
+    "answer": "Hey! What can we do for you?"
+  },
+  {
+    "question": "Good morning",
+    "answer": "Good morning! How can we assist you today?"
+  },
+  {
+    "question": "Good afternoon",
+    "answer": "Good afternoon! How can we help you?"
+  },
+  {
+    "question": "Good evening",
+    "answer": "Good evening! What can we do for you?"
+  },
+  {
+    "question": "Greetings",
+    "answer": "Greetings! How can we assist you?"
+  },
+  {
+    "question": "Hi there",
+    "answer": "Hello! How can we help you today?"
+  },
+  {
+    "question": "Hello there",
+    "answer": "Hi! How can we assist you?"
+  },
+  {
+    "question": "Hey there",
+    "answer": "Hey! What can we do for you today?"
+  },
+  {
+    "question": "Hiya",
+    "answer": "Hi! How can we assist you today?"
+  },
+  {
+    "question": "Howdy",
+    "answer": "Howdy! How can we help you?"
+  },
+  {
+    "question": "What's up",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Yo",
+    "answer": "Hey! How can we help you?"
+  },
+  {
+    "question": "Hi everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hi all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hi folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hi guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hello all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hello folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey everyone",
+    "answer": "Hey! How can we assist you today?"
+  },
+  {
+    "question": "Hey all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hey folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hi there everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hi there all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hi there folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi there team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hi there guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hi there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello there everyone",
+    "answer": "Hello! How can we assist you today?"
+  },
+  {
+    "question": "Hello there all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hello there folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello there team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hello there guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hello there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey there everyone",
+    "answer": "Hey! How can we assist you today?"
+  },
+  {
+    "question": "Hey there all",
+    "answer": "Hi! How can we help you?"
+  },
+  {
+    "question": "Hey there folks",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey there team",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Hey there guys",
+    "answer": "Hello! How can we assist you?"
+  },
+  {
+    "question": "Hey there everyone",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "wassup",
+    "answer": "Hi! How can we help you today?"
+  },
+  {
+    "question": "Can I use Smsglobe for Tinder verification?",
+    "answer": "Yes, Smsglobe supports Tinder verification. Select Tinder as the service when generating your number."
+  }
+]

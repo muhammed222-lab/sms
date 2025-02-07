@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import emailjs from "@emailjs/browser";
+// import { FaSun, FaMoon } from "react-icons/fa"; // Icons for Light and Dark Mode
+// import Mode from "./Mode";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
@@ -83,6 +85,10 @@ const Footer = () => {
       });
   };
 
+  // Check the saved theme in localStorage or use device preference
+
+  // Toggle theme between light, dark, and save in localStorage
+
   return (
     <footer className="px-4 py-8 md:px-8 w-[80%] m-auto">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -113,7 +119,7 @@ const Footer = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you-mail@gmail.com"
-                className="flex-1 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="flex-1 px-4 py-2 rounded-md border border-gray-300 focus:outline-none"
                 required
               />
               <button
@@ -131,6 +137,7 @@ const Footer = () => {
             {/* Success message */}
           </div>
 
+          {/* Theme toggle button for light, dark, and device modes */}
           {/* Links Sections */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Our Links */}
@@ -232,6 +239,8 @@ const Footer = () => {
           Terms and Conditions
         </Link>
       </div>
+
+      {/* <Mode /> */}
     </footer>
   );
 };

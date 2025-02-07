@@ -154,7 +154,7 @@ const Profile = () => {
           }`}
           onClick={() => setActiveTab("rewards")}
         >
-          Rewards
+          Overview
         </button>
       </div>
 

@@ -67,7 +67,7 @@ const InvitePage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+      <div className="flex flex-col items-center justify-center h-screen ">
         <h1 className="text-xl font-bold text-red-600 mb-4">{error}</h1>
         <button
           onClick={() => router.push("/")}

@@ -2,13 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* globals.css */
 :root {
   --font-geist-sans: "Geist Sans", sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
 
-  /* Add light theme colors */
+  /* Light theme colors */
   --color-bg: #ffffff; /* Background color */
   --color-text: #000000; /* Text color */
   --color-primary: #ff0000; /* Red button color */
@@ -20,27 +19,69 @@ body {
   color: var(--color-text);
   margin: 0;
   padding: 0;
-  
+
   /* Create a gradient overlay and set background images */
   background: linear-gradient(
-      rgba(255, 255, 255, 0.8), 
+      rgba(255, 255, 255, 0.8),
       rgba(255, 255, 255, 0.8)
     ),
-    url('/bg.svg'),
-    url('/bg3.svg'),
-    url('/bg2.svg');
-  
+    url("/bg.svg"), url("/bg3.svg"), url("/bg2.svg");
+
   background-size: cover, cover, contain; /* Ensure images cover the area appropriately */
   background-position: center, center, center; /* Center images */
   background-repeat: no-repeat, no-repeat, no-repeat;
 
   margin: 0 auto;
   overflow-x: hidden; /* Prevent horizontal overflow */
-  
+
   /* Add blur and blending effect */
   backdrop-filter: blur(10px); /* Blur the background */
   -webkit-backdrop-filter: blur(10px); /* For Safari support */
   font-size: 13px !important;
 }
 
+/* Dark theme colors */
+.dark {
+  --color-bg: #000000; /* Background color */
+  --color-text: #ffffff; /* Text color */
+  --color-primary: #ff0000; /* Red button color */
+}
 
+.dark body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+
+  /* Create a gradient overlay and set background images */
+  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+    url("/bg.svg"), url("/bg3.svg"), url("/bg2.svg");
+
+  background-size: cover, cover, contain; /* Ensure images cover the area appropriately */
+  background-position: center, center, center; /* Center images */
+  background-repeat: no-repeat, no-repeat, no-repeat;
+
+  /* Add blur and blending effect */
+  backdrop-filter: blur(10px); /* Blur the background */
+  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+}
+/* globals.css */
+.terms-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: var(--font-geist-sans);
+}
+
+.accept-button {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: var(--color-primary);
+  color: var(--color-text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.accept-button:hover {
+  background-color: darken(var(--color-primary), 10%);
+}
