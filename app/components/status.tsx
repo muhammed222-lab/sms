@@ -6,11 +6,11 @@ const StatusNotification = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [showNotification, setShowNotification] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
-  // Optional dummy state to force a background update if needed
   const [, setDummy] = useState(0);
 
   useEffect(() => {
     const updateStatus = () => {
+      console.log("Network status changed. Online:", navigator.onLine);
       if (navigator.onLine) {
         setIsOnline(true);
         setReconnecting(false);
