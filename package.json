@@ -25,6 +25,7 @@
     "firebase": "^11.1.0",
     "firebase-admin": "^13.0.2",
     "flutterwave-node-v3": "^1.1.14",
+    "framer-motion": "^12.4.1",
     "helmet": "^8.0.0",
     "http-proxy-middleware": "^3.0.3",
     "jspdf": "^2.5.2",
