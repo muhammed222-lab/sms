@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useRouter } from "next/navigation";
-import Status from "./status";
+// import Status from "./status";
 
 const Header = () => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -194,7 +194,7 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b py-3 px-4">
-      <Status />
+      {/* <Status /> */}
       <div className="w-[90%] max-w-6xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
