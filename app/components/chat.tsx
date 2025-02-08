@@ -60,33 +60,13 @@ const Chat = () => {
 
   return (
     <>
-      <div className="chat-container">
+      {/* 
+        Adding pointerEvents: "none" here prevents the chat container 
+        from intercepting clicks meant for underlying elements.
+      */}
+      <div className="chat-container" style={{ pointerEvents: "none" }}>
         {!isLoaded && <div className="loading">Loading chat...</div>}
       </div>
-      <style jsx>{`
-        .chat-container {
-          position: fixed;
-          bottom: 20px;
-          right: 20px;
-          z-index: 99999;
-        }
-        .loading {
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        /* Mobile responsiveness */
-        @media (max-width: 600px) {
-          .chat-container {
-            bottom: 10px;
-            right: 10px;
-            width: calc(100vw - 20px);
-            height: calc(100vh - 20px);
-            border-radius: 0;
-          }
-        }
-      `}</style>
     </>
   );
 };
