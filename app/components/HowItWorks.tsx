@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebaseConfig"; // Import Firebase auth
+import Explanation from "./other/Explanation";
+import Statistic from "./other/Statistic";
 
 export default function HowItWorks() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -50,7 +52,7 @@ export default function HowItWorks() {
           </p>
           <div className="flex flex-wrap justify-center mt-8 gap-8">
             {/* Step 1 */}
-            <div className="relative bg-white rounded-lg border p-6 w-full sm:w-80 lg:w-1/3 border hover:shadow-2xl transition-shadow duration-300 ease-in-out">
+            <div className="relative bg-white rounded-lg border p-6 w-full sm:w-80 lg:w-1/3 hover:shadow-2xl transition-shadow duration-300 ease-in-out">
               <div className="text-center">
                 <i className="fas fa-user-plus text-5xl text-gray-700 mb-4"></i>
                 <h3 className="text-xl font-bold text-gray-800">
@@ -70,7 +72,7 @@ export default function HowItWorks() {
             </div>
 
             {/* Step 2 */}
-            <div className="relative bg-white rounded-lg border p-6 w-full sm:w-80 lg:w-1/3 border hover:shadow-2xl transition-shadow duration-300 ease-in-out">
+            <div className="relative bg-white rounded-lg border p-6 w-full sm:w-80 lg:w-1/3  hover:shadow-2xl transition-shadow duration-300 ease-in-out">
               <div className="text-center">
                 <i className="fas fa-wallet text-5xl text-gray-700 mb-4"></i>
                 <h3 className="text-xl font-bold text-gray-800">
@@ -90,7 +92,7 @@ export default function HowItWorks() {
             </div>
 
             {/* Step 3 */}
-            <div className="relative bg-white rounded-lg border p-6 w-full sm:w-80 lg:w-1/3 border hover:shadow-2xl transition-shadow duration-300 ease-in-out">
+            <div className="relative bg-white rounded-lg p-6 w-full sm:w-80 lg:w-1/3 border hover:shadow-2xl transition-shadow duration-300 ease-in-out">
               <div className="text-center">
                 <i className="fas fa-phone-alt text-5xl text-gray-700 mb-4"></i>
                 <h3 className="text-xl font-bold text-gray-800">
@@ -108,6 +110,8 @@ export default function HowItWorks() {
                 </button>
               </div>
             </div>
+            <Explanation />
+            <Statistic />
           </div>
         </div>
       </div>

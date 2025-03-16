@@ -1,902 +1,1543 @@
 {
-  "2": {
-    "id": "2",
-    "title": "Kazakhstan",
-    "code": "KZ"
-  },
-  "3": {
-    "id": "3",
-    "title": "China",
-    "code": "CN"
-  },
-  "5": {
-    "id": "5",
-    "title": "USA",
-    "code": "US"
-  },
-  "6": {
-    "id": "6",
-    "title": "Malaysia",
-    "code": "MY"
-  },
-  "7": {
-    "id": "7",
-    "title": "Indonesia",
-    "code": "ID"
-  },
-  "8": {
-    "id": "8",
-    "title": "Philippines",
-    "code": "PH"
-  },
-  "9": {
-    "id": "9",
-    "title": "Myanmar",
-    "code": "MM"
-  },
-  "10": {
-    "id": "10",
-    "title": "Vietnam",
-    "code": "VN"
-  },
-  "11": {
-    "id": "11",
-    "title": "Romania",
-    "code": "RO"
-  },
-  "12": {
-    "id": "12",
-    "title": "Poland",
-    "code": "PL"
-  },
-  "13": {
-    "id": "13",
-    "title": "Canada",
-    "code": "CA"
-  },
-  "14": {
-    "id": "14",
-    "title": "India",
-    "code": "IN"
-  },
-  "15": {
-    "id": "15",
-    "title": "Zambia",
-    "code": "ZM"
-  },
-  "16": {
-    "id": "16",
-    "title": "Pakistan",
-    "code": "PK"
-  },
-  "17": {
-    "id": "17",
-    "title": "Bangladesh",
-    "code": "BD"
-  },
-  "18": {
-    "id": "18",
-    "title": "Mexico",
-    "code": "MX"
-  },
-  "19": {
-    "id": "19",
-    "title": "Cambodia",
-    "code": "KH"
-  },
-  "20": {
-    "id": "20",
-    "title": "Nicaragua",
-    "code": "NI"
-  },
-  "96": {
-    "id": "96",
-    "title": "Kenya",
-    "code": "KE"
-  },
-  "97": {
-    "id": "97",
-    "title": "Kyrgyzstan",
-    "code": "KG"
-  },
-  "98": {
-    "id": "98",
-    "title": "Israel",
-    "code": "IL"
-  },
-  "99": {
-    "id": "99",
-    "title": "Hong Kong",
-    "code": "HK"
-  },
-  "100": {
-    "id": "100",
-    "title": "United Kingdom/England",
-    "code": "GB"
-  },
-  "101": {
-    "id": "101",
-    "title": "Madagascar",
-    "code": "MG"
-  },
-  "102": {
-    "id": "102",
-    "title": "Congo",
-    "code": "CG"
-  },
-  "103": {
-    "id": "103",
-    "title": "Nigeria",
-    "code": "NG"
-  },
-  "104": {
-    "id": "104",
-    "title": "Macao",
-    "code": "MO"
-  },
-  "105": {
-    "id": "105",
-    "title": "Egypt",
-    "code": "EG"
-  },
-  "106": {
-    "id": "106",
-    "title": "Ireland",
-    "code": "IE"
-  },
-  "107": {
-    "id": "107",
-    "title": "Laos",
-    "code": "LA"
-  },
-  "108": {
-    "id": "108",
-    "title": "Haiti",
-    "code": "HT"
-  },
-  "109": {
-    "id": "109",
-    "title": "Côte d'Ivoire",
-    "code": "CI"
-  },
-  "110": {
-    "id": "110",
-    "title": "Gambia",
-    "code": "GM"
-  },
-  "111": {
-    "id": "111",
-    "title": "Serbia",
-    "code": "RS"
-  },
-  "112": {
-    "id": "112",
-    "title": "Yemen",
-    "code": "YE"
-  },
-  "113": {
-    "id": "113",
-    "title": "South Africa",
-    "code": "ZA"
-  },
-  "114": {
-    "id": "114",
-    "title": "Colombia",
-    "code": "CO"
-  },
-  "115": {
-    "id": "115",
-    "title": "Estonia",
-    "code": "EE"
-  },
-  "116": {
-    "id": "116",
-    "title": "Azerbaijan",
-    "code": "AZ"
-  },
-  "117": {
-    "id": "117",
-    "title": "Morocco",
-    "code": "MA"
-  },
-  "118": {
-    "id": "118",
-    "title": "Ghana",
-    "code": "GH"
-  },
-  "119": {
-    "id": "119",
-    "title": "Argentina",
-    "code": "AR"
-  },
-  "120": {
-    "id": "120",
-    "title": "Uzbekistan",
-    "code": "UZ"
-  },
-  "121": {
-    "id": "121",
-    "title": "Cameroon",
-    "code": "CM"
-  },
-  "122": {
-    "id": "122",
-    "title": "Chad",
-    "code": "TD"
-  },
-  "123": {
-    "id": "123",
-    "title": "Germany",
-    "code": "DE"
-  },
-  "124": {
-    "id": "124",
-    "title": "Lithuania",
-    "code": "LT"
-  },
-  "125": {
-    "id": "125",
-    "title": "Croatia",
-    "code": "HR"
-  },
-  "126": {
-    "id": "126",
-    "title": "Sweden",
-    "code": "SE"
-  },
-  "127": {
-    "id": "127",
-    "title": "Iraq",
-    "code": "IQ"
-  },
-  "128": {
-    "id": "128",
-    "title": "Netherlands",
-    "code": "NL"
-  },
-  "129": {
-    "id": "129",
-    "title": "Latvia",
-    "code": "LV"
-  },
-  "130": {
-    "id": "130",
-    "title": "Austria",
-    "code": "AT"
-  },
-  "131": {
-    "id": "131",
-    "title": "Belarus",
-    "code": "BY"
-  },
-  "132": {
-    "id": "132",
-    "title": "Thailand",
-    "code": "TH"
-  },
-  "133": {
-    "id": "133",
-    "title": "Saudi Arabia",
-    "code": "SA"
-  },
-  "134": {
-    "id": "134",
-    "title": "Taiwan, Province of China",
-    "code": "TW"
-  },
-  "135": {
-    "id": "135",
-    "title": "Spain",
-    "code": "ES"
-  },
-  "137": {
-    "id": "137",
-    "title": "Algeria",
-    "code": "DZ"
-  },
-  "138": {
-    "id": "138",
-    "title": "Slovenia",
-    "code": "SI"
-  },
-  "139": {
-    "id": "139",
-    "title": "Senegal",
-    "code": "SN"
-  },
-  "140": {
-    "id": "140",
-    "title": "Turkey",
-    "code": "TR"
-  },
-  "141": {
-    "id": "141",
-    "title": "Czechia",
-    "code": "CZ"
-  },
-  "142": {
-    "id": "142",
-    "title": "Sri Lanka",
-    "code": "LK"
-  },
-  "143": {
-    "id": "143",
-    "title": "Peru",
-    "code": "PE"
-  },
-  "144": {
-    "id": "144",
-    "title": "New Zealand",
-    "code": "NZ"
-  },
-  "145": {
-    "id": "145",
-    "title": "Guinea",
-    "code": "GN"
-  },
-  "146": {
-    "id": "146",
-    "title": "Mali",
-    "code": "ML"
-  },
-  "147": {
-    "id": "147",
-    "title": "Venezuela",
-    "code": "VE"
-  },
-  "148": {
-    "id": "148",
-    "title": "Ethiopia",
-    "code": "ET"
-  },
-  "149": {
-    "id": "149",
-    "title": "Mongolia",
-    "code": "MN"
-  },
-  "150": {
-    "id": "150",
-    "title": "Brazil",
-    "code": "BR"
-  },
-  "151": {
-    "id": "151",
-    "title": "Afghanistan",
-    "code": "AF"
-  },
-  "152": {
-    "id": "152",
-    "title": "Uganda",
-    "code": "UG"
-  },
-  "153": {
-    "id": "153",
-    "title": "Angola",
-    "code": "AO"
-  },
-  "154": {
-    "id": "154",
-    "title": "Cyprus",
-    "code": "CY"
-  },
-  "155": {
-    "id": "155",
-    "title": "France",
-    "code": "FR"
-  },
-  "156": {
-    "id": "156",
-    "title": "Papua New Guinea",
-    "code": "PG"
-  },
-  "157": {
-    "id": "157",
-    "title": "Mozambique",
-    "code": "MZ"
-  },
-  "158": {
-    "id": "158",
-    "title": "Nepal",
-    "code": "NP"
-  },
-  "159": {
-    "id": "159",
-    "title": "Belgium",
-    "code": "BE"
-  },
-  "160": {
-    "id": "160",
-    "title": "Bulgaria",
-    "code": "BG"
-  },
-  "161": {
-    "id": "161",
-    "title": "Hungary",
-    "code": "HU"
-  },
-  "162": {
-    "id": "162",
-    "title": "Moldova",
-    "code": "MD"
-  },
-  "163": {
-    "id": "163",
-    "title": "Italy",
-    "code": "IT"
-  },
-  "164": {
-    "id": "164",
-    "title": "Paraguay",
-    "code": "PY"
-  },
-  "165": {
-    "id": "165",
-    "title": "Honduras",
-    "code": "HN"
-  },
-  "166": {
-    "id": "166",
-    "title": "Tunisia",
-    "code": "TN"
-  },
-  "167": {
-    "id": "167",
-    "title": "Somalia",
-    "code": "SO"
-  },
-  "168": {
-    "id": "168",
-    "title": "Timor-Leste",
-    "code": "TL"
-  },
-  "169": {
-    "id": "169",
-    "title": "Bolivia",
-    "code": "BO"
-  },
-  "170": {
-    "id": "170",
-    "title": "Costa Rica",
-    "code": "CR"
-  },
-  "171": {
-    "id": "171",
-    "title": "Guatemala",
-    "code": "GT"
-  },
-  "172": {
-    "id": "172",
-    "title": "United Arab Emirates",
-    "code": "AE"
-  },
-  "173": {
-    "id": "173",
-    "title": "Zimbabwe",
-    "code": "ZW"
-  },
-  "174": {
-    "id": "174",
-    "title": "Puerto Rico",
-    "code": "PR"
-  },
-  "175": {
-    "id": "175",
-    "title": "Sudan",
-    "code": "SD"
-  },
-  "176": {
-    "id": "176",
-    "title": "Togo",
-    "code": "TG"
-  },
-  "177": {
-    "id": "177",
-    "title": "DR Congo ",
-    "code": "CD"
-  },
-  "178": {
-    "id": "178",
-    "title": "Albania",
-    "code": "AL"
-  },
-  "179": {
-    "id": "179",
-    "title": "American Samoa",
-    "code": "AS"
-  },
-  "182": {
-    "id": "182",
-    "title": "Antigua and Barbuda",
-    "code": "AG"
-  },
-  "183": {
-    "id": "183",
-    "title": "Armenia",
-    "code": "AM"
-  },
-  "185": {
-    "id": "185",
-    "title": "Australia",
-    "code": "AU"
-  },
-  "186": {
-    "id": "186",
-    "title": "Bahamas",
-    "code": "BS"
-  },
-  "187": {
-    "id": "187",
-    "title": "Bahrain",
-    "code": "BH"
-  },
-  "188": {
-    "id": "188",
-    "title": "Barbados",
-    "code": "BB"
-  },
-  "189": {
-    "id": "189",
-    "title": "Belize",
-    "code": "BZ"
-  },
-  "190": {
-    "id": "190",
-    "title": "Benin",
-    "code": "BJ"
-  },
-  "192": {
-    "id": "192",
-    "title": "Bhutan",
-    "code": "BT"
-  },
-  "193": {
-    "id": "193",
-    "title": "Bosnia and Herzegovina",
-    "code": "BA"
-  },
-  "194": {
-    "id": "194",
-    "title": "Botswana",
-    "code": "BW"
-  },
-  "196": {
-    "id": "196",
-    "title": "Burkina Faso",
-    "code": "BF"
-  },
-  "197": {
-    "id": "197",
-    "title": "Burundi",
-    "code": "BI"
-  },
-  "198": {
-    "id": "198",
-    "title": "Cabo Verde",
-    "code": "CV"
-  },
-  "200": {
-    "id": "200",
-    "title": "Central African Republic",
-    "code": "CF"
-  },
-  "201": {
-    "id": "201",
-    "title": "Chile",
-    "code": "CL"
-  },
-  "203": {
-    "id": "203",
-    "title": "Comoros",
-    "code": "KM"
-  },
-  "206": {
-    "id": "206",
-    "title": "Denmark",
-    "code": "DK"
-  },
-  "209": {
-    "id": "209",
-    "title": "Dominican Republic",
-    "code": "DO"
-  },
-  "210": {
-    "id": "210",
-    "title": "Ecuador",
-    "code": "EC"
-  },
-  "211": {
-    "id": "211",
-    "title": "El Salvador",
-    "code": "SV"
-  },
-  "212": {
-    "id": "212",
-    "title": "Equatorial Guinea",
-    "code": "GQ"
-  },
-  "214": {
-    "id": "214",
-    "title": "Faroe Islands",
-    "code": "FO"
-  },
-  "216": {
-    "id": "216",
-    "title": "Finland",
-    "code": "FI"
-  },
-  "217": {
-    "id": "217",
-    "title": "French Guiana",
-    "code": "GF"
-  },
-  "219": {
-    "id": "219",
-    "title": "Gabon",
-    "code": "GA"
-  },
-  "220": {
-    "id": "220",
-    "title": "Georgia",
-    "code": "GE"
-  },
-  "222": {
-    "id": "222",
-    "title": "Greece",
-    "code": "GR"
-  },
-  "224": {
-    "id": "224",
-    "title": "Grenada",
-    "code": "GD"
-  },
-  "225": {
-    "id": "225",
-    "title": "Guadeloupe",
-    "code": "GP"
-  },
-  "227": {
-    "id": "227",
-    "title": "Guinea-Bissau",
-    "code": "GW"
-  },
-  "228": {
-    "id": "228",
-    "title": "Guyana",
-    "code": "GY"
-  },
-  "230": {
-    "id": "230",
-    "title": "Jamaica",
-    "code": "JM"
-  },
-  "232": {
-    "id": "232",
-    "title": "Jordan",
-    "code": "JO"
-  },
-  "234": {
-    "id": "234",
-    "title": "Kuwait",
-    "code": "KW"
-  },
-  "235": {
-    "id": "235",
-    "title": "Lebanon",
-    "code": "LB"
-  },
-  "236": {
-    "id": "236",
-    "title": "Lesotho",
-    "code": "LS"
-  },
-  "237": {
-    "id": "237",
-    "title": "Liberia",
-    "code": "LR"
-  },
-  "239": {
-    "id": "239",
-    "title": "Luxembourg",
-    "code": "LU"
-  },
-  "240": {
-    "id": "240",
-    "title": "Malawi",
-    "code": "MW"
-  },
-  "241": {
-    "id": "241",
-    "title": "Maldives",
-    "code": "MV"
-  },
-  "244": {
-    "id": "244",
-    "title": "Martinique",
-    "code": "MQ"
-  },
-  "245": {
-    "id": "245",
-    "title": "Mauritania",
-    "code": "MR"
-  },
-  "246": {
-    "id": "246",
-    "title": "Mauritius",
-    "code": "MU"
-  },
-  "251": {
-    "id": "251",
-    "title": "Namibia",
-    "code": "NA"
-  },
-  "254": {
-    "id": "254",
-    "title": "New Caledonia",
-    "code": "NC"
-  },
-  "255": {
-    "id": "255",
-    "title": "Niger",
-    "code": "NE"
-  },
-  "259": {
-    "id": "259",
-    "title": "Norway",
-    "code": "NO"
-  },
-  "260": {
-    "id": "260",
-    "title": "Oman",
-    "code": "OM"
-  },
-  "263": {
-    "id": "263",
-    "title": "Portugal",
-    "code": "PT"
-  },
-  "264": {
-    "id": "264",
-    "title": "Qatar",
-    "code": "QA"
-  },
-  "265": {
-    "id": "265",
-    "title": "Rwanda",
-    "code": "RW"
-  },
-  "270": {
-    "id": "270",
-    "title": "Singapore",
-    "code": "SG"
-  },
-  "271": {
-    "id": "271",
-    "title": "Slovakia",
-    "code": "SK"
-  },
-  "272": {
-    "id": "272",
-    "title": "Solomon Islands",
-    "code": "SB"
-  },
-  "274": {
-    "id": "274",
-    "title": "Suriname",
-    "code": "SR"
-  },
-  "276": {
-    "id": "276",
-    "title": "Switzerland",
-    "code": "CH"
-  },
-  "277": {
-    "id": "277",
-    "title": "Tajikistan",
-    "code": "TJ"
-  },
-  "280": {
-    "id": "280",
-    "title": "Trinidad and Tobago",
-    "code": "TT"
-  },
-  "281": {
-    "id": "281",
-    "title": "Turkmenistan",
-    "code": "TM"
-  },
-  "282": {
-    "id": "282",
-    "title": "Turks and Caicos Islands",
-    "code": "TC"
-  },
-  "284": {
-    "id": "284",
-    "title": "Uruguay",
-    "code": "UY"
-  },
-  "296": {
-    "id": "296",
-    "title": "Korea, Republic of",
-    "code": "KR"
-  },
-  "297": {
-    "id": "297",
-    "title": "Libya",
-    "code": "LY"
-  },
-  "298": {
-    "id": "298",
-    "title": "North Macedonia",
-    "code": "MK"
-  },
-  "305": {
-    "id": "305",
-    "title": "Saint Kitts and Nevis",
-    "code": "KN"
-  },
-  "306": {
-    "id": "306",
-    "title": "Saint Lucia",
-    "code": "LC"
-  },
-  "309": {
-    "id": "309",
-    "title": "Saint Vincent and the Grenadines",
-    "code": "VC"
-  },
-  "313": {
-    "id": "313",
-    "title": "Tanzania",
-    "code": "TZ"
-  },
-  "315": {
-    "id": "315",
-    "title": "Swaziland",
-    "code": "SZ"
-  },
-  "316": {
-    "id": "316",
-    "title": "Panama",
-    "code": "PA"
-  },
-  "317": {
-    "id": "317",
-    "title": "Sierra Leone",
-    "code": "SL"
-  },
-  "319": {
-    "id": "319",
-    "title": "Réunion",
-    "code": "RE"
-  },
-  "320": {
-    "id": "320",
-    "title": "Republic of South Sudan",
-    "code": "SS"
-  },
-  "229": {
-    "id": "229",
-    "title": "Iceland",
-    "code": "IS"
-  },
-  "231": {
-    "id": "231",
-    "title": "Japan",
-    "code": "JP"
-  },
-  "321": {
-    "id": "321",
-    "title": "Republic of Kosovo",
-    "code": "ko"
-  },
-  "295": {
-    "id": "295",
-    "title": "Korea (Korean Democratic People's Republic)",
-    "code": "KP"
-  },
-  "300": {
-    "id": "300",
-    "title": "Palestine",
-    "code": "PS"
+  "afghanistan": {
+    "iso": { "af": 1 },
+    "prefix": { "+93": 1 },
+    "text_en": "Afghanistan",
+    "text_ru": "Афганистан",
+    "virtual21": { "activation": 1 },
+    "virtual27": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "albania": {
+    "iso": { "al": 1 },
+    "prefix": { "+355": 1 },
+    "text_en": "Albania",
+    "text_ru": "Албания",
+    "virtual21": { "activation": 1 },
+    "virtual27": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "algeria": {
+    "iso": { "dz": 1 },
+    "prefix": { "+213": 1 },
+    "text_en": "Algeria",
+    "text_ru": "Алжир",
+    "virtual21": { "activation": 1 },
+    "virtual27": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "angola": {
+    "iso": { "ao": 1 },
+    "prefix": { "+244": 1 },
+    "text_en": "Angola",
+    "text_ru": "Ангола",
+    "virtual27": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "antiguaandbarbuda": {
+    "iso": { "ag": 1 },
+    "prefix": { "+1268": 1 },
+    "text_en": "Antigua and Barbuda",
+    "text_ru": "Антигуа и Барбуда",
+    "virtual4": { "activation": 1 }
+  },
+  "argentina": {
+    "iso": { "ar": 1 },
+    "prefix": { "+54": 1 },
+    "text_en": "Argentina",
+    "text_ru": "Аргентина",
+    "virtual21": { "activation": 1 },
+    "virtual27": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "armenia": {
+    "iso": { "am": 1 },
+    "prefix": { "+374": 1 },
+    "text_en": "Armenia",
+    "text_ru": "Армения",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "aruba": {
+    "iso": { "aw": 1 },
+    "prefix": { "+297": 1 },
+    "text_en": "Aruba",
+    "text_ru": "Аруба",
+    "virtual4": { "activation": 1 }
+  },
+  "australia": {
+    "iso": { "au": 1 },
+    "prefix": { "+61": 1 },
+    "text_en": "Australia",
+    "text_ru": "Австралия",
+    "virtual38": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "austria": {
+    "iso": { "at": 1 },
+    "prefix": { "+43": 1 },
+    "text_en": "Austria",
+    "text_ru": "Австрия",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "azerbaijan": {
+    "iso": { "az": 1 },
+    "prefix": { "+994": 1 },
+    "text_en": "Azerbaijan",
+    "text_ru": "Азербайджан",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "bahamas": {
+    "iso": { "bs": 1 },
+    "prefix": { "+1": 1 },
+    "text_en": "Bahamas",
+    "text_ru": "Багамы",
+    "virtual21": { "activation": 1 }
+  },
+  "bahrain": {
+    "iso": { "bh": 1 },
+    "prefix": { "+973": 1 },
+    "text_en": "Bahrain",
+    "text_ru": "Бахрейн",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "bangladesh": {
+    "iso": { "bd": 1 },
+    "prefix": { "+880": 1 },
+    "text_en": "Bangladesh",
+    "text_ru": "Бангладеш",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "barbados": {
+    "iso": { "bb": 1 },
+    "prefix": { "+1246": 1 },
+    "text_en": "Barbados",
+    "text_ru": "Барбадос",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "belarus": {
+    "iso": { "by": 1 },
+    "prefix": { "+375": 1 },
+    "text_en": "Belarus",
+    "text_ru": "Беларусь",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "belgium": {
+    "iso": { "be": 1 },
+    "prefix": { "+32": 1 },
+    "text_en": "Belgium",
+    "text_ru": "Бельгия",
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "belize": {
+    "iso": { "bz": 1 },
+    "prefix": { "+501": 1 },
+    "text_en": "Belize",
+    "text_ru": "Белиз",
+    "virtual21": { "activation": 1 }
+  },
+  "benin": {
+    "iso": { "bj": 1 },
+    "prefix": { "+229": 1 },
+    "text_en": "Benin",
+    "text_ru": "Бенин",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "bhutane": {
+    "iso": { "bt": 1 },
+    "prefix": { "+975": 1 },
+    "text_en": "Bhutan",
+    "text_ru": "Бутан",
+    "virtual4": { "activation": 1 }
+  },
+  "bih": {
+    "iso": { "ba": 1 },
+    "prefix": { "+387": 1 },
+    "text_en": "Bosnia and Herzegovina",
+    "text_ru": "Босния и Герцеговина",
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "bolivia": {
+    "iso": { "bo": 1 },
+    "prefix": { "+591": 1 },
+    "text_en": "Bolivia",
+    "text_ru": "Боливия",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "botswana": {
+    "iso": { "bw": 1 },
+    "prefix": { "+267": 1 },
+    "text_en": "Botswana",
+    "text_ru": "Ботсвана",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "brazil": {
+    "iso": { "br": 1 },
+    "prefix": { "+55": 1 },
+    "text_en": "Brazil",
+    "text_ru": "Бразилия",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "bulgaria": {
+    "iso": { "bg": 1 },
+    "prefix": { "+359": 1 },
+    "text_en": "Bulgaria",
+    "text_ru": "Болгария",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "burkinafaso": {
+    "iso": { "bf": 1 },
+    "prefix": { "+226": 1 },
+    "text_en": "Burkina Faso",
+    "text_ru": "Буркина-Фасо",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "burundi": {
+    "iso": { "bi": 1 },
+    "prefix": { "+257": 1 },
+    "text_en": "Burundi",
+    "text_ru": "Бурунди",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "cambodia": {
+    "iso": { "kh": 1 },
+    "prefix": { "+855": 1 },
+    "text_en": "Cambodia",
+    "text_ru": "Камбоджи",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual49": { "activation": 1 }
+  },
+  "cameroon": {
+    "iso": { "cm": 1 },
+    "prefix": { "+237": 1 },
+    "text_en": "Cameroon",
+    "text_ru": "Камерун",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "canada": {
+    "iso": { "ca": 1 },
+    "prefix": { "+1": 1 },
+    "text_en": "Canada",
+    "text_ru": "Канада",
+    "virtual12": { "activation": 1 },
+    "virtual2": { "activation": 1 },
+    "virtual39": { "activation": 1 },
+    "virtual40": { "activation": 1 },
+    "virtual8": { "activation": 1 }
+  },
+  "capeverde": {
+    "iso": { "cv": 1 },
+    "prefix": { "+238": 1 },
+    "text_en": "Cape Verde",
+    "text_ru": "Кабо-Верде",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "caymanislands": {
+    "iso": { "ky": 1 },
+    "prefix": { "+1345": 1 },
+    "text_en": "Cayman Islands",
+    "text_ru": "Острова Кайман",
+    "virtual4": { "activation": 1 }
+  },
+  "chad": {
+    "iso": { "td": 1 },
+    "prefix": { "+235": 1 },
+    "text_en": "Chad",
+    "text_ru": "Чад",
+    "virtual2": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "chile": {
+    "iso": { "cl": 1 },
+    "prefix": { "+56": 1 },
+    "text_en": "Chile",
+    "text_ru": "Чили",
+    "virtual21": { "activation": 1 }
+  },
+  "colombia": {
+    "iso": { "co": 1 },
+    "prefix": { "+57": 1 },
+    "text_en": "Colombia",
+    "text_ru": "Колумбия",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "comoros": {
+    "iso": { "km": 1 },
+    "prefix": { "+269": 1 },
+    "text_en": "Comoros",
+    "text_ru": "Коморы",
+    "virtual21": { "activation": 1 }
+  },
+  "congo": {
+    "iso": { "cg": 1 },
+    "prefix": { "+243": 1 },
+    "text_en": "Congo",
+    "text_ru": "Конго",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "costarica": {
+    "iso": { "cr": 1 },
+    "prefix": { "+506": 1 },
+    "text_en": "Costa Rica",
+    "text_ru": "Коста-Рика",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "croatia": {
+    "iso": { "hr": 1 },
+    "prefix": { "+385": 1 },
+    "text_en": "Croatia",
+    "text_ru": "Хорватия",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual41": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "cyprus": {
+    "iso": { "cy": 1 },
+    "prefix": { "+357": 1 },
+    "text_en": "Cyprus",
+    "text_ru": "Кипр",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "czech": {
+    "iso": { "cz": 1 },
+    "prefix": { "+420": 1 },
+    "text_en": "Czechia",
+    "text_ru": "Чехия",
+    "virtual26": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual41": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "denmark": {
+    "iso": { "dk": 1 },
+    "prefix": { "+45": 1 },
+    "text_en": "Denmark",
+    "text_ru": "Дания",
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "djibouti": {
+    "iso": { "dj": 1 },
+    "prefix": { "+253": 1 },
+    "text_en": "Djibouti",
+    "text_ru": "Джибути",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "dominicana": {
+    "iso": { "do": 1 },
+    "prefix": { "+1": 1 },
+    "text_en": "Dominican Republic",
+    "text_ru": "Доминиканская Республика",
+    "virtual27": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "easttimor": {
+    "iso": { "tl": 1 },
+    "prefix": { "+670": 1 },
+    "text_en": "East Timor",
+    "text_ru": "Восточный Тимор",
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "ecuador": {
+    "iso": { "ec": 1 },
+    "prefix": { "+593": 1 },
+    "text_en": "Ecuador",
+    "text_ru": "Эквадор",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "egypt": {
+    "iso": { "eg": 1 },
+    "prefix": { "+20": 1 },
+    "text_en": "Egypt",
+    "text_ru": "Египет",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "england": {
+    "ee": { "activation": 1 },
+    "iso": { "gb": 1 },
+    "lycamobile": { "activation": 1 },
+    "o2": { "activation": 1 },
+    "prefix": { "+44": 1 },
+    "text_en": "England",
+    "text_ru": "Великобритания",
+    "three": { "activation": 1 },
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual27": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual42": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 },
+    "virtual58": { "activation": 1 },
+    "virtual8": { "activation": 1 },
+    "vodafone": { "activation": 1 }
+  },
+  "equatorialguinea": {
+    "iso": { "gq": 1 },
+    "prefix": { "+240": 1 },
+    "text_en": "Equatorial Guinea",
+    "text_ru": "Экваториальная Гвинея",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "eritrea": {
+    "iso": { "er": 1 },
+    "prefix": { "+291": 1 },
+    "text_en": "Eritrea",
+    "text_ru": "Эритрея",
+    "virtual4": { "activation": 1 }
+  },
+  "estonia": {
+    "iso": { "ee": 1 },
+    "prefix": { "+372": 1 },
+    "text_en": "Estonia",
+    "text_ru": "Эстония",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "ethiopia": {
+    "iso": { "et": 1 },
+    "prefix": { "+251": 1 },
+    "text_en": "Ethiopia",
+    "text_ru": "Эфиопия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "finland": {
+    "iso": { "fi": 1 },
+    "prefix": { "+358": 1 },
+    "text_en": "Finland",
+    "text_ru": "Финляндия",
+    "virtual2": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "france": {
+    "iso": { "fr": 1 },
+    "prefix": { "+33": 1 },
+    "text_en": "France",
+    "text_ru": "Франция",
+    "virtual2": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "frenchguiana": {
+    "iso": { "fr": 1 },
+    "prefix": { "+594": 1 },
+    "text_en": "French Guiana",
+    "text_ru": "Французская Гвиана",
+    "virtual4": { "activation": 1 }
+  },
+  "gabon": {
+    "iso": { "ga": 1 },
+    "prefix": { "+241": 1 },
+    "text_en": "Gabon",
+    "text_ru": "Габон",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "gambia": {
+    "iso": { "gm": 1 },
+    "prefix": { "+220": 1 },
+    "text_en": "Gambia",
+    "text_ru": "Гамбия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "georgia": {
+    "iso": { "ge": 1 },
+    "prefix": { "+995": 1 },
+    "text_en": "Georgia",
+    "text_ru": "Грузия",
+    "virtual21": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "germany": {
+    "iso": { "de": 1 },
+    "prefix": { "+49": 1 },
+    "text_en": "Germany",
+    "text_ru": "Германия",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual38": { "activation": 1, "hosting": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "ghana": {
+    "iso": { "gh": 1 },
+    "prefix": { "+233": 1 },
+    "text_en": "Ghana",
+    "text_ru": "Гана",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "gibraltar": {
+    "iso": { "gi": 1 },
+    "prefix": { "+350": 1 },
+    "text_en": "Gibraltar",
+    "text_ru": "Гибралтар",
+    "virtual38": { "activation": 1 }
+  },
+  "greece": {
+    "iso": { "gr": 1 },
+    "prefix": { "+30": 1 },
+    "text_en": "Greece",
+    "text_ru": "Греция",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "guadeloupe": {
+    "iso": { "gp": 1 },
+    "prefix": { "+590": 1 },
+    "text_en": "Guadeloupe",
+    "text_ru": "Гваделупа",
+    "virtual4": { "activation": 1 }
+  },
+  "guatemala": {
+    "iso": { "gt": 1 },
+    "prefix": { "+502": 1 },
+    "text_en": "Guatemala",
+    "text_ru": "Гватемала",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "guinea": {
+    "iso": { "gn": 1 },
+    "prefix": { "+224": 1 },
+    "text_en": "Guinea",
+    "text_ru": "Гвинея",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "guineabissau": {
+    "iso": { "gw": 1 },
+    "prefix": { "+245": 1 },
+    "text_en": "Guinea-Bissau",
+    "text_ru": "Гвинея-Бисау",
+    "virtual4": { "activation": 1 }
+  },
+  "guyana": {
+    "iso": { "gy": 1 },
+    "prefix": { "+592": 1 },
+    "text_en": "Guyana",
+    "text_ru": "Гайана",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "haiti": {
+    "iso": { "ht": 1 },
+    "prefix": { "+509": 1 },
+    "text_en": "Haiti",
+    "text_ru": "Гаити",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "honduras": {
+    "iso": { "hn": 1 },
+    "prefix": { "+504": 1 },
+    "text_en": "Honduras",
+    "text_ru": "Гондурас",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual54": { "activation": 1 }
+  },
+  "hongkong": {
+    "iso": { "hk": 1 },
+    "prefix": { "+852": 1 },
+    "text_en": "Hong Kong",
+    "text_ru": "Гонконг",
+    "virtual28": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual54": { "activation": 1 }
+  },
+  "hungary": {
+    "iso": { "hu": 1 },
+    "prefix": { "+36": 1 },
+    "text_en": "Hungary",
+    "text_ru": "Венгрия",
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "india": {
+    "iso": { "in": 1 },
+    "prefix": { "+91": 1 },
+    "text_en": "India",
+    "text_ru": "Индия",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "indonesia": {
+    "iso": { "id": 1 },
+    "prefix": { "+62": 1 },
+    "text_en": "Indonesia",
+    "text_ru": "Индонезия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "ireland": {
+    "iso": { "ie": 1 },
+    "prefix": { "+353": 1 },
+    "text_en": "Ireland",
+    "text_ru": "Ирландия",
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual53": { "activation": 1 }
+  },
+  "israel": {
+    "iso": { "il": 1 },
+    "prefix": { "+972": 1 },
+    "text_en": "Israel",
+    "text_ru": "Израиль",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "italy": {
+    "iso": { "it": 1 },
+    "prefix": { "+39": 1 },
+    "text_en": "Italy",
+    "text_ru": "Италия",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "ivorycoast": {
+    "iso": { "ci": 1 },
+    "prefix": { "+225": 1 },
+    "text_en": "Ivory Coast",
+    "text_ru": "Кот-д'Ивуар",
+    "virtual2": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "jamaica": {
+    "iso": { "jm": 1 },
+    "prefix": { "+1": 1 },
+    "text_en": "Jamaica",
+    "text_ru": "Ямайка",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "japan": {
+    "iso": { "jp": 1 },
+    "prefix": { "+81": 1 },
+    "text_en": "Japan",
+    "text_ru": "Япония",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "jordan": {
+    "iso": { "jo": 1 },
+    "prefix": { "+962": 1 },
+    "text_en": "Jordan",
+    "text_ru": "Иордания",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "kazakhstan": {
+    "iso": { "kz": 1 },
+    "prefix": { "+7": 1 },
+    "text_en": "Kazakhstan",
+    "text_ru": "Казахстан",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "kenya": {
+    "iso": { "ke": 1 },
+    "prefix": { "+254": 1 },
+    "text_en": "Kenya",
+    "text_ru": "Кения",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "kuwait": {
+    "iso": { "kw": 1 },
+    "prefix": { "+965": 1 },
+    "text_en": "Kuwait",
+    "text_ru": "Кувейт",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "kyrgyzstan": {
+    "iso": { "kg": 1 },
+    "prefix": { "+996": 1 },
+    "text_en": "Kyrgyzstan",
+    "text_ru": "Кыргызстан",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual42": { "activation": 1 },
+    "virtual51": { "activation": 1, "hosting": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "laos": {
+    "iso": { "la": 1 },
+    "prefix": { "+856": 1 },
+    "text_en": "Laos",
+    "text_ru": "Лаос",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "latvia": {
+    "iso": { "lv": 1 },
+    "prefix": { "+371": 1 },
+    "text_en": "Latvia",
+    "text_ru": "Латвия",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "lesotho": {
+    "iso": { "ls": 1 },
+    "prefix": { "+266": 1 },
+    "text_en": "Lesotho",
+    "text_ru": "Лесото",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "liberia": {
+    "iso": { "lr": 1 },
+    "prefix": { "+231": 1 },
+    "text_en": "Liberia",
+    "text_ru": "Либерия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "lithuania": {
+    "iso": { "lt": 1 },
+    "prefix": { "+370": 1 },
+    "text_en": "Lithuania",
+    "text_ru": "Литва",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual41": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "luxembourg": {
+    "iso": { "lu": 1 },
+    "prefix": { "+352": 1 },
+    "text_en": "Luxembourg",
+    "text_ru": "Люксембург",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "macau": {
+    "iso": { "mo": 1 },
+    "prefix": { "+853": 1 },
+    "text_en": "Macau",
+    "text_ru": "Макао",
+    "virtual4": { "activation": 1 }
+  },
+  "madagascar": {
+    "iso": { "mg": 1 },
+    "prefix": { "+261": 1 },
+    "text_en": "Madagascar",
+    "text_ru": "Мадагаскар",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "malawi": {
+    "iso": { "mw": 1 },
+    "prefix": { "+265": 1 },
+    "text_en": "Malawi",
+    "text_ru": "Малави",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "malaysia": {
+    "iso": { "my": 1 },
+    "prefix": { "+60": 1 },
+    "text_en": "Malaysia",
+    "text_ru": "Малайзия",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "maldives": {
+    "iso": { "mv": 1 },
+    "prefix": { "+960": 1 },
+    "text_en": "Maldives",
+    "text_ru": "Мальдивы",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "mauritania": {
+    "iso": { "mr": 1 },
+    "prefix": { "+222": 1 },
+    "text_en": "Mauritania",
+    "text_ru": "Мавритания",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "mauritius": {
+    "iso": { "mu": 1 },
+    "prefix": { "+230": 1 },
+    "text_en": "Mauritius",
+    "text_ru": "Маврикий",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "mexico": {
+    "iso": { "mx": 1 },
+    "prefix": { "+52": 1 },
+    "text_en": "Mexico",
+    "text_ru": "Мексика",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual42": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "moldova": {
+    "iso": { "md": 1 },
+    "prefix": { "+373": 1 },
+    "text_en": "Moldova",
+    "text_ru": "Молдавия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "mongolia": {
+    "iso": { "mn": 1 },
+    "prefix": { "+976": 1 },
+    "text_en": "Mongolia",
+    "text_ru": "Монголия",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "montenegro": {
+    "iso": { "me": 1 },
+    "prefix": { "+382": 1 },
+    "text_en": "Montenegro",
+    "text_ru": "Черногория",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "morocco": {
+    "iso": { "ma": 1 },
+    "prefix": { "+212": 1 },
+    "text_en": "Morocco",
+    "text_ru": "Марокко",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "mozambique": {
+    "iso": { "mz": 1 },
+    "prefix": { "+258": 1 },
+    "text_en": "Mozambique",
+    "text_ru": "Мозамбик",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "namibia": {
+    "iso": { "na": 1 },
+    "prefix": { "+264": 1 },
+    "text_en": "Namibia",
+    "text_ru": "Намибия",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "nepal": {
+    "iso": { "np": 1 },
+    "prefix": { "+977": 1 },
+    "text_en": "Nepal",
+    "text_ru": "Непал",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "netherlands": {
+    "iso": { "nl": 1 },
+    "lycamobile": { "activation": 1 },
+    "prefix": { "+31": 1 },
+    "text_en": "Netherlands",
+    "text_ru": "Нидерланды",
+    "virtual2": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual42": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "newcaledonia": {
+    "iso": { "nc": 1 },
+    "prefix": { "+687": 1 },
+    "text_en": "New Caledonia",
+    "text_ru": "Новая Каледония",
+    "virtual4": { "activation": 1 }
+  },
+  "newzealand": {
+    "iso": { "nz": 1 },
+    "prefix": { "+64": 1 },
+    "text_en": "New Zealand",
+    "text_ru": "Новая Зеландия",
+    "virtual38": { "activation": 1 }
+  },
+  "nicaragua": {
+    "iso": { "ni": 1 },
+    "prefix": { "+505": 1 },
+    "text_en": "Nicaragua",
+    "text_ru": "Никарагуа",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "nigeria": {
+    "iso": { "ng": 1 },
+    "prefix": { "+234": 1 },
+    "text_en": "Nigeria",
+    "text_ru": "Нигерия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "northmacedonia": {
+    "iso": { "mk": 1 },
+    "prefix": { "+389": 1 },
+    "text_en": "North Macedonia",
+    "text_ru": "Северная Македония",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "norway": {
+    "iso": { "no": 1 },
+    "prefix": { "+47": 1 },
+    "text_en": "Norway",
+    "text_ru": "Норвегия",
+    "virtual2": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "oman": {
+    "iso": { "om": 1 },
+    "prefix": { "+968": 1 },
+    "text_en": "Oman",
+    "text_ru": "Оман",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "pakistan": {
+    "iso": { "pk": 1 },
+    "prefix": { "+92": 1 },
+    "text_en": "Pakistan",
+    "text_ru": "Пакистан",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual42": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "panama": {
+    "iso": { "pa": 1 },
+    "prefix": { "+507": 1 },
+    "text_en": "Panama",
+    "text_ru": "Панама",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "papuanewguinea": {
+    "iso": { "pg": 1 },
+    "prefix": { "+675": 1 },
+    "text_en": "Papua New Guinea",
+    "text_ru": "Папуа-Новая Гвинея",
+    "virtual4": { "activation": 1 }
+  },
+  "paraguay": {
+    "iso": { "py": 1 },
+    "prefix": { "+595": 1 },
+    "text_en": "Paraguay",
+    "text_ru": "Парагвай",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "peru": {
+    "iso": { "pe": 1 },
+    "prefix": { "+51": 1 },
+    "text_en": "Peru",
+    "text_ru": "Перу",
+    "virtual21": { "activation": 1 },
+    "virtual33": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "philippines": {
+    "iso": { "ph": 1 },
+    "prefix": { "+63": 1 },
+    "text_en": "Philippines",
+    "text_ru": "Филиппины",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1, "hosting": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "poland": {
+    "iso": { "pl": 1 },
+    "prefix": { "+48": 1 },
+    "text_en": "Poland",
+    "text_ru": "Польша",
+    "virtual21": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "portugal": {
+    "iso": { "pt": 1 },
+    "prefix": { "+351": 1 },
+    "text_en": "Portugal",
+    "text_ru": "Португалия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "puertorico": {
+    "iso": { "pr": 1 },
+    "prefix": { "+1": 1 },
+    "text_en": "Puertorico",
+    "text_ru": "Пуэрто-Рико",
+    "virtual4": { "activation": 1 }
+  },
+  "reunion": {
+    "iso": { "re": 1 },
+    "prefix": { "+262": 1 },
+    "text_en": "Reunion",
+    "text_ru": "Реюньон",
+    "virtual4": { "activation": 1 }
+  },
+  "romania": {
+    "iso": { "ro": 1 },
+    "prefix": { "+40": 1 },
+    "text_en": "Romania",
+    "text_ru": "Румыния",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual27": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual36": { "activation": 1 },
+    "virtual37": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual56": { "activation": 1 }
+  },
+  "russia": {
+    "iso": { "ru": 1 },
+    "megafon": { "activation": 1 },
+    "mts": { "activation": 1 },
+    "prefix": { "+7": 1 },
+    "text_en": "Russia",
+    "text_ru": "Россия",
+    "virtual12": { "activation": 1 },
+    "virtual15": { "activation": 1 },
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "rwanda": {
+    "iso": { "rw": 1 },
+    "prefix": { "+250": 1 },
+    "text_en": "Rwanda",
+    "text_ru": "Руанда",
+    "virtual4": { "activation": 1 }
+  },
+  "saintkittsandnevis": {
+    "iso": { "kn": 1 },
+    "prefix": { "+1869": 1 },
+    "text_en": "Saint Kitts and Nevis",
+    "text_ru": "Сент-Китс и Невис",
+    "virtual4": { "activation": 1 }
+  },
+  "saintlucia": {
+    "iso": { "lc": 1 },
+    "prefix": { "+1758": 1 },
+    "text_en": "Saint Lucia",
+    "text_ru": "Сент-Люсия",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "saintvincentandgrenadines": {
+    "iso": { "vc": 1 },
+    "prefix": { "+1784": 1 },
+    "text_en": "Saint Vincent and the Grenadines",
+    "text_ru": "Сент-Винсент и Гренадины",
+    "virtual4": { "activation": 1 }
+  },
+  "salvador": {
+    "iso": { "sv": 1 },
+    "prefix": { "+503": 1 },
+    "text_en": "Salvador",
+    "text_ru": "Сальвадор",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "samoa": {
+    "iso": { "ws": 1 },
+    "prefix": { "+685": 1 },
+    "text_en": "Samoa",
+    "text_ru": "Самоа",
+    "virtual21": { "activation": 1 }
+  },
+  "saotomeandprincipe": {
+    "iso": { "st": 1 },
+    "prefix": { "+239": 1 },
+    "text_en": "Sao Tome and Principe",
+    "text_ru": "Сан-Томе и Принсипи",
+    "virtual4": { "activation": 1 }
+  },
+  "saudiarabia": {
+    "iso": { "sa": 1 },
+    "prefix": { "+966": 1 },
+    "text_en": "Saudi Arabia",
+    "text_ru": "Саудовская Аравия",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "senegal": {
+    "iso": { "sn": 1 },
+    "prefix": { "+221": 1 },
+    "text_en": "Senegal",
+    "text_ru": "Сенегал",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "serbia": {
+    "iso": { "rs": 1 },
+    "prefix": { "+381": 1 },
+    "text_en": "Serbia",
+    "text_ru": "Сербия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "seychelles": {
+    "iso": { "sc": 1 },
+    "prefix": { "+248": 1 },
+    "text_en": "Republic of Seychelles",
+    "text_ru": "Сейшелы",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "sierraleone": {
+    "iso": { "sl": 1 },
+    "prefix": { "+232": 1 },
+    "text_en": "Sierra Leone",
+    "text_ru": "Сьерра-Леоне",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "singapore": {
+    "iso": { "sg": 1 },
+    "prefix": { "+65": 1 },
+    "text_en": "Singapore",
+    "text_ru": "Сингапур",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 }
+  },
+  "slovakia": {
+    "iso": { "sk": 1 },
+    "prefix": { "+421": 1 },
+    "text_en": "Slovakia",
+    "text_ru": "Словакия",
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "slovenia": {
+    "iso": { "si": 1 },
+    "prefix": { "+386": 1 },
+    "text_en": "Slovenia",
+    "text_ru": "Словения",
+    "virtual2": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual41": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "solomonislands": {
+    "iso": { "sb": 1 },
+    "prefix": { "+677": 1 },
+    "text_en": "Solomon Islands",
+    "text_ru": "Соломоновы острова",
+    "virtual21": { "activation": 1 }
+  },
+  "southafrica": {
+    "iso": { "za": 1 },
+    "prefix": { "+27": 1 },
+    "text_en": "South Africa",
+    "text_ru": "Южная Африка",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "southkorea": {
+    "iso": { "kr": 1 },
+    "prefix": { "+82": 1 },
+    "text_en": "South Korea",
+    "text_ru": "Южная Корея",
+    "virtual21": { "activation": 1 }
+  },
+  "spain": {
+    "iso": { "es": 1 },
+    "prefix": { "+34": 1 },
+    "text_en": "Spain",
+    "text_ru": "Испания",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual26": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual58": { "activation": 1 }
+  },
+  "srilanka": {
+    "iso": { "lk": 1 },
+    "prefix": { "+94": 1 },
+    "text_en": "Sri Lanka",
+    "text_ru": "Шри-Ланка",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 }
+  },
+  "suriname": {
+    "iso": { "sr": 1 },
+    "prefix": { "+597": 1 },
+    "text_en": "Suriname",
+    "text_ru": "Суринам",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "swaziland": {
+    "iso": { "sz": 1 },
+    "prefix": { "+268": 1 },
+    "text_en": "Swaziland",
+    "text_ru": "Эсватини",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "sweden": {
+    "iso": { "se": 1 },
+    "prefix": { "+46": 1 },
+    "text_en": "Sweden",
+    "text_ru": "Швеция",
+    "virtual38": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "switzerland": {
+    "iso": { "ch": 1 },
+    "prefix": { "+41": 1 },
+    "text_en": "Switzerland",
+    "text_ru": "Швейцария",
+    "virtual38": { "activation": 1 }
+  },
+  "taiwan": {
+    "iso": { "tw": 1 },
+    "prefix": { "+886": 1 },
+    "text_en": "Taiwan",
+    "text_ru": "Тайвань",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "tajikistan": {
+    "iso": { "tj": 1 },
+    "prefix": { "+992": 1 },
+    "text_en": "Tajikistan",
+    "text_ru": "Таджикистан",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 }
+  },
+  "tanzania": {
+    "iso": { "tz": 1 },
+    "prefix": { "+255": 1 },
+    "text_en": "Tanzania",
+    "text_ru": "Танзания",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "thailand": {
+    "iso": { "th": 1 },
+    "prefix": { "+66": 1 },
+    "text_en": "Thailand",
+    "text_ru": "Таиланд",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 }
+  },
+  "tit": {
+    "iso": { "tt": 1 },
+    "prefix": { "+1": 1 },
+    "text_en": "Trinidad and Tobago",
+    "text_ru": "Тринидад и Тобаго",
+    "virtual4": { "activation": 1 }
+  },
+  "togo": {
+    "iso": { "tg": 1 },
+    "prefix": { "+228": 1 },
+    "text_en": "Togo",
+    "text_ru": "Того",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "tunisia": {
+    "iso": { "tn": 1 },
+    "prefix": { "+216": 1 },
+    "text_en": "Tunisia",
+    "text_ru": "Тунис",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "turkmenistan": {
+    "iso": { "tm": 1 },
+    "prefix": { "+993": 1 },
+    "text_en": "Turkmenistan",
+    "text_ru": "Туркменистан",
+    "virtual4": { "activation": 1 }
+  },
+  "uganda": {
+    "iso": { "ug": 1 },
+    "prefix": { "+256": 1 },
+    "text_en": "Uganda",
+    "text_ru": "Уганда",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "ukraine": {
+    "iso": { "ua": 1 },
+    "prefix": { "+380": 1 },
+    "text_en": "Ukraine",
+    "text_ru": "Украина",
+    "virtual21": { "activation": 1 },
+    "virtual34": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 },
+    "virtual53": { "activation": 1 }
+  },
+  "uruguay": {
+    "iso": { "uy": 1 },
+    "prefix": { "+598": 1 },
+    "text_en": "Uruguay",
+    "text_ru": "Уругвай",
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "usa": {
+    "iso": { "us": 1 },
+    "prefix": { "+1": 1 },
+    "text_en": "USA",
+    "text_ru": "США",
+    "virtual28": { "activation": 1 },
+    "virtual40": { "activation": 1 },
+    "virtual8": { "activation": 1 }
+  },
+  "uzbekistan": {
+    "iso": { "uz": 1 },
+    "prefix": { "+998": 1 },
+    "text_en": "Uzbekistan",
+    "text_ru": "Узбекистан",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual51": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "venezuela": {
+    "iso": { "ve": 1 },
+    "prefix": { "+58": 1 },
+    "text_en": "Venezuela",
+    "text_ru": "Венесуэла",
+    "virtual21": { "activation": 1 },
+    "virtual38": { "activation": 1 },
+    "virtual4": { "activation": 1 }
+  },
+  "vietnam": {
+    "iso": { "vn": 1 },
+    "prefix": { "+84": 1 },
+    "text_en": "Vietnam",
+    "text_ru": "Вьетнам",
+    "virtual16": { "activation": 1 },
+    "virtual17": { "activation": 1 },
+    "virtual19": { "activation": 1 },
+    "virtual20": { "activation": 1 },
+    "virtual21": { "activation": 1 },
+    "virtual4": { "activation": 1 },
+    "virtual47": { "activation": 1 },
+    "virtual52": { "activation": 1 }
+  },
+  "zambia": {
+    "iso": { "zm": 1 },
+    "prefix": { "+260": 1 },
+    "text_en": "Zambia",
+    "text_ru": "Замбия",
+    "virtual2": { "activation": 1 },
+    "virtual21": { "activation": 1 }
   }
 }

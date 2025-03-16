@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import ReactSelect from "react-select";
 import { db, auth } from "../firebaseConfig";
@@ -176,18 +177,18 @@ const BitcoinPayment: React.FC = () => {
 
   return (
     <div className="p-4 max-w-md">
-      <h2 className="text-2xl font-bold mb-4">Pay with Bitcoin</h2>
-      <p>
+      <h2 className="text-2xl font-bold mb-4">Pay with Cryptocurrency</h2>
+      {/* <p>
         Current BTC Rate:{" "}
         {loading ? "Fetching..." : `$${btcRate.toLocaleString()} per BTC`}
-      </p>
-      <button
+      </p> */}
+      {/* <button
         onClick={fetchBtcRate}
         className="p-2 bg-blue-500 text-white rounded mt-2"
         disabled={loading}
       >
         {loading ? "Refreshing..." : "Refresh BTC Rate"}
-      </button>
+      </button> */}
 
       <label className="block mt-4">Enter Amount:</label>
       <input

@@ -12,6 +12,7 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaHistory,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 import DashboardBalance from "../components/DashboardBalance";
 import RentNumbers from "../components/RentNumbers";
@@ -22,6 +23,7 @@ import History from "../components/history";
 import Sms from "../components/Sms";
 import Header from "../components/header";
 import Auth from "../components/Auth";
+import Prices from "../components/prices";
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -31,8 +33,9 @@ const Dashboard = () => {
   const sidebarLinks = [
     { label: "Receive SMS", id: "sms", icon: <FaSms /> },
     { label: "Rent Numbers", id: "rent", icon: <FaMobileAlt /> },
+    { label: "Pricing", id: "pric", icon: <FaMoneyBillWave /> },
     { label: "Profile", id: "profile", icon: <FaUser /> },
-    { label: "History", id: "history", icon: <FaHistory /> },
+    { label: "Payment History", id: "history", icon: <FaHistory /> },
     { label: "Top Up Balance", id: "balance", icon: <FaWallet /> },
     { label: "Instructions", id: "instructions", icon: <FaInfoCircle /> },
     { label: "Feedback", id: "feedback", icon: <FaCommentDots /> },
@@ -47,9 +50,11 @@ const Dashboard = () => {
         return <DashboardBalance />;
       case "Rent Numbers":
         return <RentNumbers />;
+      case "Pricing":
+        return <Prices />;
       case "Profile":
         return <Profile />;
-      case "History":
+      case "Payment History":
         return <History />;
       case "Instructions":
         return <Tutor />;

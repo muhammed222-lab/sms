@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
@@ -43,6 +43,13 @@ interface LimitItem {
   cost: string;
 }
 
+interface RentedNumber {
+  number: string;
+  duration: string;
+  country: string;
+  rentedAt: string;
+}
+
 const RentNumbers: React.FC = () => {
   const API_BASE_URL =
     process.env.NODE_ENV === "development"
@@ -64,12 +71,11 @@ const RentNumbers: React.FC = () => {
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>(
     {}
   );
-  const [rentedNumbers, setRentedNumbers] = useState<
-    { number: string; duration: string; country: string }[]
-  >([]);
-  const [, setUser] = useState<User | null>(null);
+  const [rentedNumbers, setRentedNumbers] = useState<RentedNumber[]>([]);
+  const [, setUser] = useState<FirebaseUser | null>(null);
   const [balance, setBalance] = useState<number>(0);
 
+  // Load exchange rates
   useEffect(() => {
     const fetchExchangeRates = async () => {
       try {
@@ -82,16 +88,17 @@ const RentNumbers: React.FC = () => {
         setMessage("Failed to load exchange rates. Using default values.");
       }
     };
-
     fetchExchangeRates();
   }, []);
 
+  // Convert price from NGN using latest exchange rates.
   const convertPrice = (priceInNaira: number): string => {
     const rate = exchangeRates[currency] || 1;
     const convertedPrice = priceInNaira * rate;
     return `${convertedPrice.toFixed(2)} ${currency}`;
   };
 
+  // Fetch countries using limits endpoint (and map using countryMap)
   useEffect(() => {
     const fetchCountries = async () => {
       setLoading(true);
@@ -121,13 +128,12 @@ const RentNumbers: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchCountries();
   }, [API_BASE_URL, duration, time, RENT_API_KEY]);
 
+  // Fetch rental data for the selected country
   useEffect(() => {
     if (!selectedCountry) return;
-
     const fetchRentalData = async () => {
       setLoading(true);
       try {
@@ -150,10 +156,10 @@ const RentNumbers: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchRentalData();
   }, [selectedCountry, duration, time, API_BASE_URL, RENT_API_KEY]);
 
+  // User auth & balance from Firestore
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -163,11 +169,9 @@ const RentNumbers: React.FC = () => {
         setBalance(0);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Fetch user balance from Firestore
   const fetchUserBalance = async (email: string) => {
     try {
       const q = query(
@@ -188,12 +192,26 @@ const RentNumbers: React.FC = () => {
     }
   };
 
+  // Load rented numbers from localStorage on mount.
+  useEffect(() => {
+    const stored = localStorage.getItem("rentedNumbers");
+    if (stored) {
+      setRentedNumbers(JSON.parse(stored));
+    }
+  }, []);
+
+  // Persist rented numbers to localStorage when they update.
+  useEffect(() => {
+    localStorage.setItem("rentedNumbers", JSON.stringify(rentedNumbers));
+  }, [rentedNumbers]);
+
+  // Rent a number – check balances and call the get-number action.
   const handleRentClick = async (countryId: string, cost: string) => {
     setMessage("");
     try {
       setLoading(true);
 
-      // Fetch the latest balance from the proxy endpoint
+      // Fetch SMS-Man balance from our proxy-balance endpoint.
       const balanceResponse = await fetch(`${API_BASE_URL}/proxy-balance`);
       const balanceData = await balanceResponse.json();
       const smsManBalance = parseFloat(balanceData.balance);
@@ -202,12 +220,12 @@ const RentNumbers: React.FC = () => {
       console.log("SMS-Man Balance:", smsManBalance);
       console.log("Number Cost:", cost);
 
-      const numberCost = parseFloat(cost); // Assuming `cost` is fetched or calculated earlier
-      const totalCost = numberCost * 1.1; // Add 10% service fee
+      const numberCost = parseFloat(cost);
+      const totalCost = numberCost * 1.1; // 10% service fee
 
       console.log("Total Cost (with service fee):", totalCost);
 
-      // Step 2: Check if user has sufficient balance
+      // Check if user has sufficient balance
       if (balance < totalCost) {
         setMessage(
           "Sorry, insufficient balance for the service. Please top up your account."
@@ -215,7 +233,7 @@ const RentNumbers: React.FC = () => {
         return;
       }
 
-      // Step 3: Check if SMS-Man has sufficient balance
+      // Check if SMS-Man has sufficient balance
       if (smsManBalance < totalCost) {
         setMessage(
           "Service temporarily unavailable due to insufficient funds on our end. Please try again later."
@@ -223,13 +241,11 @@ const RentNumbers: React.FC = () => {
         return;
       }
 
-      // Step 4: Proceed to rent the number
+      // Proceed to rent the number
       const rentResponse = await fetch(
         `${API_BASE_URL}/proxy-rent?action=get-number&token=${RENT_API_KEY}&country_id=${countryId}&type=${duration}&time=${time}`
       );
-
       const rentData = await rentResponse.json();
-
       console.log("Rent API Response:", rentData);
 
       if (rentData.error) {
@@ -238,16 +254,17 @@ const RentNumbers: React.FC = () => {
             ? "Service temporarily unavailable due to insufficient funds on our end."
             : "Failed to rent a number. Please try again."
         );
-      } else if (rentData.request_id) {
+      } else if (rentData.request_id && rentData.number) {
         setMessage(`Number rented successfully: ${rentData.number}`);
 
-        // Add the rented number to the table
+        // Update rented numbers state and persist to localStorage.
         setRentedNumbers((prev) => [
           ...prev,
           {
             number: rentData.number,
             duration: `${time} ${duration}`,
             country: countryMap[countryId] || `Country ID ${countryId}`,
+            rentedAt: new Date().toISOString(),
           },
         ]);
       } else {
@@ -264,6 +281,7 @@ const RentNumbers: React.FC = () => {
   return (
     <div className="flex flex-col max-w-6xl mx-auto p-6 bg-gray-100 rounded-lg">
       <h1 className="text-2xl font-bold text-center mb-6">Rent New Number</h1>
+
       <div className="mb-4">
         <h3 className="font-bold">Select Currency:</h3>
         <select
@@ -278,6 +296,7 @@ const RentNumbers: React.FC = () => {
           ))}
         </select>
       </div>
+
       {/* Duration Selection */}
       <div className="bg-white border rounded-lg p-4 mb-6">
         <h2 className="font-bold text-lg mb-4">1. Set Rent Duration</h2>
@@ -320,7 +339,11 @@ const RentNumbers: React.FC = () => {
         <div className="bg-white border rounded-lg p-4">
           <h2 className="font-bold text-lg mb-4">2. Select Your Country</h2>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {countries.length ? (
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <AiOutlineLoading3Quarters className="animate-spin text-2xl" />
+              </div>
+            ) : countries.length ? (
               countries.map((country) => (
                 <button
                   key={country.id}
@@ -385,6 +408,7 @@ const RentNumbers: React.FC = () => {
                 <th className="border p-2">Number</th>
                 <th className="border p-2">Country</th>
                 <th className="border p-2">Duration</th>
+                <th className="border p-2">Rented At</th>
               </tr>
             </thead>
             <tbody>
@@ -393,6 +417,9 @@ const RentNumbers: React.FC = () => {
                   <td className="border p-2 text-center">{item.number}</td>
                   <td className="border p-2 text-center">{item.country}</td>
                   <td className="border p-2 text-center">{item.duration}</td>
+                  <td className="border p-2 text-center">
+                    {new Date(item.rentedAt).toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
+import AsyncSelect from "react-select/async";
+import { FaSave, FaClipboard } from "react-icons/fa";
 import {
   collection,
   query,
@@ -10,39 +15,30 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
-import { FaClipboard } from "react-icons/fa";
 import RecentSmsOrders from "./RecentSmsOrders";
-
-import countryList from "../../api/countryList.json"; // Import country list
-import servicesList from "../../api/servicesList.json"; // Import service list
 import SmsPrice from "./SmsPrice";
 
-// Define proper interfaces for Country and Service
+// Define interfaces
 interface User {
   email: string | null;
   displayName: string | null;
 }
 
-interface Country {
-  title: string;
-  id: string;
-}
-
-interface Service {
-  title: string;
-  id: string;
-  price?: number;
-}
-
 interface SelectOption {
   label: string;
   value: string;
+  price?: number;
+  stock?: number | string;
+  count?: number | string;
+  logoUrl?: string;
+  flagUrl?: string;
 }
 
 interface RequestedNumber {
   request_id: string;
   number: string;
 }
+
 interface SmsOrder {
   orderId: string;
   number: string;
@@ -52,22 +48,35 @@ interface SmsOrder {
   applicationId: string;
   status: string;
   action: string;
-  price: number; // Add the price field
-  user_email: string; // Add the user_email field
-  date: string; // Ensure the date field is included
+  price: number;
+  user_email: string;
+  date: string;
+  expireAt: string;
 }
 
 const Sms = () => {
+  const [servicesLoading, setServicesLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [countries, setCountries] = useState<SelectOption[]>([]);
-  const [services, setServices] = useState<
-    Array<SelectOption & { price: number }>
+  const [initialServices, setInitialServices] = useState<
+    Array<
+      SelectOption & {
+        price: number;
+        stock?: number | string;
+        count?: number | string;
+        country: string;
+      }
+    >
   >([]);
   const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(
     null
   );
   const [selectedService, setSelectedService] = useState<
-    SelectOption & { price: number }
+    SelectOption & {
+      price: number;
+      stock?: number | string;
+      count?: number | string;
+    }
   >();
   const [requestedNumber, setRequestedNumber] =
     useState<RequestedNumber | null>(null);
@@ -76,13 +85,238 @@ const Sms = () => {
   const [isFetchingCode, setIsFetchingCode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [, setBalance] = useState<number>(0);
-  const [, setStatus] = useState<string>(""); // Declare status state
-  const [orders, setOrders] = useState<SmsOrder[]>([]); // Ensure orders include price and user_email
+  const [, setStatus] = useState<string>(""); // order status state
+  const [orders, setOrders] = useState<SmsOrder[]>([]);
   const [previouslyGeneratedOrders, setPreviouslyGeneratedOrders] = useState<
     SmsOrder[]
-  >([]); // Add state for previously generated numbers
+  >([]);
+  const currencyOptions = [
+    { label: "USD", value: "USD" },
+    { label: "EUR", value: "EUR" },
+    { label: "GBP", value: "GBP" },
+    { label: "NGN", value: "NGN" },
+    { label: "JPY", value: "JPY" },
+    { label: "AUD", value: "AUD" },
+    { label: "CAD", value: "CAD" },
+    { label: "CHF", value: "CHF" },
+    { label: "CNY", value: "CNY" },
+    { label: "SEK", value: "SEK" },
+    { label: "NZD", value: "NZD" },
+    { label: "KRW", value: "KRW" },
+    { label: "INR", value: "INR" },
+    { label: "RUB", value: "RUB" },
+  ];
+  const [selectedCurrency, setSelectedCurrency] = useState<SelectOption | null>(
+    { label: "USD", value: "USD" }
+  );
 
-  // Fetch Firebase user and balance
+  const [servicePage, setServicePage] = useState(1);
+  const pageSize = 20;
+  const exchangeRates: { [key: string]: number } = {
+    RUB: 1, // base
+    USD: 0.012,
+    EUR: 0.01,
+    GBP: 0.0087,
+    NGN: 5.5,
+    JPY: 1.6,
+    AUD: 0.016,
+    CAD: 0.015,
+    CHF: 0.013,
+    CNY: 0.085,
+    SEK: 0.11,
+    NZD: 0.017,
+    KRW: 14,
+    INR: 0.9,
+  };
+
+  // Load countries from API
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const res = await fetch("/api/getsms/countries");
+        const data = await res.json();
+        const countryArray = Array.isArray(data) ? data : Object.values(data);
+        const options = countryArray.map((country: any) => ({
+          label: country.text_en,
+          value: country.name
+            ? country.name.toLowerCase()
+            : country.text_en.toLowerCase(),
+          flagUrl: `https://countryflagsapi.com/png/${encodeURIComponent(
+            country.name
+              ? country.name.toLowerCase()
+              : country.text_en.toLowerCase()
+          )}`,
+        }));
+        setCountries(options);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+        setMessage({
+          type: "error",
+          content: "Error loading countries from API.",
+        });
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  // Fetch all services on mount.
+  useEffect(() => {
+    const fetchAllServices = async () => {
+      try {
+        const res = await fetch("/api/getsms/prices");
+        const data = await res.json();
+        console.log("Fetched all services:", data);
+        const options = Array.isArray(data)
+          ? data.map((service: any) => ({
+              label: service.title,
+              value: service.id,
+              price: service.price,
+              stock: service.stock ?? 0,
+              count: service.count ?? 0,
+              country: service.country,
+              logoUrl: `https://logo.clearbit.com/${service.title}.com`,
+            }))
+          : [];
+        // If a country is selected filter services accordingly.
+        const filteredOptions =
+          selectedCountry && options.length
+            ? options.filter(
+                (opt: any) =>
+                  opt.country.toLowerCase() === selectedCountry.value
+              )
+            : options;
+        setInitialServices(filteredOptions);
+      } catch (error) {
+        console.error("Error fetching all services:", error);
+        setMessage({
+          type: "error",
+          content: "Error loading services from API.",
+        });
+      }
+    };
+    fetchAllServices();
+  }, [selectedCountry]);
+
+  // Load service options with lazy-loading/search.
+  const loadServiceOptions = async (
+    inputValue: string
+  ): Promise<
+    Array<
+      SelectOption & {
+        price: number;
+        stock?: number | string;
+        count?: number | string;
+        country: string;
+      }
+    >
+  > => {
+    setServicesLoading(true);
+    try {
+      if (inputValue && inputValue.length >= 2) {
+        let filtered = initialServices.filter((service) =>
+          service.label.toLowerCase().includes(inputValue.toLowerCase())
+        );
+        if (filtered.length === 0) {
+          const res = await fetch(`/api/getsms/prices?search=${inputValue}`);
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            filtered = data.map((service: any) => ({
+              label: service.title,
+              value: service.id,
+              price: service.price,
+              stock: service.stock ?? 0,
+              count: service.count ?? 0,
+              country: service.country,
+              logoUrl: `https://logo.clearbit.com/${service.title}.com`,
+            }));
+            // Also filter by selected country if set.
+            if (selectedCountry) {
+              filtered = filtered.filter(
+                (opt: any) =>
+                  opt.country.toLowerCase() === selectedCountry.value
+              );
+            }
+          }
+        }
+        return filtered;
+      } else {
+        const endIndex = servicePage * pageSize;
+        return initialServices.slice(0, endIndex);
+      }
+    } catch (error) {
+      console.error("Error loading services on search:", error);
+      return [];
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
+  const renderServiceSelect = () => (
+    <AsyncSelect
+      cacheOptions
+      defaultOptions={initialServices.slice(0, pageSize)}
+      loadOptions={loadServiceOptions}
+      onChange={(option) =>
+        setSelectedService(option as (typeof initialServices)[0])
+      }
+      placeholder="Search by service..."
+      isLoading={servicesLoading}
+      onMenuScrollToBottom={() => {
+        setServicePage((prev) => prev + 1);
+      }}
+    />
+  );
+
+  // Firebase auth & balance
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser({
+          email: currentUser.email || null,
+          displayName: currentUser.displayName || null,
+        });
+        try {
+          const userEmail = currentUser.email || "";
+          const q = query(
+            collection(db, "userDeposits"),
+            where("email", "==", userEmail)
+          );
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+            setBalance(userData.amount ?? 0);
+            setUserCurrency(userData.currency || "USD");
+            setSelectedCurrency({
+              label: userData.currency || "USD",
+              value: userData.currency || "USD",
+            });
+          } else {
+            setBalance(0);
+          }
+        } catch (error) {
+          console.error("Error fetching user balance:", error);
+        }
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Load orders from local storage on mount.
+  useEffect(() => {
+    const storedOrders = localStorage.getItem("smsOrders");
+    if (storedOrders) {
+      setOrders(JSON.parse(storedOrders));
+    }
+  }, []);
+
+  // Save orders to local storage whenever orders state changes.
+  useEffect(() => {
+    localStorage.setItem("smsOrders", JSON.stringify(orders));
+  }, [orders]);
+
   useEffect(() => {
     if (user?.email) {
       const fetchOrders = async () => {
@@ -94,123 +328,35 @@ const Sms = () => {
         const ordersData = querySnapshot.docs.map(
           (doc) => doc.data() as SmsOrder
         );
-        setPreviouslyGeneratedOrders(ordersData); // Save fetched orders to state
+        setPreviouslyGeneratedOrders(ordersData);
       };
       fetchOrders();
     }
   }, [user]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser({
-          email: currentUser.email || null,
-          displayName: currentUser.displayName || null,
-        });
-
-        try {
-          const userEmail = currentUser.email || "";
-          const q = query(
-            collection(db, "userDeposits"),
-            where("email", "==", userEmail)
-          );
-          const querySnapshot = await getDocs(q);
-
-          if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
-            setBalance(userData.amount ?? 0);
-          } else {
-            setBalance(0);
-          }
-        } catch (error) {
-          console.error("Error fetching user balance:", error);
-        }
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Load countries and services from local JSON
-  useEffect(() => {
-    setLoading(true);
-
-    try {
-      const parsedCountries = Object.values(countryList).map(
-        (country: Country) => ({
-          label: country.title,
-          value: country.id,
-        })
-      );
-      setCountries(parsedCountries);
-
-      const parsedServices = Object.values(servicesList).map(
-        (service: Service) => ({
-          label: service.title,
-          value: service.id,
-          price: service.price || 0,
-        })
-      );
-      setServices(parsedServices);
-    } catch (error) {
-      console.error("Error loading local data:", error);
-      setMessage({
-        type: "error",
-        content: "Error loading local data. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Update the orders array after requesting a new number
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       setMessage({ type: "success", content: "Copied!" });
-      setTimeout(() => {
-        setMessage({ type: "", content: "" });
-      }, 5000); // Hide message after 5 seconds
+      setTimeout(() => setMessage({ type: "", content: "" }), 5000);
     });
   };
 
-  const exchangeRates: { [key: string]: number } = {
-    USD: 1,
-    EUR: 0.85,
-    NGN: 410,
-    // Add other currencies as needed
-  };
-
+  // Request number and create order; deduct cost immediately; also set expireAt (5 minutes later)
   const handleRequestNumber = async () => {
     if (!selectedCountry || !selectedService) {
       setMessage({
         type: "error",
-        content: "Please select a country and a service.",
+        content: "Please select a country and service.",
       });
       return;
     }
-
     setLoading(true);
     setMessage({ type: "", content: "" });
-
     try {
-      // Fetch the SMS-Man balance via our proxy API (api/proxy-sms)
-      const smsManBalance = await fetch("/api/proxy-sms?action=get-balance")
-        .then((response) => response.json())
-        .then((data) => data.balance)
-        .catch(() => {
-          setMessage({
-            type: "error",
-            content:
-              "Service is temporarily unavailable due to insufficient funds on our end. We apologize for the inconvenience.",
-          });
-          return 0;
-        });
-
-      // If SMS-Man balance is not enough, show message and return
-      if (smsManBalance < selectedService.price) {
+      const vendorRes = await fetch("/api/getsms/vendor");
+      const vendorData = await vendorRes.json();
+      const vendorBalance = vendorData.balance || 0;
+      if (vendorBalance < selectedService.price) {
         setMessage({
           type: "error",
           content:
@@ -218,28 +364,25 @@ const Sms = () => {
         });
         return;
       }
-
-      // Fetch the user balance from Firestore
       const userEmail = user?.email || "";
       const userBalanceQuery = query(
         collection(db, "userDeposits"),
         where("email", "==", userEmail)
       );
       const userBalanceSnapshot = await getDocs(userBalanceQuery);
-
       if (!userBalanceSnapshot.empty) {
         const userDoc = userBalanceSnapshot.docs[0].data();
         const userBalanceInLocalCurrency = userDoc.amount || 0;
-
-        // Convert the SMS-Man price to the user's currency
-        const conversionRate = exchangeRates[userDoc.currency] || 1;
-        const servicePriceInUserCurrency =
-          selectedService.price * conversionRate;
-
-        // Add 5% commission to the service price
-        const totalPriceInUserCurrency = servicePriceInUserCurrency * 1.05;
-
-        // Check if user balance is enough for the service
+        if (userBalanceInLocalCurrency === 0) {
+          setMessage({
+            type: "error",
+            content: "Your wallet is empty. Please fund your wallet.",
+          });
+          return;
+        }
+        const rate = exchangeRates[selectedCurrency?.value || "USD"] || 1;
+        const servicePriceInUserCurrency = selectedService.price * rate;
+        const totalPriceInUserCurrency = servicePriceInUserCurrency * 1.2;
         if (userBalanceInLocalCurrency < totalPriceInUserCurrency) {
           setMessage({
             type: "error",
@@ -247,64 +390,38 @@ const Sms = () => {
           });
           return;
         }
-
-        // Log user balance details for testing
-        console.log(
-          `User Balance in Local Currency: ${userBalanceInLocalCurrency}`
+        const purchaseResponse = await fetch(
+          `/api/getsms/buy-activation?country=${selectedCountry.value}&operator=any&product=${selectedService.value}`
         );
-        console.log(
-          `Service Price in User Currency: ${servicePriceInUserCurrency}`
-        );
-        console.log(
-          `Total Price in User Currency (including commission): ${totalPriceInUserCurrency}`
-        );
-
-        // Proceed with number request if balances are sufficient
-        const response = await fetch(
-          `/api/proxy-sms?action=get-number&country_id=${selectedCountry.value}&application_id=${selectedService.value}`
-        );
-        const data = await response.json();
-
+        const data = await purchaseResponse.json();
         if (data.number) {
           setRequestedNumber(data);
           setMessage({
             type: "success",
             content: `Number fetched successfully: ${data.number}`,
           });
-
-          // Deduct the total service price with commission from the user's balance
           const newBalanceInLocalCurrency =
             userBalanceInLocalCurrency - totalPriceInUserCurrency;
-
-          // Log balance deduction for testing
-          console.log(
-            `Remaining Balance in Local Currency: ${newBalanceInLocalCurrency}`
-          );
-
-          // Update the user balance in Firestore
           const userDocRef = userBalanceSnapshot.docs[0].ref;
           await updateDoc(userDocRef, { amount: newBalanceInLocalCurrency });
-
-          // Create a new order object and save it to Firestore
-          const newOrder = {
+          // Set order expireAt 5 minutes later.
+          const expireAt = new Date(Date.now() + 5 * 60000).toISOString();
+          const newOrder: SmsOrder = {
             orderId: data.request_id,
             number: data.number,
             code: "",
             country: selectedCountry.label,
             service: selectedService.label,
             applicationId: selectedService.value,
-            status: "Pending", // Default status
-            action: "reject", // Default action
-            price: totalPriceInUserCurrency, // Store the price in user's currency
+            status: "Pending",
+            action: "none",
+            price: totalPriceInUserCurrency,
             user_email: user?.email || "",
-            date: new Date().toISOString(), // Store the current date
+            date: new Date().toISOString(),
+            expireAt,
           };
-
-          // Insert the new order into Firestore
           await addDoc(collection(db, "orders"), newOrder);
-
-          // Update the Recent SMS Orders table with the new order
-          setOrders((prevOrders) => [...prevOrders, newOrder]);
+          setOrders((prev) => [...prev, newOrder]);
         } else {
           setMessage({
             type: "error",
@@ -328,63 +445,30 @@ const Sms = () => {
     }
   };
 
-  // Update order status when rejecting
-  const rejectNumber = async () => {
-    if (requestedNumber) {
-      try {
-        const response = await fetch(
-          `/api/proxy-sms?action=set-status&request_id=${requestedNumber.request_id}&status=rejected`
-        );
-        const data = await response.json();
-
-        if (data.success) {
-          setMessage({
-            type: "success",
-            content: "Number status updated to rejected.",
-          });
-          setStatus("rejected");
-
-          // Update the status in the orders array
-          setOrders((prevOrders) =>
-            prevOrders.map((order) =>
-              order.orderId === requestedNumber.request_id
-                ? { ...order, status: "Rejected" } // Update status here
-                : order
-            )
-          );
-        } else {
-          setMessage({
-            type: "error",
-            content: "Failed to reject the number.",
-          });
-        }
-      } catch (error) {
-        console.error("Error rejecting number:", error);
-        setMessage({
-          type: "error",
-          content: "Failed to reject the number. Please try again.",
-        });
-      }
-    }
-  };
-
+  // Fetch SMS code from API endpoint.
   const fetchSmsCode = async () => {
     if (!requestedNumber) {
       setMessage({ type: "error", content: "No requested number found." });
       return;
     }
-
     setIsFetchingCode(true);
-
     try {
       const response = await fetch(
-        `/api/proxy-sms?action=get-sms&request_id=${requestedNumber.request_id}`
+        `/api/getsms/sms-inbox?id=${requestedNumber.request_id}`
       );
       const data = await response.json();
-
-      if (data.sms_code) {
-        setSmsCode(data.sms_code);
+      if (data.sms && data.sms.length > 0) {
+        const sms = data.sms[0];
+        setSmsCode(sms.code);
         setMessage({ type: "success", content: "SMS code received." });
+        // Optionally update order status here (eg. mark as Completed)
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.orderId === requestedNumber.request_id
+              ? { ...order, code: sms.code, status: "Completed" }
+              : order
+          )
+        );
       } else if (data.error_code === "wait_sms") {
         setMessage({
           type: "info",
@@ -399,6 +483,130 @@ const Sms = () => {
     } finally {
       setIsFetchingCode(false);
     }
+  };
+
+  // Rebuy number using new endpoint – enabled only if order is expired.
+  const rebuyNumber = async (order: SmsOrder) => {
+    try {
+      const response = await fetch(
+        `/api/getsms/reuse?product=${order.applicationId}&number=${order.number}`
+      );
+      const data = await response.json();
+      if (data.number) {
+        setMessage({
+          type: "success",
+          content: "Number successfully re-bought.",
+        });
+      } else {
+        setMessage({ type: "error", content: "Failed to rebuy the number." });
+      }
+    } catch (error) {
+      console.error("Error re-buying number:", error);
+      setMessage({
+        type: "error",
+        content: "Failed to rebuy the number. Please try again.",
+      });
+    }
+  };
+
+  // Cancel order using new endpoint – enabled only if no SMS code has been received.
+  const cancelOrder = async (orderId: string) => {
+    try {
+      const response = await fetch(`/api/getsms/cancel-order?id=${orderId}`);
+      const data = await response.json();
+      if (data.number || data.message) {
+        setMessage({
+          type: "success",
+          content: "Order cancelled successfully.",
+        });
+        // Update order status and restore balance (if needed).
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.orderId === orderId
+              ? { ...order, status: "Cancelled" }
+              : order
+          )
+        );
+      } else {
+        setMessage({ type: "error", content: "Failed to cancel the order." });
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      setMessage({
+        type: "error",
+        content: "Failed to cancel order. Please try again.",
+      });
+    }
+  };
+
+  // New Order Management table – persists via local storage.
+  const renderOrderManagementTable = () => {
+    return (
+      <div className="mt-8">
+        <h3 className="text-lg font-bold mb-2">Manage Orders</h3>
+        <table className="min-w-full border border-gray-200">
+          <thead>
+            <tr>
+              <th className="border px-2 py-1 text-xs">Order ID</th>
+              <th className="border px-2 py-1 text-xs">Country</th>
+              <th className="border px-2 py-1 text-xs">Service</th>
+              <th className="border px-2 py-1 text-xs">Number</th>
+              <th className="border px-2 py-1 text-xs">Code</th>
+              <th className="border px-2 py-1 text-xs">Status</th>
+              <th className="border px-2 py-1 text-xs">Date</th>
+              <th className="border px-2 py-1 text-xs">Expires At</th>
+              <th className="border px-2 py-1 text-xs">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => {
+              const currentTime = new Date().getTime();
+              const expireTime = new Date(order.expireAt).getTime();
+              const canCancel = order.code === ""; // disable cancel if SMS code received.
+              const canRebuy = currentTime > expireTime; // active if expired.
+              return (
+                <tr key={order.orderId}>
+                  <td className="border px-2 py-1 text-xs">{order.orderId}</td>
+                  <td className="border px-2 py-1 text-xs">{order.country}</td>
+                  <td className="border px-2 py-1 text-xs">{order.service}</td>
+                  <td className="border px-2 py-1 text-xs">{order.number}</td>
+                  <td className="border px-2 py-1 text-xs">
+                    {order.code || "—"}
+                  </td>
+                  <td className="border px-2 py-1 text-xs">{order.status}</td>
+                  <td className="border px-2 py-1 text-xs">
+                    {new Date(order.date).toLocaleString()}
+                  </td>
+                  <td className="border px-2 py-1 text-xs">
+                    {new Date(order.expireAt).toLocaleString()}
+                  </td>
+                  <td className="border px-2 py-1 text-xs">
+                    <button
+                      onClick={() => cancelOrder(order.orderId)}
+                      disabled={!canCancel}
+                      className={`text-red-500 text-xs mr-1 ${
+                        !canCancel && "opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => rebuyNumber(order)}
+                      disabled={!canRebuy}
+                      className={`text-yellow-500 text-xs ${
+                        !canRebuy && "opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      Rebuy
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
   };
 
   return (
@@ -433,15 +641,88 @@ const Sms = () => {
         <label className="block text-sm font-medium mb-2">
           Select a service
         </label>
-        <Select
-          options={services}
-          value={selectedService}
-          onChange={(option) =>
-            setSelectedService(option as (typeof services)[0])
-          }
-          placeholder="Search by service..."
-          isLoading={loading}
-        />
+        {renderServiceSelect()}
+        <div className="mb-2 mt-2">
+          <label className="block text-xs font-medium mb-1">Currency</label>
+          <select
+            value={selectedCurrency?.value}
+            onChange={(e) =>
+              setSelectedCurrency({
+                label: e.target.value,
+                value: e.target.value,
+              })
+            }
+            className="p-1 border rounded text-xs"
+          >
+            {currencyOptions.map((cur) => (
+              <option key={cur.value} value={cur.value}>
+                {cur.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {selectedService && (
+          <div className="mt-4">
+            <table className="min-w-full border border-gray-200">
+              <thead>
+                <tr>
+                  <th className="border px-4 py-2">Service</th>
+                  <th className="border px-4 py-2">Country</th>
+                  <th className="border px-4 py-2">Price (incl. commission)</th>
+                  <th className="border px-4 py-2">Stock</th>
+                  <th className="border px-4 py-2">Count</th>
+                  <th className="border px-4 py-2">Save</th>
+                  <th className="border px-4 py-2">Get SMS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border px-4 py-2">
+                    <img
+                      src={selectedService.logoUrl}
+                      alt="logo"
+                      style={{ height: "20px", marginRight: "5px" }}
+                    />
+                    {selectedService.label}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {selectedCountry?.label || "0"}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {(
+                      selectedService.price *
+                      (exchangeRates[selectedCurrency?.value || "USD"] || 1) *
+                      1.2
+                    ).toFixed(2)}{" "}
+                    {selectedCurrency?.value}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {selectedService.stock || 0}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {selectedService.count || 0}
+                  </td>
+                  <td className="border px-4 py-2 text-center">
+                    <button
+                      onClick={handleRequestNumber}
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      <FaSave />
+                    </button>
+                  </td>
+                  <td className="border px-4 py-2 text-center">
+                    <button
+                      onClick={fetchSmsCode}
+                      className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                    >
+                      Get SMS
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       <button
         onClick={handleRequestNumber}
@@ -461,30 +742,65 @@ const Sms = () => {
           >
             <FaClipboard /> Copy
           </button>
-
-          <button
-            onClick={fetchSmsCode}
-            className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            disabled={isFetchingCode}
-          >
-            {isFetchingCode ? "Waiting for Code..." : "Fetch SMS Code"}
-          </button>
-
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={fetchSmsCode}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              disabled={isFetchingCode}
+            >
+              {isFetchingCode ? "Waiting for Code..." : "Fetch SMS Code"}
+            </button>
+            {requestedNumber && (
+              <>
+                <button
+                  onClick={() =>
+                    rebuyNumber({
+                      orderId: requestedNumber.request_id,
+                      number: requestedNumber.number,
+                      code: "",
+                      country: selectedCountry?.label || "",
+                      service: selectedService?.label || "",
+                      applicationId: selectedService?.value || "",
+                      status: "Pending",
+                      action: "none",
+                      price: 0,
+                      user_email: user?.email || "",
+                      date: new Date().toISOString(),
+                      expireAt: "", // This will already have been set.
+                    })
+                  }
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                >
+                  Rebuy Number
+                </button>
+                <button
+                  onClick={() => cancelOrder(requestedNumber.request_id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Cancel Order
+                </button>
+              </>
+            )}
+          </div>
           {smsCode && <p className="text-sm mt-2">SMS Code: {smsCode}</p>}
         </div>
       )}
-      {/* // Pass the previously generated orders to RecentSmsOrders component */}
       <RecentSmsOrders
-        orders={orders} // Pass the updated orders state
-        previouslyGeneratedOrders={previouslyGeneratedOrders} // Pass the previously generated orders
-        rejectNumber={rejectNumber}
+        orders={orders}
+        previouslyGeneratedOrders={previouslyGeneratedOrders}
+        rejectNumber={async (orderId: string, requestId: string) =>
+          Promise.resolve()
+        }
         fetchSmsCode={fetchSmsCode}
         handleCopy={handleCopy}
       />
-
       <SmsPrice />
+      {orders.length > 0 && renderOrderManagementTable()}
     </div>
   );
 };
 
 export default Sms;
+function setUserCurrency(arg0: any) {
+  throw new Error("Function not implemented.");
+}

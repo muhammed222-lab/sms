@@ -86,6 +86,8 @@ export default function Home() {
       </main>
 
       <HowItWorks />
+      {/* <SmsSection /> */}
+      {/* <Prices /> */}
       <Cooperation />
       <WhyChooseUs />
       <PricingSection />

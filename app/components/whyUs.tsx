@@ -79,7 +79,7 @@ export default function WhyChooseUs() {
                 </h3>
                 <p className="text-gray-600 mt-2">
                   Access received messages instantly on your dashboard. No
-                  delays—get the codes you need in seconds.
+                  delays get the codes you need in seconds.
                 </p>
               </div>
             </div>

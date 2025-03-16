@@ -44,7 +44,7 @@ declare global {
 const DashboardBalance: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<
-    "flutterwave" | "bitcoin" | null
+    "flutterwave" | "Cryptocurrency" | null
   >(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [balance, setBalance] = useState<number>(0);
@@ -95,7 +95,7 @@ const DashboardBalance: React.FC = () => {
     fetchUserBalance();
   }, [user]);
 
-  const handleTopUp = (method: "flutterwave" | "bitcoin") => {
+  const handleTopUp = (method: "flutterwave" | "Cryptocurrency") => {
     setSelectedMethod(method);
   };
 
@@ -282,7 +282,9 @@ const DashboardBalance: React.FC = () => {
         <div>
           <h3>
             You selected:{" "}
-            {selectedMethod === "flutterwave" ? "Flutterwave" : "Bitcoin"}
+            {selectedMethod === "flutterwave"
+              ? "Flutterwave"
+              : "Cryptocurrency"}
           </h3>
           {selectedMethod === "flutterwave" && (
             <div>
@@ -331,7 +333,7 @@ const DashboardBalance: React.FC = () => {
               </button>
             </div>
           )}
-          {selectedMethod === "bitcoin" && <Crypto />}
+          {selectedMethod === "Cryptocurrency" && <Crypto />}
         </div>
       ) : (
         <div>
@@ -355,7 +357,7 @@ const DashboardBalance: React.FC = () => {
               />
             </button>
             <button
-              onClick={() => handleTopUp("bitcoin")}
+              onClick={() => handleTopUp("Cryptocurrency")}
               style={{
                 padding: "10px",
                 border: "1px solid gray",
@@ -364,7 +366,13 @@ const DashboardBalance: React.FC = () => {
                 cursor: "pointer",
               }}
             >
-              <Image src="/bitcoin.png" width={50} height={50} alt="Bitcoin" />
+              <Image
+                src="/bitcoin.png"
+                width={200}
+                height={50}
+                alt="Cryptocurrency"
+                className="rounded"
+              />
             </button>
           </div>
         </div>
