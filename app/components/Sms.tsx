@@ -663,64 +663,78 @@ const Sms = () => {
         </div>
         {selectedService && (
           <div className="mt-4">
-            <table className="min-w-full border border-gray-200">
-              <thead>
-                <tr>
-                  <th className="border px-4 py-2">Service</th>
-                  <th className="border px-4 py-2">Country</th>
-                  <th className="border px-4 py-2">Price (incl. commission)</th>
-                  <th className="border px-4 py-2">Stock</th>
-                  <th className="border px-4 py-2">Count</th>
-                  <th className="border px-4 py-2">Save</th>
-                  <th className="border px-4 py-2">Get SMS</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border px-4 py-2">
-                    <img
-                      src={selectedService.logoUrl}
-                      alt="logo"
-                      style={{ height: "20px", marginRight: "5px" }}
-                    />
-                    {selectedService.label}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {selectedCountry?.label || "0"}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {(
-                      selectedService.price *
-                      (exchangeRates[selectedCurrency?.value || "USD"] || 1) *
-                      1.2
-                    ).toFixed(2)}{" "}
-                    {selectedCurrency?.value}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {selectedService.stock || 0}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {selectedService.count || 0}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    <button
-                      onClick={handleRequestNumber}
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      <FaSave />
-                    </button>
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    <button
-                      onClick={fetchSmsCode}
-                      className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
-                    >
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-200 table-auto">
+                <thead>
+                  <tr>
+                    <th className="border px-4 py-2 whitespace-nowrap">
+                      Service
+                    </th>
+                    <th className="border px-4 py-2 whitespace-nowrap">
+                      Country
+                    </th>
+                    <th className="border px-4 py-2 whitespace-nowrap">
+                      Price (incl. commission)
+                    </th>
+                    <th className="border px-4 py-2 whitespace-nowrap">
+                      Stock
+                    </th>
+                    <th className="border px-4 py-2 whitespace-nowrap">
+                      Count
+                    </th>
+                    <th className="border px-4 py-2 whitespace-nowrap">Save</th>
+                    <th className="border px-4 py-2 whitespace-nowrap">
                       Get SMS
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border px-4 py-2 whitespace-nowrap">
+                      <img
+                        src={selectedService.logoUrl}
+                        alt="logo"
+                        className="inline-block h-5 mr-2"
+                      />
+                      {selectedService.label}
+                    </td>
+                    <td className="border px-4 py-2 whitespace-nowrap">
+                      {selectedCountry?.label || "0"}
+                    </td>
+                    <td className="border px-4 py-2 whitespace-nowrap">
+                      {(
+                        selectedService.price *
+                        (exchangeRates[selectedCurrency?.value || "USD"] || 1) *
+                        1.2
+                      ).toFixed(2)}{" "}
+                      {selectedCurrency?.value}
+                    </td>
+                    <td className="border px-4 py-2 whitespace-nowrap">
+                      {selectedService.stock || 0}
+                    </td>
+                    <td className="border px-4 py-2 whitespace-nowrap">
+                      {selectedService.count || 0}
+                    </td>
+                    <td className="border px-4 py-2 text-center whitespace-nowrap">
+                      <button
+                        onClick={handleRequestNumber}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <FaSave />
+                      </button>
+                    </td>
+                    <td className="border px-4 py-2 text-center whitespace-nowrap">
+                      <button
+                        onClick={fetchSmsCode}
+                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                      >
+                        Get SMS
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
