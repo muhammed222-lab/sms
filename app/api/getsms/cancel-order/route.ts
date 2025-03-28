@@ -1,33 +1,68 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextResponse } from "next/server";
 
-const CANCEL_ORDER_URL = "https://5sim.net/v1/user/cancel";
-const getHeaders = (contentType?: string) => {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    Authorization: `Bearer ${process.env.FIVESIM_API_KEY}`,
-  };
-  return headers;
-};
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
 
-export async function GET(req: Request) {
+  if (!id) {
+    return NextResponse.json(
+      { error: "Order ID is required" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-    if (!id) {
-      return NextResponse.json({ error: "Missing order id" }, { status: 400 });
-    }
-    const url = `${CANCEL_ORDER_URL}/${id}`;
-    const response = await fetch(url, { headers: getHeaders() });
-    if (!response.ok) {
+    console.log(`[5SIM] Canceling order ${id}`);
+
+    const response = await fetch(`https://5sim.net/v1/user/cancel/${id}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.FIVESIM_API_KEY}`,
+      },
+    });
+
+    // Clone response before reading
+    const responseClone = response.clone();
+
+    try {
+      const data = await response.json();
+
+      // Successful cancellation
+      if (response.ok && data.status === "CANCELED") {
+        return NextResponse.json(data);
+      }
+
+      // Handle API-specific errors
       return NextResponse.json(
-        { error: "Failed to cancel order" },
+        { error: data.error || "Failed to cancel order" },
+        { status: response.status }
+      );
+    } catch (jsonError) {
+      // Fallback to text if JSON parsing fails
+      const text = await responseClone.text();
+
+      // Special case for "order not found"
+      if (text.includes("order not found")) {
+        return NextResponse.json(
+          {
+            error: "Order not found in API (but may exist in dashboard)",
+            details: text,
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: text || "Unknown API error" },
         { status: response.status }
       );
     }
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+  } catch (error) {
+    console.error("[5SIM] Network error:", error);
+    return NextResponse.json(
+      { error: "Failed to connect to 5SIM" },
+      { status: 500 }
+    );
   }
 }

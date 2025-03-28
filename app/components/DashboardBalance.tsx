@@ -48,9 +48,13 @@ const DashboardBalance: React.FC = () => {
   >(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [balance, setBalance] = useState<number>(0);
+  const [windowWidth, setWindowWidth] = useState<number>(
+    typeof window !== "undefined" ? window.innerWidth : 1024
+  );
 
   const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "";
 
+  // Load Flutterwave script
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.flutterwave.com/v3.js";
@@ -59,6 +63,13 @@ const DashboardBalance: React.FC = () => {
     return () => {
       document.body.removeChild(script);
     };
+  }, []);
+
+  // Listen for window resize to adjust layout
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -78,7 +89,6 @@ const DashboardBalance: React.FC = () => {
             where("email", "==", email)
           );
           const querySnapshot = await getDocs(q);
-
           if (!querySnapshot.empty) {
             const userDoc = querySnapshot.docs[0];
             const userData = userDoc.data() as DocumentData;
@@ -113,9 +123,7 @@ const DashboardBalance: React.FC = () => {
       alert("Please enter a valid amount between 1,000 and 100,000 Naira.");
       return;
     }
-
-    const transactionRef = `TX-${Date.now()}`; // Generate a unique transaction reference
-
+    const transactionRef = `TX-${Date.now()}`;
     window.FlutterwaveCheckout({
       public_key: publicKey,
       tx_ref: transactionRef,
@@ -136,14 +144,10 @@ const DashboardBalance: React.FC = () => {
         try {
           const verifyResponse = await fetch("/api/verify-transaction", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ transactionId: response.transaction_id }),
           });
-
           const verifyData = await verifyResponse.json();
-
           if (
             verifyData.status === "success" &&
             verifyData.data.status === "successful" &&
@@ -151,22 +155,17 @@ const DashboardBalance: React.FC = () => {
             verifyData.data.currency === "NGN"
           ) {
             alert("Payment verified successfully!");
-
             const email = user?.email || "default@example.com";
             const depositCollection = collection(db, "userDeposits");
-
-            // Update user's balance
             const userQuery = query(
               depositCollection,
               where("email", "==", email)
             );
             const querySnapshot = await getDocs(userQuery);
-
             if (!querySnapshot.empty) {
               const docRef = querySnapshot.docs[0].ref;
               const existingData = querySnapshot.docs[0].data() as DocumentData;
               const newAmount = (existingData.amount || 0) + amount;
-
               await updateDoc(docRef, { amount: newAmount });
             } else {
               await addDoc(depositCollection, {
@@ -175,10 +174,7 @@ const DashboardBalance: React.FC = () => {
                 date: new Date().toISOString(),
               });
             }
-
             setBalance((prevBalance) => prevBalance + amount);
-
-            // Insert deposit history
             const depositHistoryCollection = collection(db, "deposit_history");
             await addDoc(depositHistoryCollection, {
               user_email: email,
@@ -187,38 +183,27 @@ const DashboardBalance: React.FC = () => {
               mode: "Flutterwave",
               status: "success",
             });
-
-            // Check if the user was referred
+            // Check referral commission
             const refersQuery = query(
               collection(db, "refers"),
               where("user_email", "==", email)
             );
             const refersSnapshot = await getDocs(refersQuery);
-
             if (!refersSnapshot.empty) {
               const referrerDoc = refersSnapshot.docs[0];
               const referrerData = referrerDoc.data() as DocumentData;
-
               const referrerEmail = referrerData.refer_by_email;
               const referrerCommission = referrerData.commission || 0;
-
-              // Calculate 5% commission
               const commission = (5 / 100) * amount;
-
-              // Update the referrer's commission
-              const referrerRef = referrerDoc.ref;
-              await updateDoc(referrerRef, {
+              await updateDoc(referrerDoc.ref, {
                 commission: referrerCommission + commission,
               });
-
               console.log(
                 `Commission of ${commission} added to referrer: ${referrerEmail}`
               );
             }
           } else {
             alert("Payment verification failed. Please try again.");
-
-            // Insert failed deposit history
             const depositHistoryCollection = collection(db, "deposit_history");
             await addDoc(depositHistoryCollection, {
               user_email: user?.email || "default@example.com",
@@ -231,8 +216,6 @@ const DashboardBalance: React.FC = () => {
         } catch (error) {
           console.error("Error verifying transaction:", error);
           alert("An error occurred during payment verification.");
-
-          // Insert failed deposit history
           const depositHistoryCollection = collection(db, "deposit_history");
           await addDoc(depositHistoryCollection, {
             user_email: user?.email || "default@example.com",
@@ -245,8 +228,6 @@ const DashboardBalance: React.FC = () => {
       },
       onclose: () => {
         alert("Payment window closed.");
-
-        // Insert pending deposit history
         const depositHistoryCollection = collection(db, "deposit_history");
         addDoc(depositHistoryCollection, {
           user_email: user?.email || "default@example.com",
@@ -266,6 +247,14 @@ const DashboardBalance: React.FC = () => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
+  };
+
+  // Determine flex direction based on window width (column for mobile)
+  const methodContainerStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: windowWidth < 768 ? "column" : "row",
+    gap: "20px",
+    alignItems: "center",
   };
 
   return (
@@ -302,35 +291,39 @@ const DashboardBalance: React.FC = () => {
                   borderRadius: "5px",
                 }}
               />
-              <button
-                onClick={handleFlutterwavePayment}
-                disabled={!amount}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: amount ? "#4CAF50" : "gray",
-                  color: "white",
-                  border: "none",
-                  cursor: amount ? "pointer" : "not-allowed",
-                  marginTop: "10px",
-                  borderRadius: "5px",
-                }}
-              >
-                Proceed
-              </button>
-              <button
-                onClick={() => setSelectedMethod(null)}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#f44336",
-                  color: "white",
-                  border: "none",
-                  cursor: "pointer",
-                  marginLeft: "10px",
-                  borderRadius: "5px",
-                }}
-              >
-                Back
-              </button>
+              <div style={{ marginTop: "10px" }}>
+                <button
+                  onClick={handleFlutterwavePayment}
+                  disabled={!amount}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: amount ? "#4CAF50" : "gray",
+                    color: "white",
+                    border: "none",
+                    cursor: amount ? "pointer" : "not-allowed",
+                    borderRadius: "5px",
+                    width: windowWidth < 768 ? "100%" : "auto",
+                  }}
+                >
+                  Proceed
+                </button>
+                <button
+                  onClick={() => setSelectedMethod(null)}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#f44336",
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                    marginLeft: windowWidth < 768 ? "0" : "10px",
+                    marginTop: windowWidth < 768 ? "10px" : "0",
+                    borderRadius: "5px",
+                    width: windowWidth < 768 ? "100%" : "auto",
+                  }}
+                >
+                  Back
+                </button>
+              </div>
             </div>
           )}
           {selectedMethod === "Cryptocurrency" && <Crypto />}
@@ -338,7 +331,7 @@ const DashboardBalance: React.FC = () => {
       ) : (
         <div>
           <h3>Choose a Top-Up Method</h3>
-          <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+          <div style={methodContainerStyle}>
             <button
               onClick={() => handleTopUp("flutterwave")}
               style={{
@@ -347,6 +340,7 @@ const DashboardBalance: React.FC = () => {
                 borderRadius: "8px",
                 backgroundColor: "white",
                 cursor: "pointer",
+                width: windowWidth < 768 ? "100%" : "auto",
               }}
             >
               <Image
@@ -364,6 +358,7 @@ const DashboardBalance: React.FC = () => {
                 borderRadius: "8px",
                 backgroundColor: "white",
                 cursor: "pointer",
+                width: windowWidth < 768 ? "100%" : "auto",
               }}
             >
               <Image
@@ -382,3 +377,5 @@ const DashboardBalance: React.FC = () => {
 };
 
 export default DashboardBalance;
+// export { DashboardBalance };
+// export type { FlutterwaveCheckoutOptions };

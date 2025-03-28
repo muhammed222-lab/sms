@@ -13,6 +13,7 @@ import {
   FaChevronUp,
   FaHistory,
   FaMoneyBillWave,
+  FaCog,
 } from "react-icons/fa";
 import DashboardBalance from "../components/DashboardBalance";
 import RentNumbers from "../components/RentNumbers";
@@ -24,6 +25,7 @@ import Sms from "../components/Sms";
 import Header from "../components/header";
 import Auth from "../components/Auth";
 import Prices from "../components/prices";
+import Settings from "../components/Settings";
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -37,6 +39,7 @@ const Dashboard = () => {
     { label: "Profile", id: "profile", icon: <FaUser /> },
     { label: "Payment History", id: "history", icon: <FaHistory /> },
     { label: "Top Up Balance", id: "balance", icon: <FaWallet /> },
+    { label: "Settings", id: "settings", icon: <FaCog /> },
     { label: "Instructions", id: "instructions", icon: <FaInfoCircle /> },
     { label: "Feedback", id: "feedback", icon: <FaCommentDots /> },
   ];
@@ -58,6 +61,8 @@ const Dashboard = () => {
         return <History />;
       case "Instructions":
         return <Tutor />;
+      case "Settings":
+        return <Settings />;
       case "Feedback":
         return <Feedback />;
       default:

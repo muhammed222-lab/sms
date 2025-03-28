@@ -1,10 +1,12 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @next/next/no-img-element */
+
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
-import { FaSave, FaClipboard } from "react-icons/fa";
+import { FaSave, FaClipboard, FaSearch, FaTimes } from "react-icons/fa";
+import { FiHelpCircle } from "react-icons/fi";
 import {
   collection,
   query,
@@ -15,10 +17,12 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
-import RecentSmsOrders from "./RecentSmsOrders";
-import SmsPrice from "./SmsPrice";
+import SuccessNotification from "./sms_components/SuccessNotification";
+import ActiveOrder from "./sms_components/ActiveOrder";
+import OrderHistory from "./sms_components/OrderHistory";
+import OtpHelp from "./OtpHelp";
+import OrderEmpty from "./OrderEmpty";
 
-// Define interfaces
 interface User {
   email: string | null;
   displayName: string | null;
@@ -32,586 +36,635 @@ interface SelectOption {
   count?: number | string;
   logoUrl?: string;
   flagUrl?: string;
+  code?: string;
 }
 
-interface RequestedNumber {
-  request_id: string;
-  number: string;
-}
-
-interface SmsOrder {
+export interface SmsOrder {
+  id: number;
   orderId: string;
-  number: string;
-  code: string;
-  country: string;
-  service: string;
-  applicationId: string;
+  phone: string;
+  operator: string;
+  product: string;
+  price: string;
   status: string;
-  action: string;
-  price: number;
+  expires: string;
+  sms: string | null;
+  created_at: string;
+  country: string;
+  number: string;
   user_email: string;
-  date: string;
-  expireAt: string;
+  service: string;
+  is_reused?: boolean;
 }
 
 const Sms = () => {
   const [servicesLoading, setServicesLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [countries, setCountries] = useState<SelectOption[]>([]);
-  const [initialServices, setInitialServices] = useState<
-    Array<
-      SelectOption & {
-        price: number;
-        stock?: number | string;
-        count?: number | string;
-        country: string;
-      }
-    >
-  >([]);
+  const [initialServices, setInitialServices] = useState<any[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(
     null
   );
-  const [selectedService, setSelectedService] = useState<
-    SelectOption & {
-      price: number;
-      stock?: number | string;
-      count?: number | string;
-    }
-  >();
-  const [requestedNumber, setRequestedNumber] =
-    useState<RequestedNumber | null>(null);
-  const [smsCode, setSmsCode] = useState("");
+  const [selectedService, setSelectedService] = useState<any>(null);
   const [message, setMessage] = useState({ type: "", content: "" });
   const [isFetchingCode, setIsFetchingCode] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [, setBalance] = useState<number>(0);
-  const [, setStatus] = useState<string>(""); // order status state
+  const [balance, setBalance] = useState<number>(0); // balance in NGN
   const [orders, setOrders] = useState<SmsOrder[]>([]);
-  const [previouslyGeneratedOrders, setPreviouslyGeneratedOrders] = useState<
-    SmsOrder[]
-  >([]);
-  const currencyOptions = [
-    { label: "USD", value: "USD" },
-    { label: "EUR", value: "EUR" },
-    { label: "GBP", value: "GBP" },
-    { label: "NGN", value: "NGN" },
-    { label: "JPY", value: "JPY" },
-    { label: "AUD", value: "AUD" },
-    { label: "CAD", value: "CAD" },
-    { label: "CHF", value: "CHF" },
-    { label: "CNY", value: "CNY" },
-    { label: "SEK", value: "SEK" },
-    { label: "NZD", value: "NZD" },
-    { label: "KRW", value: "KRW" },
-    { label: "INR", value: "INR" },
-    { label: "RUB", value: "RUB" },
-  ];
-  const [selectedCurrency, setSelectedCurrency] = useState<SelectOption | null>(
-    { label: "USD", value: "USD" }
-  );
-
+  const [activeTab, setActiveTab] = useState<"Active" | "History">("Active");
+  const [search, setSearch] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [servicePage, setServicePage] = useState(1);
+  const [ngnToUsdRate, setNgnToUsdRate] = useState<number | null>(null);
   const pageSize = 20;
-  const exchangeRates: { [key: string]: number } = {
-    RUB: 1, // base
-    USD: 0.012,
-    EUR: 0.01,
-    GBP: 0.0087,
-    NGN: 5.5,
-    JPY: 1.6,
-    AUD: 0.016,
-    CAD: 0.015,
-    CHF: 0.013,
-    CNY: 0.085,
-    SEK: 0.11,
-    NZD: 0.017,
-    KRW: 14,
-    INR: 0.9,
+
+  const getServiceLogoUrl = (serviceName: string) => {
+    return `https://logo.clearbit.com/${serviceName}.com`;
   };
 
-  // Load countries from API
+  // Fetch live NGN-to-USD conversion rate (e.g., if 1 NGN = 0.0026 USD)
   useEffect(() => {
-    const fetchCountries = async () => {
+    const fetchExchangeRate = async () => {
       try {
-        const res = await fetch("/api/getsms/countries");
+        const res = await fetch("https://open.er-api.com/v6/latest/NGN");
+        if (!res.ok) {
+          console.error("Failed to fetch NGN exchange rate");
+          return;
+        }
         const data = await res.json();
-        const countryArray = Array.isArray(data) ? data : Object.values(data);
-        const options = countryArray.map((country: any) => ({
-          label: country.text_en,
-          value: country.name
-            ? country.name.toLowerCase()
-            : country.text_en.toLowerCase(),
-          flagUrl: `https://countryflagsapi.com/png/${encodeURIComponent(
-            country.name
-              ? country.name.toLowerCase()
-              : country.text_en.toLowerCase()
-          )}`,
-        }));
-        setCountries(options);
+        // data.rates.USD is the amount in USD for 1 NGN
+        setNgnToUsdRate(data.rates.USD);
       } catch (error) {
-        console.error("Error fetching countries:", error);
-        setMessage({
-          type: "error",
-          content: "Error loading countries from API.",
-        });
+        console.error("Exchange rate error:", error);
       }
     };
-    fetchCountries();
+    fetchExchangeRate();
   }, []);
 
-  // Fetch all services on mount.
-  useEffect(() => {
-    const fetchAllServices = async () => {
-      try {
-        const res = await fetch("/api/getsms/prices");
-        const data = await res.json();
-        console.log("Fetched all services:", data);
-        const options = Array.isArray(data)
-          ? data.map((service: any) => ({
-              label: service.title,
-              value: service.id,
-              price: service.price,
-              stock: service.stock ?? 0,
-              count: service.count ?? 0,
-              country: service.country,
-              logoUrl: `https://logo.clearbit.com/${service.title}.com`,
-            }))
-          : [];
-        // If a country is selected filter services accordingly.
-        const filteredOptions =
-          selectedCountry && options.length
-            ? options.filter(
-                (opt: any) =>
-                  opt.country.toLowerCase() === selectedCountry.value
-              )
-            : options;
-        setInitialServices(filteredOptions);
-      } catch (error) {
-        console.error("Error fetching all services:", error);
-        setMessage({
-          type: "error",
-          content: "Error loading services from API.",
-        });
-      }
-    };
-    fetchAllServices();
-  }, [selectedCountry]);
+  const fetchCountries = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
 
-  // Load service options with lazy-loading/search.
-  const loadServiceOptions = async (
-    inputValue: string
-  ): Promise<
-    Array<
-      SelectOption & {
-        price: number;
-        stock?: number | string;
-        count?: number | string;
-        country: string;
+      const token = await currentUser.getIdToken();
+      const res = await fetch("/api/proxy-sms?action=get-countries", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch countries");
       }
-    >
-  > => {
+
+      const data = await res.json();
+      const options = data.map((country: any) => ({
+        label: country.text_en,
+        value: country.name.toLowerCase(),
+        code: country.iso,
+        flagUrl: `https://flagcdn.com/w40/${country.iso.toLowerCase()}.png`,
+      }));
+
+      setCountries(options);
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+      setMessage({
+        type: "error",
+        content: "Error loading countries from API.",
+      });
+    }
+  };
+
+  const fetchServices = async (country?: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
+
+      const token = await currentUser.getIdToken();
+      let url = "/api/proxy-sms?action=get-prices";
+      if (country) url += `&country=${country}`;
+
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch services");
+      }
+
+      const data = await res.json();
+      const services: any[] = [];
+      for (const [countryName, products] of Object.entries(data)) {
+        for (const [productName, operators] of Object.entries(
+          products as any
+        )) {
+          const operatorData = Object.values(operators as any)[0] as any;
+          services.push({
+            label: productName,
+            value: productName.toLowerCase(),
+            price: operatorData.cost_usd, // base price in USD from operator data
+            stock: operatorData.count,
+            country: countryName.toLowerCase(),
+          });
+        }
+      }
+
+      setInitialServices(services);
+    } catch (error) {
+      console.error("Error fetching services:", error);
+      setMessage({
+        type: "error",
+        content: "Error loading services from API.",
+      });
+    }
+  };
+
+  const loadServiceOptions = async (inputValue: string) => {
     setServicesLoading(true);
     try {
+      if (!selectedCountry) return [];
+
       if (inputValue && inputValue.length >= 2) {
-        let filtered = initialServices.filter((service) =>
+        const filtered = initialServices.filter((service) =>
           service.label.toLowerCase().includes(inputValue.toLowerCase())
         );
-        if (filtered.length === 0) {
-          const res = await fetch(`/api/getsms/prices?search=${inputValue}`);
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            filtered = data.map((service: any) => ({
-              label: service.title,
-              value: service.id,
-              price: service.price,
-              stock: service.stock ?? 0,
-              count: service.count ?? 0,
-              country: service.country,
-              logoUrl: `https://logo.clearbit.com/${service.title}.com`,
-            }));
-            // Also filter by selected country if set.
-            if (selectedCountry) {
-              filtered = filtered.filter(
-                (opt: any) =>
-                  opt.country.toLowerCase() === selectedCountry.value
-              );
-            }
-          }
-        }
         return filtered;
       } else {
         const endIndex = servicePage * pageSize;
         return initialServices.slice(0, endIndex);
       }
     } catch (error) {
-      console.error("Error loading services on search:", error);
+      console.error("Error loading services:", error);
       return [];
     } finally {
       setServicesLoading(false);
     }
   };
 
-  const renderServiceSelect = () => (
-    <AsyncSelect
-      cacheOptions
-      defaultOptions={initialServices.slice(0, pageSize)}
-      loadOptions={loadServiceOptions}
-      onChange={(option) =>
-        setSelectedService(option as (typeof initialServices)[0])
-      }
-      placeholder="Search by service..."
-      isLoading={servicesLoading}
-      onMenuScrollToBottom={() => {
-        setServicePage((prev) => prev + 1);
-      }}
-    />
-  );
-
-  // Firebase auth & balance
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser({
-          email: currentUser.email || null,
-          displayName: currentUser.displayName || null,
-        });
-        try {
-          const userEmail = currentUser.email || "";
-          const q = query(
-            collection(db, "userDeposits"),
-            where("email", "==", userEmail)
-          );
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
-            setBalance(userData.amount ?? 0);
-            setUserCurrency(userData.currency || "USD");
-            setSelectedCurrency({
-              label: userData.currency || "USD",
-              value: userData.currency || "USD",
-            });
-          } else {
-            setBalance(0);
-          }
-        } catch (error) {
-          console.error("Error fetching user balance:", error);
-        }
-      } else {
-        setUser(null);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Load orders from local storage on mount.
-  useEffect(() => {
-    const storedOrders = localStorage.getItem("smsOrders");
-    if (storedOrders) {
-      setOrders(JSON.parse(storedOrders));
-    }
-  }, []);
-
-  // Save orders to local storage whenever orders state changes.
-  useEffect(() => {
-    localStorage.setItem("smsOrders", JSON.stringify(orders));
-  }, [orders]);
-
-  useEffect(() => {
-    if (user?.email) {
-      const fetchOrders = async () => {
-        const q = query(
-          collection(db, "orders"),
-          where("user_email", "==", user.email)
-        );
-        const querySnapshot = await getDocs(q);
-        const ordersData = querySnapshot.docs.map(
-          (doc) => doc.data() as SmsOrder
-        );
-        setPreviouslyGeneratedOrders(ordersData);
-      };
-      fetchOrders();
-    }
-  }, [user]);
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setMessage({ type: "success", content: "Copied!" });
-      setTimeout(() => setMessage({ type: "", content: "" }), 5000);
-    });
-  };
-
-  // Request number and create order; deduct cost immediately; also set expireAt (5 minutes later)
   const handleRequestNumber = async () => {
-    if (!selectedCountry || !selectedService) {
+    if (!selectedCountry || !selectedService || !user?.email) {
       setMessage({
         type: "error",
         content: "Please select a country and service.",
       });
       return;
     }
+
+    // Ensure we have the conversion rate for NGN-USD
+    if (ngnToUsdRate === null) {
+      setMessage({
+        type: "error",
+        content: "Exchange rate not available. Please try again later.",
+      });
+      return;
+    }
+
     setLoading(true);
     setMessage({ type: "", content: "" });
+
     try {
-      const vendorRes = await fetch("/api/getsms/vendor");
-      const vendorData = await vendorRes.json();
-      const vendorBalance = vendorData.balance || 0;
-      if (vendorBalance < selectedService.price) {
-        setMessage({
-          type: "error",
-          content:
-            "Service is temporarily unavailable due to insufficient funds on our end. We apologize for the inconvenience.",
-        });
-        return;
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
+
+      // Use operator if provided; else default to "any"
+      const operator = selectedService.operator
+        ? selectedService.operator
+        : "any";
+
+      const token = await currentUser.getIdToken();
+      const res = await fetch(
+        `/api/proxy-sms?action=buy-activation&country=${selectedCountry.value}&operator=${operator}&product=${selectedService.value}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to purchase number");
       }
-      const userEmail = user?.email || "";
+
+      const data = await res.json();
+
+      // Calculate cost: Convert price (in RUB) to USD using fixed rate (0.012),
+      // then add 50% markup.
+      const baseCostUsd = Number(data.price) * 0.012;
+      const costUsdMarkup = baseCostUsd * 1.5;
+      // Convert cost in USD to NGN: NGN = USD cost / (NGN-to-USD rate)
+      const costNgN = costUsdMarkup / ngnToUsdRate;
+
+      // Check available balance (balance is in NGN)
+      if (balance < costNgN) {
+        throw new Error("Insufficient balance to buy the number.");
+      }
+
+      // Create new order in Firebase
+      const orderData = {
+        id: Number(data.id),
+        orderId: data.id.toString(),
+        phone: data.phone,
+        operator: data.operator || operator,
+        product: selectedService.value,
+        price: costUsdMarkup.toFixed(2), // Price in USD with 50% added
+        status: data.status || "PENDING",
+        expires: data.expires,
+        sms: null,
+        created_at: new Date().toISOString(),
+        country: data.country || selectedCountry.value,
+        number: data.phone,
+        user_email: user.email,
+        service: selectedService.value,
+      };
+
+      await addDoc(collection(db, "sms_orders"), orderData);
+      setOrders((prev) => [...prev, orderData]);
+
+      // Deduct the cost (converted to NGN) from the user balance
       const userBalanceQuery = query(
         collection(db, "userDeposits"),
-        where("email", "==", userEmail)
+        where("email", "==", user.email)
       );
       const userBalanceSnapshot = await getDocs(userBalanceQuery);
+
       if (!userBalanceSnapshot.empty) {
-        const userDoc = userBalanceSnapshot.docs[0].data();
-        const userBalanceInLocalCurrency = userDoc.amount || 0;
-        if (userBalanceInLocalCurrency === 0) {
-          setMessage({
-            type: "error",
-            content: "Your wallet is empty. Please fund your wallet.",
-          });
-          return;
-        }
-        const rate = exchangeRates[selectedCurrency?.value || "USD"] || 1;
-        const servicePriceInUserCurrency = selectedService.price * rate;
-        const totalPriceInUserCurrency = servicePriceInUserCurrency * 1.2;
-        if (userBalanceInLocalCurrency < totalPriceInUserCurrency) {
-          setMessage({
-            type: "error",
-            content: "Insufficient balance. Please top up your account.",
-          });
-          return;
-        }
-        const purchaseResponse = await fetch(
-          `/api/getsms/buy-activation?country=${selectedCountry.value}&operator=any&product=${selectedService.value}`
-        );
-        const data = await purchaseResponse.json();
-        if (data.number) {
-          setRequestedNumber(data);
-          setMessage({
-            type: "success",
-            content: `Number fetched successfully: ${data.number}`,
-          });
-          const newBalanceInLocalCurrency =
-            userBalanceInLocalCurrency - totalPriceInUserCurrency;
-          const userDocRef = userBalanceSnapshot.docs[0].ref;
-          await updateDoc(userDocRef, { amount: newBalanceInLocalCurrency });
-          // Set order expireAt 5 minutes later.
-          const expireAt = new Date(Date.now() + 5 * 60000).toISOString();
-          const newOrder: SmsOrder = {
-            orderId: data.request_id,
-            number: data.number,
-            code: "",
-            country: selectedCountry.label,
-            service: selectedService.label,
-            applicationId: selectedService.value,
-            status: "Pending",
-            action: "none",
-            price: totalPriceInUserCurrency,
-            user_email: user?.email || "",
-            date: new Date().toISOString(),
-            expireAt,
-          };
-          await addDoc(collection(db, "orders"), newOrder);
-          setOrders((prev) => [...prev, newOrder]);
-        } else {
-          setMessage({
-            type: "error",
-            content: "Failed to fetch number. Please try again later.",
-          });
-        }
-      } else {
-        setMessage({
-          type: "error",
-          content: "No user balance found. Please try again later.",
-        });
+        const userDoc = userBalanceSnapshot.docs[0];
+        const currentBalance = userDoc.data().amount || 0;
+        const newBalance = currentBalance - costNgN;
+        await updateDoc(userDoc.ref, { amount: newBalance });
+        setBalance(newBalance);
       }
-    } catch (error) {
+
+      setMessage({
+        type: "success",
+        content: "Number purchased successfully!",
+      });
+    } catch (error: any) {
       console.error("Error requesting number:", error);
       setMessage({
         type: "error",
-        content: "Failed to request a number. Please try again later.",
+        content: error.message.includes("401")
+          ? "Authentication failed. Please check your credentials."
+          : error.message || "Failed to request number. Please try again.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch SMS code from API endpoint.
-  const fetchSmsCode = async () => {
-    if (!requestedNumber) {
-      setMessage({ type: "error", content: "No requested number found." });
-      return;
-    }
-    setIsFetchingCode(true);
+  const fetchSmsCode = async (orderId: string) => {
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
+
+      setIsFetchingCode(true);
+      const token = await currentUser.getIdToken();
       const response = await fetch(
-        `/api/getsms/sms-inbox?id=${requestedNumber.request_id}`
+        `/api/proxy-sms?action=check-order&order_id=${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      if (!response.ok) {
+        throw new Error("Failed to check order");
+      }
+
       const data = await response.json();
+
       if (data.sms && data.sms.length > 0) {
         const sms = data.sms[0];
-        setSmsCode(sms.code);
-        setMessage({ type: "success", content: "SMS code received." });
-        // Optionally update order status here (eg. mark as Completed)
+
+        const orderQuery = query(
+          collection(db, "sms_orders"),
+          where("orderId", "==", orderId),
+          where("user_email", "==", currentUser.email)
+        );
+        const orderSnapshot = await getDocs(orderQuery);
+
+        if (!orderSnapshot.empty) {
+          const orderDoc = orderSnapshot.docs[0];
+          await updateDoc(orderDoc.ref, {
+            sms: sms.code,
+            status: "RECEIVED",
+          });
+        }
+
         setOrders((prev) =>
           prev.map((order) =>
-            order.orderId === requestedNumber.request_id
-              ? { ...order, code: sms.code, status: "Completed" }
+            order.orderId === orderId
+              ? { ...order, sms: sms.code, status: "RECEIVED" }
               : order
           )
         );
+
+        setMessage({ type: "success", content: "SMS code received." });
       } else if (data.error_code === "wait_sms") {
         setMessage({
           type: "info",
-          content: "Waiting for SMS. Please check back shortly.",
+          content: "Waiting for SMS. Code will show here once received.",
         });
       } else {
         throw new Error(data.error || "Failed to fetch SMS.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching SMS code:", error);
-      setMessage({ type: "error", content: "Error fetching SMS code." });
+      setMessage({
+        type: "error",
+        content: error.message || "Error fetching SMS code.",
+      });
     } finally {
       setIsFetchingCode(false);
     }
   };
 
-  // Rebuy number using new endpoint – enabled only if order is expired.
+  const cancelOrder = async (orderId: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
+
+      const token = await currentUser.getIdToken();
+      const response = await fetch(
+        `/api/proxy-sms?action=cancel-order&order_id=${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to cancel order");
+      }
+
+      const data = await response.json();
+
+      const orderQuery = query(
+        collection(db, "sms_orders"),
+        where("orderId", "==", orderId),
+        where("user_email", "==", currentUser.email)
+      );
+      const orderSnapshot = await getDocs(orderQuery);
+
+      if (!orderSnapshot.empty) {
+        const orderDoc = orderSnapshot.docs[0];
+        await updateDoc(orderDoc.ref, {
+          status: "CANCELLED",
+        });
+
+        // Refund 50% (of the USD price converted to NGN)
+        const priceUsd = parseFloat(orderDoc.data().price);
+        const refundUsd = priceUsd * 0.5;
+        const refundNgN = refundUsd / ngnToUsdRate!;
+
+        const userBalanceQuery = query(
+          collection(db, "userDeposits"),
+          where("email", "==", currentUser.email)
+        );
+        const userBalanceSnapshot = await getDocs(userBalanceQuery);
+
+        if (!userBalanceSnapshot.empty) {
+          const userDoc = userBalanceSnapshot.docs[0];
+          const currentBalance = userDoc.data().amount || 0;
+          const newBalance = currentBalance + refundNgN;
+          await updateDoc(userDoc.ref, { amount: newBalance });
+          setBalance(newBalance);
+        }
+      }
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.orderId === orderId ? { ...order, status: "CANCELLED" } : order
+        )
+      );
+
+      setMessage({
+        type: "success",
+        content: "Order cancelled successfully with 50% refund.",
+      });
+    } catch (error: any) {
+      console.error("Error cancelling order:", error);
+      setMessage({
+        type: "error",
+        content: error.message || "Failed to cancel order. Please try again.",
+      });
+    }
+  };
+
   const rebuyNumber = async (order: SmsOrder) => {
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
+
+      const token = await currentUser.getIdToken();
       const response = await fetch(
-        `/api/getsms/reuse?product=${order.applicationId}&number=${order.number}`
+        `/api/proxy-sms?action=reuse-number&product=${order.product}&number=${order.number}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      if (!response.ok) {
+        throw new Error("Failed to rebuy number");
+      }
+
       const data = await response.json();
-      if (data.number) {
+
+      if (data.id) {
+        const baseCostUsd = Number(data.price) * 0.012;
+        const costUsdMarkup = baseCostUsd * 1.5;
+        const costNgN = costUsdMarkup / ngnToUsdRate!;
+
+        const newOrder = {
+          id: Number(data.id),
+          orderId: data.id.toString(),
+          phone: data.phone,
+          operator: data.operator || order.operator,
+          product: order.product,
+          price: costUsdMarkup.toFixed(2),
+          status: data.status || "PENDING",
+          expires: data.expires,
+          sms: null,
+          created_at: new Date().toISOString(),
+          country: data.country || order.country,
+          number: data.phone,
+          user_email: currentUser.email || "",
+          service: order.service,
+          is_reused: true,
+        };
+
+        await addDoc(collection(db, "sms_orders"), newOrder);
+        setOrders((prev) => [...prev, newOrder]);
+
+        const userBalanceQuery = query(
+          collection(db, "userDeposits"),
+          where("email", "==", currentUser.email)
+        );
+        const userBalanceSnapshot = await getDocs(userBalanceQuery);
+
+        if (!userBalanceSnapshot.empty) {
+          const userDoc = userBalanceSnapshot.docs[0];
+          const currentBalance = userDoc.data().amount || 0;
+          const newBalance = currentBalance - costNgN;
+          await updateDoc(userDoc.ref, { amount: newBalance });
+          setBalance(newBalance);
+        }
+
         setMessage({
           type: "success",
           content: "Number successfully re-bought.",
         });
       } else {
-        setMessage({ type: "error", content: "Failed to rebuy the number." });
+        throw new Error(data.error || "Failed to rebuy number");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error re-buying number:", error);
       setMessage({
         type: "error",
-        content: "Failed to rebuy the number. Please try again.",
+        content:
+          error.message || "Failed to rebuy the number. Please try again.",
       });
     }
   };
 
-  // Cancel order using new endpoint – enabled only if no SMS code has been received.
-  const cancelOrder = async (orderId: string) => {
-    try {
-      const response = await fetch(`/api/getsms/cancel-order?id=${orderId}`);
-      const data = await response.json();
-      if (data.number || data.message) {
-        setMessage({
-          type: "success",
-          content: "Order cancelled successfully.",
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser({
+          email: currentUser.email,
+          displayName: currentUser.displayName,
         });
-        // Update order status and restore balance (if needed).
-        setOrders((prev) =>
-          prev.map((order) =>
-            order.orderId === orderId
-              ? { ...order, status: "Cancelled" }
-              : order
-          )
-        );
+
+        try {
+          const q = query(
+            collection(db, "userDeposits"),
+            where("email", "==", currentUser.email)
+          );
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data();
+            setBalance(userData.amount || 0);
+          }
+
+          const ordersQuery = query(
+            collection(db, "sms_orders"),
+            where("user_email", "==", currentUser.email)
+          );
+          const ordersSnapshot = await getDocs(ordersQuery);
+          const ordersList = ordersSnapshot.docs.map(
+            (doc) => doc.data() as SmsOrder
+          );
+          setOrders(ordersList);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
       } else {
-        setMessage({ type: "error", content: "Failed to cancel the order." });
+        setUser(null);
       }
-    } catch (error) {
-      console.error("Error cancelling order:", error);
-      setMessage({
-        type: "error",
-        content: "Failed to cancel order. Please try again.",
-      });
+    });
+
+    fetchCountries();
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCountry) {
+      fetchServices(selectedCountry.value);
+    }
+  }, [selectedCountry]);
+
+  const getCountdown = (expires: string) => {
+    const diff = new Date(expires).getTime() - Date.now();
+    if (diff <= 0) return "00:00";
+    const minutes = Math.floor(diff / 60000)
+      .toString()
+      .padStart(2, "0");
+    const seconds = Math.floor((diff % 60000) / 1000)
+      .toString()
+      .padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setOrders((prev) => [...prev]);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const activeOrders = orders.filter(
+    (order) =>
+      new Date(order.expires).getTime() > Date.now() &&
+      ["PENDING", "RECEIVED"].includes(order.status)
+  );
+
+  const historyOrders = orders.filter(
+    (order) =>
+      new Date(order.expires).getTime() <= Date.now() ||
+      !["PENDING", "RECEIVED"].includes(order.status)
+  );
+
+  const handleSave = () => {
+    if (selectedService) {
+      localStorage.setItem("savedService", JSON.stringify(selectedService));
+      setSuccessMessage("Service saved successfully.");
+      setShowSuccess(true);
     }
   };
 
-  // New Order Management table – persists via local storage.
-  const renderOrderManagementTable = () => {
-    return (
-      <div className="mt-8">
-        <h3 className="text-lg font-bold mb-2">Manage Orders</h3>
-        <table className="min-w-full border border-gray-200">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1 text-xs">Order ID</th>
-              <th className="border px-2 py-1 text-xs">Country</th>
-              <th className="border px-2 py-1 text-xs">Service</th>
-              <th className="border px-2 py-1 text-xs">Number</th>
-              <th className="border px-2 py-1 text-xs">Code</th>
-              <th className="border px-2 py-1 text-xs">Status</th>
-              <th className="border px-2 py-1 text-xs">Date</th>
-              <th className="border px-2 py-1 text-xs">Expires At</th>
-              <th className="border px-2 py-1 text-xs">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => {
-              const currentTime = new Date().getTime();
-              const expireTime = new Date(order.expireAt).getTime();
-              const canCancel = order.code === ""; // disable cancel if SMS code received.
-              const canRebuy = currentTime > expireTime; // active if expired.
-              return (
-                <tr key={order.orderId}>
-                  <td className="border px-2 py-1 text-xs">{order.orderId}</td>
-                  <td className="border px-2 py-1 text-xs">{order.country}</td>
-                  <td className="border px-2 py-1 text-xs">{order.service}</td>
-                  <td className="border px-2 py-1 text-xs">{order.number}</td>
-                  <td className="border px-2 py-1 text-xs">
-                    {order.code || "—"}
-                  </td>
-                  <td className="border px-2 py-1 text-xs">{order.status}</td>
-                  <td className="border px-2 py-1 text-xs">
-                    {new Date(order.date).toLocaleString()}
-                  </td>
-                  <td className="border px-2 py-1 text-xs">
-                    {new Date(order.expireAt).toLocaleString()}
-                  </td>
-                  <td className="border px-2 py-1 text-xs">
-                    <button
-                      onClick={() => cancelOrder(order.orderId)}
-                      disabled={!canCancel}
-                      className={`text-red-500 text-xs mr-1 ${
-                        !canCancel && "opacity-50 cursor-not-allowed"
-                      }`}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => rebuyNumber(order)}
-                      disabled={!canRebuy}
-                      className={`text-yellow-500 text-xs ${
-                        !canRebuy && "opacity-50 cursor-not-allowed"
-                      }`}
-                    >
-                      Rebuy
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+  const renderServiceSelect = () => (
+    <AsyncSelect
+      inputId="service-select"
+      isDisabled={!selectedCountry}
+      noOptionsMessage={() =>
+        !selectedCountry ? "Please select a country first" : "No options found"
+      }
+      cacheOptions
+      defaultOptions={initialServices.slice(0, pageSize)}
+      loadOptions={loadServiceOptions}
+      onChange={setSelectedService}
+      placeholder="Search by service..."
+      isLoading={servicesLoading}
+      onMenuScrollToBottom={() => setServicePage((prev) => prev + 1)}
+      formatOptionLabel={(option: any) => (
+        <div className="flex items-center gap-2">
+          <img
+            src={getServiceLogoUrl(option.label.toLowerCase())}
+            alt=""
+            className="w-5 h-5"
+            onError={(e) => {
+              (e.target as HTMLImageElement).onerror = null;
+              (e.target as HTMLImageElement).src = "/default-logo.png";
+            }}
+          />
+          {option.label}
+        </div>
+      )}
+    />
+  );
 
   return (
-    <div className="bg-white border p-4 rounded-lg max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto p-4 bg-white border rounded-lg relative">
+      {showSuccess && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => setShowSuccess(false)}
+        />
+      )}
+
       <h2 className="text-xl font-bold mb-4">New SMS</h2>
+
       {message.content && (
         <div
           className={`p-2 mb-4 rounded text-sm ${
@@ -625,119 +678,122 @@ const Sms = () => {
           {message.content}
         </div>
       )}
+
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">
           Select a country
         </label>
         <Select
+          inputId="country-select"
           options={countries}
           value={selectedCountry}
-          onChange={setSelectedCountry}
+          onChange={(option) => {
+            setSelectedCountry(option);
+            setSelectedService(null);
+          }}
           placeholder="Search by country..."
-          isLoading={loading}
+          formatOptionLabel={(option: any) => (
+            <div className="flex items-center gap-2">
+              <img
+                src={option.flagUrl}
+                alt=""
+                className="w-5 h-5"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).onerror = null;
+                  (e.target as HTMLImageElement).src = "/default-flag.png";
+                }}
+              />
+              {option.label}
+            </div>
+          )}
         />
       </div>
+
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">
           Select a service
         </label>
-        {renderServiceSelect()}
-        <div className="mb-2 mt-2">
-          <label className="block text-xs font-medium mb-1">Currency</label>
-          <select
-            value={selectedCurrency?.value}
-            onChange={(e) =>
-              setSelectedCurrency({
-                label: e.target.value,
-                value: e.target.value,
-              })
-            }
-            className="p-1 border rounded text-xs"
-          >
-            {currencyOptions.map((cur) => (
-              <option key={cur.value} value={cur.value}>
-                {cur.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {selectedCountry ? (
+          renderServiceSelect()
+        ) : (
+          <p className="text-sm text-gray-500">
+            Please select a country first.
+          </p>
+        )}
+
         {selectedService && (
-          <div className="mt-4">
-            <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-200 table-auto">
-                <thead>
-                  <tr>
-                    <th className="border px-4 py-2 whitespace-nowrap">
-                      Service
-                    </th>
-                    <th className="border px-4 py-2 whitespace-nowrap">
-                      Country
-                    </th>
-                    <th className="border px-4 py-2 whitespace-nowrap">
-                      Price (incl. commission)
-                    </th>
-                    <th className="border px-4 py-2 whitespace-nowrap">
-                      Stock
-                    </th>
-                    <th className="border px-4 py-2 whitespace-nowrap">
-                      Count
-                    </th>
-                    <th className="border px-4 py-2 whitespace-nowrap">Save</th>
-                    <th className="border px-4 py-2 whitespace-nowrap">
-                      Get SMS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border px-4 py-2 whitespace-nowrap">
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full border table-auto">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border px-4 py-2">Service</th>
+                  <th className="border px-4 py-2">Country</th>
+                  <th className="border px-4 py-2">Price (USD)</th>
+                  <th className="border px-4 py-2">Stock</th>
+                  <th className="border px-4 py-2">Save</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="text-center">
+                  <td className="border px-4 py-2">
+                    <div className="inline-flex items-center gap-2">
                       <img
-                        src={selectedService.logoUrl}
+                        src={getServiceLogoUrl(
+                          selectedService.label.toLowerCase()
+                        )}
                         alt="logo"
-                        className="inline-block h-5 mr-2"
+                        className="h-5 w-5"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).onerror = null;
+                          (e.target as HTMLImageElement).src =
+                            "/default-logo.png";
+                        }}
                       />
                       {selectedService.label}
-                    </td>
-                    <td className="border px-4 py-2 whitespace-nowrap">
-                      {selectedCountry?.label || "0"}
-                    </td>
-                    <td className="border px-4 py-2 whitespace-nowrap">
-                      {(
-                        selectedService.price *
-                        (exchangeRates[selectedCurrency?.value || "USD"] || 1) *
-                        1.2
-                      ).toFixed(2)}{" "}
-                      {selectedCurrency?.value}
-                    </td>
-                    <td className="border px-4 py-2 whitespace-nowrap">
-                      {selectedService.stock || 0}
-                    </td>
-                    <td className="border px-4 py-2 whitespace-nowrap">
-                      {selectedService.count || 0}
-                    </td>
-                    <td className="border px-4 py-2 text-center whitespace-nowrap">
-                      <button
-                        onClick={handleRequestNumber}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        <FaSave />
-                      </button>
-                    </td>
-                    <td className="border px-4 py-2 text-center whitespace-nowrap">
-                      <button
-                        onClick={fetchSmsCode}
-                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
-                      >
-                        Get SMS
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    </div>
+                  </td>
+
+                  <td className="border px-4 py-2">
+                    <div className="inline-flex items-center gap-2">
+                      <img
+                        src={selectedCountry?.flagUrl}
+                        alt={selectedCountry?.label}
+                        className="h-5 w-5"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).onerror = null;
+                          (e.target as HTMLImageElement).src =
+                            "/default-flag.png";
+                        }}
+                      />
+                      {selectedCountry?.label}
+                    </div>
+                  </td>
+
+                  <td className="border px-4 py-2">
+                    {Number(selectedService.price)
+                      ? (Number(selectedService.price) * 1.5).toFixed(2)
+                      : "N/A"}
+                  </td>
+
+                  <td className="border px-4 py-2">
+                    {selectedService.stock || 0}
+                  </td>
+
+                  <td className="border px-4 py-2 text-center">
+                    <button
+                      onClick={handleSave}
+                      className="flex items-center justify-center gap-1 text-green-500 hover:text-green-700"
+                    >
+                      <FaSave />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
       </div>
+
       <button
         onClick={handleRequestNumber}
         className={`bg-blue-500 text-white px-4 py-2 rounded ${
@@ -747,74 +803,73 @@ const Sms = () => {
       >
         {loading ? "Processing..." : "Get Number"}
       </button>
-      {requestedNumber && (
-        <div className="mt-4">
-          <p className="text-sm">Phone Number: {requestedNumber.number}</p>
+
+      <OtpHelp />
+
+      <div className="mt-8">
+        <div className="flex justify-between border-b pb-2">
           <button
-            onClick={() => handleCopy(requestedNumber.number)}
-            className="text-blue-500 text-sm flex items-center gap-1"
+            onClick={() => setActiveTab("Active")}
+            className={`px-4 pb-2 ${
+              activeTab === "Active"
+                ? "border-b-2 border-orange-500 text-orange-500"
+                : "text-gray-600"
+            }`}
           >
-            <FaClipboard /> Copy
+            Active orders
           </button>
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={fetchSmsCode}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              disabled={isFetchingCode}
-            >
-              {isFetchingCode ? "Waiting for Code..." : "Fetch SMS Code"}
-            </button>
-            {requestedNumber && (
-              <>
-                <button
-                  onClick={() =>
-                    rebuyNumber({
-                      orderId: requestedNumber.request_id,
-                      number: requestedNumber.number,
-                      code: "",
-                      country: selectedCountry?.label || "",
-                      service: selectedService?.label || "",
-                      applicationId: selectedService?.value || "",
-                      status: "Pending",
-                      action: "none",
-                      price: 0,
-                      user_email: user?.email || "",
-                      date: new Date().toISOString(),
-                      expireAt: "", // This will already have been set.
-                    })
-                  }
-                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-                >
-                  Rebuy Number
-                </button>
-                <button
-                  onClick={() => cancelOrder(requestedNumber.request_id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                >
-                  Cancel Order
-                </button>
-              </>
-            )}
-          </div>
-          {smsCode && <p className="text-sm mt-2">SMS Code: {smsCode}</p>}
+          <button
+            onClick={() => setActiveTab("History")}
+            className={`px-4 pb-2 ${
+              activeTab === "History"
+                ? "border-b-2 border-orange-500 text-orange-500"
+                : "text-gray-600"
+            }`}
+          >
+            Order history
+          </button>
         </div>
-      )}
-      <RecentSmsOrders
-        orders={orders}
-        previouslyGeneratedOrders={previouslyGeneratedOrders}
-        rejectNumber={async (orderId: string, requestId: string) =>
-          Promise.resolve()
-        }
-        fetchSmsCode={fetchSmsCode}
-        handleCopy={handleCopy}
-      />
-      <SmsPrice />
-      {orders.length > 0 && renderOrderManagementTable()}
+
+        <div className="flex items-center justify-between mt-4">
+          <div className="relative w-full">
+            <FaSearch className="absolute left-3 top-3 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search by number"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 w-full"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          {activeTab === "Active" ? (
+            activeOrders.filter((o) => o.number.includes(search)).length > 0 ? (
+              activeOrders
+                .filter((o) => o.number.includes(search))
+                .map((order) => (
+                  <ActiveOrder
+                    key={order.orderId}
+                    order={order}
+                    countdown={getCountdown(order.expires)}
+                    onFetchSms={() => fetchSmsCode(order.orderId)}
+                    onCancel={() => cancelOrder(order.orderId)}
+                  />
+                ))
+            ) : (
+              <OrderEmpty />
+            )
+          ) : historyOrders.filter((o) => o.number.includes(search)).length >
+            0 ? (
+            <OrderHistory />
+          ) : (
+            <p className="text-gray-500 text-center">No order history found.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Sms;
-function setUserCurrency(arg0: any) {
-  throw new Error("Function not implemented.");
-}

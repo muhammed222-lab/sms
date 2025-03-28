@@ -1,104 +1,87 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextResponse } from "next/server";
-
-// Replace with your SMS-Man API key
-import dotenv from "dotenv";
-
-// Load environment variables from .env.local file
-dotenv.config({ path: ".env.local" });
-
-// Replace with your SMS-Man API key
-const RENT_API_KEY = process.env.RENT_API_KEY;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-
   const action = searchParams.get("action");
-  const country_id = searchParams.get("country_id");
-  const type = searchParams.get("type");
-  const time = searchParams.get("time");
-  const request_id = searchParams.get("request_id");
-  const status = searchParams.get("status");
+  const token = process.env.FIVESIM_API_KEY;
 
-  if (!action) {
+  if (!token) {
     return NextResponse.json(
-      { error: "The 'action' parameter is required." },
-      { status: 400 }
+      { error: "API key not configured" },
+      { status: 500 }
     );
   }
 
-  let apiUrl;
-  switch (action) {
-    case "get-balance":
-      apiUrl = `https://api.sms-man.com/rent-api/get-balance?token=${RENT_API_KEY}`;
-      break;
-    case "limits":
-      apiUrl = `https://api.sms-man.com/rent-api/limits?token=${RENT_API_KEY}`;
-      if (country_id) apiUrl += `&country_id=${country_id}`;
-      if (type) apiUrl += `&type=${type}`;
-      if (time) apiUrl += `&time=${time}`;
-      break;
-    case "get-number":
-      apiUrl = `https://api.sms-man.com/rent-api/get-number?token=${RENT_API_KEY}`;
-      if (country_id) apiUrl += `&country_id=${country_id}`;
-      if (type) apiUrl += `&type=${type}`;
-      if (time) apiUrl += `&time=${time}`;
-      break;
-    case "set-status":
-      apiUrl = `https://api.sms-man.com/rent-api/set-status?token=${RENT_API_KEY}`;
-      if (request_id) apiUrl += `&request_id=${request_id}`;
-      if (status) apiUrl += `&status=${status}`;
-      break;
-    case "get-sms":
-      apiUrl = `https://api.sms-man.com/rent-api/get-sms?token=${RENT_API_KEY}`;
-      if (request_id) apiUrl += `&request_id=${request_id}`;
-      break;
-    case "get-all-sms":
-      apiUrl = `https://api.sms-man.com/rent-api/get-all-sms?token=${RENT_API_KEY}`;
-      if (request_id) apiUrl += `&request_id=${request_id}`;
-      break;
-    case "get-all-requests":
-      apiUrl = `https://api.sms-man.com/rent-api/get-all-requests?token=${RENT_API_KEY}`;
-      break;
-    default:
-      return NextResponse.json(
-        { error: "Invalid action parameter." },
-        { status: 400 }
-      );
-  }
-
   try {
-    console.log("Constructed API URL:", apiUrl);
+    let url = `https://5sim.net/v1/`;
 
-    const response = await fetch(apiUrl, {
-      method: "GET",
+    switch (action) {
+      case "limits":
+        url += `guest/products/${searchParams.get("country") || "any"}/${
+          searchParams.get("operator") || "any"
+        }`;
+        break;
+      case "buy":
+        url += `user/buy/activation/${searchParams.get(
+          "country"
+        )}/${searchParams.get("operator")}/${searchParams.get("product")}`;
+        break;
+      case "orders":
+        url += `user/orders?category=activation`;
+        break;
+      case "check":
+        url += `user/check/${searchParams.get("orderId")}`;
+        break;
+      case "finish":
+        url += `user/finish/${searchParams.get("orderId")}`;
+        break;
+      case "cancel":
+        url += `user/cancel/${searchParams.get("orderId")}`;
+        break;
+      case "ban":
+        url += `user/ban/${searchParams.get("orderId")}`;
+        break;
+      default:
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
+
+    const response = await fetch(url, {
       headers: {
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
       },
     });
 
-    const responseText = await response.text();
-
     if (!response.ok) {
-      let errorMsg = "An error occurred while processing your request.";
-      try {
-        const errorData = JSON.parse(responseText);
-        errorMsg = errorData.error_msg || errorMsg;
-      } catch {
-        errorMsg = responseText;
-      }
-      console.error("Error Response from API:", errorMsg);
+      // For non-OK responses, read text and return an error message.
+      const errorText = await response.text();
       return NextResponse.json(
-        { error: errorMsg },
+        { error: `API error: ${response.status} - ${errorText}` },
         { status: response.status }
       );
     }
 
-    const data = JSON.parse(responseText);
-    return NextResponse.json(data, { status: 200 });
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      // If parsing fails, read the raw text and return as error detail.
+      const text = await response.text();
+      return NextResponse.json(
+        {
+          error: "API returned non-JSON response",
+          details: text,
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in proxy-rent API:", error);
+    console.error("Proxy error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

@@ -12,7 +12,17 @@
   --color-text: #000000; /* Text color */
   --color-primary: #ff0000; /* Red button color */
 }
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
 
+body {
+  touch-action: manipulation;
+  -webkit-user-scalable: no;
+}
 body {
   font-family: var(--font-geist-sans);
   background-color: var(--color-bg);
