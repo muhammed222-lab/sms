@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -15,7 +16,6 @@ import {
   updateDoc,
   addDoc,
   doc,
-  setDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
@@ -38,6 +38,9 @@ interface Order {
   created_at: string;
   country: string;
   order_id: string;
+  duration: string;
+  originalPrice: number;
+  finalPrice: number;
 }
 
 interface SMS {
@@ -49,13 +52,13 @@ interface SMS {
 }
 
 const RentNumbers: React.FC = () => {
-  // Replace the current countries state with an array of objects containing both display and API code values.
   const [countries, setCountries] = useState<
     { display: string; code: string }[]
   >([
-    { display: "Any", code: "any" },
     { display: "Afghanistan", code: "afghanistan" },
     { display: "Albania", code: "albania" },
+    { display: "Vietnam", code: "vietnam" },
+    { display: "Zambia", code: "zambia" },
     { display: "Algeria", code: "algeria" },
     { display: "Angola", code: "angola" },
     { display: "Antigua and Barbuda", code: "antiguaandbarbuda" },
@@ -212,8 +215,6 @@ const RentNumbers: React.FC = () => {
     { display: "USA", code: "usa" },
     { display: "Uzbekistan", code: "uzbekistan" },
     { display: "Venezuela", code: "venezuela" },
-    { display: "Vietnam", code: "vietnam" },
-    { display: "Zambia", code: "zambia" },
   ]);
   const [operators, setOperators] = useState<string[]>([
     "any",
@@ -226,6 +227,7 @@ const RentNumbers: React.FC = () => {
   const [selectedOperator, setSelectedOperator] = useState<string>("any");
   const [selectedProduct, setSelectedProduct] = useState<string>("telegram");
   const [orders, setOrders] = useState<Order[]>([]);
+  const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
@@ -236,6 +238,53 @@ const RentNumbers: React.FC = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [ngnToUSDRate, setNgnToUSDRate] = useState<number>(1);
   const [rentalDuration, setRentalDuration] = useState<string>("1 hour");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [serviceSearchTerm, setServiceSearchTerm] = useState<string>("");
+
+  // Load from localStorage on component mount
+  useEffect(() => {
+    const savedActiveOrders = localStorage.getItem("activeOrders");
+    if (savedActiveOrders) {
+      setActiveOrders(JSON.parse(savedActiveOrders));
+    }
+
+    const savedDuration = localStorage.getItem("rentalDuration");
+    if (savedDuration) setRentalDuration(savedDuration);
+  }, []);
+
+  // Save to localStorage when activeOrders changes
+  useEffect(() => {
+    localStorage.setItem("activeOrders", JSON.stringify(activeOrders));
+  }, [activeOrders]);
+
+  // Check for expired orders every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setActiveOrders((prevOrders) =>
+        prevOrders.filter((order) => {
+          const expires = new Date(order.expires);
+          return expires > now;
+        })
+      );
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate price based on duration
+  const calculateFinalPrice = (basePrice: number, duration: string) => {
+    switch (duration) {
+      case "1 hour":
+        return basePrice * 1.5; // 50% increase
+      case "1 day":
+        return basePrice * 2; // 100% increase
+      case "1 week":
+        return basePrice * 5; // 400% increase (5x)
+      default:
+        return basePrice;
+    }
+  };
 
   // Fetch user balance and email
   useEffect(() => {
@@ -255,32 +304,20 @@ const RentNumbers: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    // Load rental duration from localStorage
-    const savedDuration = localStorage.getItem("rentalDuration");
-    if (savedDuration) setRentalDuration(savedDuration);
-  }, []);
-
-  useEffect(() => {
-    // Save rental duration to localStorage when changed
-    localStorage.setItem("rentalDuration", rentalDuration);
-  }, [rentalDuration]);
-
   // Fetch NGN to USD rate
-  useEffect(() => {
-    const fetchNGNRate = async () => {
-      try {
-        const response = await fetch(
-          "https://api.exchangerate-api.com/v4/latest/NGN"
-        );
-        const data = await response.json();
-        setNgnToUSDRate(data.rates["USD"] || 1);
-      } catch (err) {
-        console.error("Error fetching NGN to USD rate:", err);
-      }
-    };
-    fetchNGNRate();
-  }, []);
+  const fetchNGNRate = async () => {
+    try {
+      const response = await fetch(
+        "https://api.exchangerate-api.com/v4/latest/NGN"
+      );
+      const data = await response.json();
+      const rate = Number(data.rates?.USD);
+      setNgnToUSDRate(isNaN(rate) ? 1 : rate);
+    } catch (err) {
+      console.error("Error fetching NGN to USD rate:", err);
+      setNgnToUSDRate(1); // Fallback to 1 if API fails
+    }
+  };
 
   // Fetch exchange rate
   useEffect(() => {
@@ -302,11 +339,14 @@ const RentNumbers: React.FC = () => {
   useEffect(() => {
     if (orders.length > 0) {
       const totalCost = orders.reduce((sum: number, order: Order) => {
-        return sum + order.price * rubleToUSDRate;
+        // Ensure we have valid numbers for calculation
+        const orderPrice = Number(order.finalPrice) || 0;
+        const rate = Number(rubleToUSDRate) || 1;
+        return sum + orderPrice * rate;
       }, 0);
-      setAdjustedBalance(balance - totalCost);
+      setAdjustedBalance(Number(balance) - totalCost);
     } else {
-      setAdjustedBalance(balance);
+      setAdjustedBalance(Number(balance));
     }
   }, [orders, balance, rubleToUSDRate]);
 
@@ -348,6 +388,22 @@ const RentNumbers: React.FC = () => {
         ...doc.data(),
       })) as Order[];
       setOrders(ordersData);
+
+      // Update active orders with any new orders that aren't finished/canceled
+      const now = new Date();
+      const newActiveOrders = ordersData.filter(
+        (order) =>
+          order.status !== "FINISHED" &&
+          order.status !== "CANCELED" &&
+          new Date(order.expires) > now
+      );
+      setActiveOrders((prev) => {
+        const existingOrderIds = prev.map((o) => o.order_id);
+        const newOrdersToAdd = newActiveOrders.filter(
+          (order) => !existingOrderIds.includes(order.order_id)
+        );
+        return [...prev, ...newOrdersToAdd];
+      });
     } catch (error) {
       setMessage("Network error fetching orders");
       console.error(error);
@@ -367,9 +423,11 @@ const RentNumbers: React.FC = () => {
       return;
     }
 
-    // Calculate cost: API price (₽) converted to USD then tripled
-    const orderCostUSD = products[selectedProduct].Price * rubleToUSDRate * 3;
+    const basePrice = Number(products[selectedProduct]?.Price) || 0;
+    const finalPrice = calculateFinalPrice(basePrice, rentalDuration);
+    const orderCostUSD = finalPrice * rubleToUSDRate;
     const depositUSD = balance * ngnToUSDRate;
+
     if (depositUSD < orderCostUSD) {
       setMessage("Insufficient funds");
       return;
@@ -395,30 +453,61 @@ const RentNumbers: React.FC = () => {
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const depositDoc = querySnapshot.docs[0];
-          const currentAmount = depositDoc.data().amount || 0; // in NGN
-          const costNGN = orderCostUSD / ngnToUSDRate; // convert cost USD back to NGN
+          const currentAmount = depositDoc.data().amount || 0;
+          const costNGN = orderCostUSD / ngnToUSDRate;
           const newAmount = currentAmount - costNGN;
-          const depositRef = depositDoc.ref;
-          await updateDoc(depositRef, { amount: newAmount });
-          setBalance(newAmount);
+          const amount = Number(querySnapshot.docs[0].data().amount) || 0;
+          await updateDoc(depositDoc.ref, { amount: newAmount });
+          // setBalance(newAmount);
+          setBalance(amount);
         }
 
-        // Save the order to Firestore "rentals" collection (add rentalDuration if desired)
+        // Calculate expiration time based on duration
+        const now = new Date();
+        let expires = new Date(now);
+
+        switch (rentalDuration) {
+          case "1 hour":
+            expires.setHours(now.getHours() + 1);
+            break;
+          case "1 day":
+            expires.setDate(now.getDate() + 1);
+            break;
+          case "1 week":
+            expires.setDate(now.getDate() + 7);
+            break;
+          default:
+            expires.setHours(now.getHours() + 1);
+        }
+
+        // Save the order to Firestore
         const orderData = {
           user_email: userEmail,
           phone: data.phone,
           operator: data.operator,
           product: data.product,
-          price: data.price, // stored in ₽
+          price: data.price,
           status: data.status,
-          expires: data.expires,
+          expires: expires.toISOString(),
           sms: data.sms || [],
-          created_at: data.created_at,
+          created_at: new Date().toISOString(),
           country: data.country,
           order_id: data.id.toString(),
-          rentalDuration, // store chosen duration if needed
+          duration: rentalDuration,
+          originalPrice: basePrice,
+          finalPrice: finalPrice,
         };
-        await addDoc(collection(db, "rentals"), orderData);
+
+        const docRef = await addDoc(collection(db, "rentals"), orderData);
+
+        // Add to active orders
+        setActiveOrders((prev) => [
+          ...prev,
+          {
+            ...orderData,
+            id: docRef.id,
+          },
+        ]);
 
         // Refresh orders list
         fetchOrders();
@@ -507,6 +596,11 @@ const RentNumbers: React.FC = () => {
           });
         }
 
+        // Remove from active orders
+        setActiveOrders((prev) =>
+          prev.filter((order) => order.order_id !== orderId)
+        );
+
         setMessage("Order marked as finished");
         fetchOrders();
         setSelectedOrder(null);
@@ -545,9 +639,10 @@ const RentNumbers: React.FC = () => {
           await updateDoc(orderDoc.ref, { status: "CANCELED" });
         }
 
-        // Refund: recalc cost for this order (triple the cost in USD) and refund in NGN
-        const refundCostUSD = selectedOrder.price * rubleToUSDRate * 3;
+        // Refund the amount
+        const refundCostUSD = selectedOrder.finalPrice * rubleToUSDRate;
         const refundNGN = refundCostUSD / ngnToUSDRate;
+
         // Update user deposit by adding refund
         const q = query(
           collection(db, "userDeposits"),
@@ -561,6 +656,11 @@ const RentNumbers: React.FC = () => {
           await updateDoc(depositDoc.ref, { amount: newAmount });
           setBalance(newAmount);
         }
+
+        // Remove from active orders
+        setActiveOrders((prev) =>
+          prev.filter((order) => order.order_id !== orderId)
+        );
 
         setMessage("Order canceled and amount refunded");
         fetchOrders();
@@ -603,6 +703,11 @@ const RentNumbers: React.FC = () => {
           });
         }
 
+        // Remove from active orders
+        setActiveOrders((prev) =>
+          prev.filter((order) => order.order_id !== orderId)
+        );
+
         setMessage("Number banned");
         fetchOrders();
         setSelectedOrder(null);
@@ -617,6 +722,16 @@ const RentNumbers: React.FC = () => {
     }
   };
 
+  // Filter countries based on search term
+  const filteredCountries = countries.filter((country) =>
+    country.display.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Filter products based on search term
+  const filteredProducts = Object.keys(products).filter((product) =>
+    product.toLowerCase().includes(serviceSearchTerm.toLowerCase())
+  );
+
   // Load products when country/operator changes
   useEffect(() => {
     if (activeTab === "rent") {
@@ -630,13 +745,7 @@ const RentNumbers: React.FC = () => {
       fetchOrders();
     }
   }, [activeTab, userEmail]);
-  useEffect(() => {
-    // Final cost for each order: (order.price in ₽ * rubleToUSDRate) * 3
-    const totalCostUSD = orders.reduce((sum: number, order: Order) => {
-      return sum + order.price * rubleToUSDRate * 3;
-    }, 0);
-    setAdjustedBalance(balance * ngnToUSDRate - totalCostUSD);
-  }, [orders, balance, rubleToUSDRate, ngnToUSDRate]);
+
   return (
     <div className="max-w-6xl mx-auto p-4">
       <div className="bg-white rounded-lg border overflow-hidden">
@@ -647,7 +756,7 @@ const RentNumbers: React.FC = () => {
 
           <div className="mt-4 flex justify-between items-center">
             <div className="bg-blue-700 px-4 py-2 rounded-lg">
-              <span className="font-medium">Balance:</span> $
+              <span className="font-medium">Balance:</span> ₦
               {(balance * ngnToUSDRate).toFixed(2)}
             </div>
             <div className="flex space-x-2">
@@ -693,22 +802,30 @@ const RentNumbers: React.FC = () => {
             <div className="space-y-6">
               {/* Selection Form */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Country */}
+                {/* Country with search */}
                 <div>
                   <label className="block font-medium mb-2">Country</label>
-                  {/* // In your JSX render in RentNumbers.tsx */}
-                  <select
-                    value={selectedCountry}
-                    onChange={(e) => setSelectedCountry(e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                    disabled={loading}
-                  >
-                    {countries.map((country) => (
-                      <option key={country.code} value={country.code}>
-                        {country.display}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search country..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full border rounded px-3 py-2 mb-2"
+                    />
+                    <select
+                      value={selectedCountry}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
+                      className="w-full border rounded px-3 py-2"
+                      disabled={loading}
+                    >
+                      {filteredCountries.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.display}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {/* Operator */}
@@ -728,38 +845,73 @@ const RentNumbers: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Product */}
+                {/* Product with search */}
                 <div>
                   <label className="block font-medium mb-2">Service</label>
-                  <select
-                    value={selectedProduct}
-                    onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                    disabled={loading || !Object.keys(products).length}
-                  >
-                    {Object.keys(products).length ? (
-                      Object.keys(products).map((product) => (
-                        <option key={product} value={product}>
-                          {product} (${products[product].Price})
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">No products available</option>
-                    )}
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search service..."
+                      value={serviceSearchTerm}
+                      onChange={(e) => setServiceSearchTerm(e.target.value)}
+                      className="w-full border rounded px-3 py-2 mb-2"
+                      disabled={!Object.keys(products).length}
+                    />
+                    <select
+                      value={selectedProduct}
+                      onChange={(e) => setSelectedProduct(e.target.value)}
+                      className="w-full border rounded px-3 py-2"
+                      disabled={loading || !Object.keys(products).length}
+                    >
+                      {filteredProducts.length ? (
+                        filteredProducts.map((product) => (
+                          <option key={product} value={product}>
+                            {product} (${products[product].Price})
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">No matching services</option>
+                      )}
+                    </select>
+                  </div>
                 </div>
               </div>
-              {/* the duration selection */}
-              <label className="font-medium">Rental Duration:</label>
-              <select
-                value={rentalDuration}
-                onChange={(e) => setRentalDuration(e.target.value)}
-                className="border rounded px-2 py-1"
-              >
-                <option value="1 hour">1 hour</option>
-                <option value="1 day">1 day</option>
-                <option value="1 week">1 week</option>
-              </select>
+
+              {/* Duration selection with price calculation */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <label className="font-medium block mb-2">
+                  Rental Duration:
+                </label>
+                <div className="flex flex-wrap gap-4">
+                  {["1 hour", "1 day", "1 week"].map((duration) => (
+                    <div key={duration} className="flex items-center">
+                      <input
+                        type="radio"
+                        id={duration}
+                        name="duration"
+                        value={duration}
+                        checked={rentalDuration === duration}
+                        onChange={() => setRentalDuration(duration)}
+                        className="mr-2"
+                      />
+                      <label htmlFor={duration} className="flex items-center">
+                        {duration}
+                        {selectedProduct && (
+                          <span className="ml-2 text-blue-600 font-medium">
+                            ($
+                            {calculateFinalPrice(
+                              products[selectedProduct]?.Price || 0,
+                              duration
+                            ).toFixed(2)}
+                            )
+                          </span>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Product Info */}
               {Object.keys(products).length > 0 && (
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -767,6 +919,17 @@ const RentNumbers: React.FC = () => {
                     <FiInfo className="text-blue-600" />
                     <span className="font-medium">Available Numbers:</span>
                     <span>{products[selectedProduct]?.Qty || 0}</span>
+                  </div>
+
+                  <div className="mt-2">
+                    <span className="font-medium">
+                      Total Price ({rentalDuration}):
+                    </span>{" "}
+                    $
+                    {calculateFinalPrice(
+                      products[selectedProduct]?.Price || 0,
+                      rentalDuration
+                    ).toFixed(2)}
                   </div>
                 </div>
               )}
@@ -788,28 +951,59 @@ const RentNumbers: React.FC = () => {
                   )}
                 </button>
               </div>
+
+              {/* Active Orders */}
+              {activeOrders.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-lg font-bold mb-4">Active Rentals</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    {activeOrders.map((order) => (
+                      <div
+                        key={order.id}
+                        className="mb-4 last:mb-0 border-b pb-4 last:border-b-0"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{order.phone}</p>
+                            <p className="text-sm text-gray-600">
+                              {order.product} • Expires:{" "}
+                              {new Date(order.expires).toLocaleString()}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => cancelOrder(order.order_id)}
+                            className="bg-red-100 text-red-800 px-3 py-1 rounded hover:bg-red-200 text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-6">
               <h2 className="text-xl font-bold">My Orders</h2>
-
+              {/* // Update the orders display section in the "My Orders" tab */}
               {activeTab === "orders" && orders.length > 0 && (
                 <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                   <p className="font-medium">
                     Total Orders Cost: $
                     {orders
-                      .reduce(
-                        (sum, order) => sum + order.price * rubleToUSDRate * 3,
-                        0
-                      )
+                      .reduce((sum, order) => {
+                        const orderPrice = Number(order.finalPrice) || 0;
+                        const rate = Number(rubleToUSDRate) || 1;
+                        return sum + orderPrice * rate;
+                      }, 0)
                       .toFixed(2)}
                   </p>
                   <p className="font-medium">
-                    Available Balance: ${adjustedBalance.toFixed(2)}
+                    Available Balance: ₦ {Number(adjustedBalance).toFixed(2)}
                   </p>
                 </div>
               )}
-
               {selectedOrder ? (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center mb-4">

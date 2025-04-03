@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @next/next/no-img-element */
 "use client";
@@ -6,19 +7,13 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import {
-  collection,
-  doc,
-  onSnapshot,
-  query,
-  where,
-  updateDoc,
-  getDocs,
-} from "firebase/firestore";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useRouter } from "next/navigation";
-import { FaUserSecret } from "react-icons/fa";
-import { MdArrowDropDown } from "react-icons/md";
+import { FaUserSecret, FaBell, FaChevronDown } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
+import { GiHamburgerMenu } from "react-icons/gi";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Header = () => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -26,57 +21,50 @@ const Header = () => {
 
   // Local states
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
-  // Default value is "NGN" but will be overridden by user settings
-  const [currency, setCurrency] = useState<string>("NGN");
-  const [flag, setFlag] = useState<string>("");
-
-  const [balance, setBalance] = useState<number>(0);
-  const [convertedBalance, setConvertedBalance] = useState<string>("0.00");
-  const [balanceDelta, setBalanceDelta] = useState<number>(0);
-
+  const [selectedCountry, setSelectedCountry] = useState("Detecting...");
+  const [currency, setCurrency] = useState("NGN");
+  const [flag, setFlag] = useState("");
+  const [balance, setBalance] = useState(0);
+  const [convertedBalance, setConvertedBalance] = useState("₦0.00");
+  const [balanceDelta, setBalanceDelta] = useState(0);
   const [user, setUser] = useState<User | null>(null);
-  const [isLoadingFlag, setIsLoadingFlag] = useState(true);
   const [isLoadingImage, setIsLoadingImage] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [prevBalance, setPrevBalance] = useState(0);
 
-  // userSettings from Firestore (real‑time subscription)
+  // User settings
   const [userSettings, setUserSettings] = useState<{
     currency: string;
     make_me_extra_private: boolean;
     username: string;
   } | null>(null);
 
-  // Fetch user location, fallback currency, and flag
+  // Fetch user location
   useEffect(() => {
     const fetchUserLocation = async () => {
       try {
         const response = await fetch("https://ipapi.co/json/");
         const data = await response.json();
-        const userCountry = data.country_name;
-        const fallbackCurrency = data.currency;
-        const userFlag = `https://flagcdn.com/w320/${data.country_code.toLowerCase()}.png`;
-
-        setSelectedCountry(userCountry);
-        // This fallback will be overridden if user settings exist
-        setCurrency(fallbackCurrency);
-        setFlag(userFlag);
-        setIsLoadingFlag(false);
+        setSelectedCountry(data.country_name || "Unknown");
+        setCurrency(data.currency || "NGN");
+        setFlag(
+          `https://flagcdn.com/w40/${data.country_code.toLowerCase()}.png`
+        );
       } catch (error) {
-        console.error("Error fetching user location:", error);
-        setIsLoadingFlag(false);
+        console.error("Error fetching location:", error);
+        setFlag("/default-flag.png"); // Fallback flag
       }
     };
 
     fetchUserLocation();
   }, []);
 
-  // Monitor auth state and subscribe in real time to user settings and balance updates.
+  // Auth state and data subscriptions
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      if (currentUser && currentUser.email) {
-        // Subscribe to user settings document (doc id equals currentUser.email)
+      if (currentUser?.email) {
+        // Subscribe to user settings
         const settingsRef = doc(db, "settings", currentUser.email);
         const unsubscribeSettings = onSnapshot(settingsRef, (docSnap) => {
           if (docSnap.exists()) {
@@ -86,132 +74,77 @@ const Header = () => {
               username: string;
             };
             setUserSettings(data);
-            setCurrency(data.currency); // override currency with setting value
+            if (data.currency) setCurrency(data.currency);
           }
         });
-        // Also subscribe to balance
-        subscribeToBalance(currentUser.email);
-        return () => unsubscribeSettings();
+
+        // Subscribe to balance
+        const q = query(
+          collection(db, "userDeposits"),
+          where("email", "==", currentUser.email)
+        );
+        const unsubscribeBalance = onSnapshot(q, (snapshot) => {
+          if (!snapshot.empty) {
+            const newBalance = snapshot.docs[0].data().amount || 0;
+            setPrevBalance(balance);
+            setBalance(newBalance);
+
+            // Calculate delta for animation
+            if (newBalance !== balance) {
+              setBalanceDelta(newBalance - balance);
+              setTimeout(() => setBalanceDelta(0), 2000);
+            }
+          }
+        });
+
+        return () => {
+          unsubscribeSettings();
+          unsubscribeBalance();
+        };
       } else {
         setBalance(0);
       }
     });
 
     return () => unsubscribeAuth();
-  }, []);
+  }, [balance]);
 
-  // Subscribe to user balance updates
-  const subscribeToBalance = (email: string) => {
-    const q = query(
-      collection(db, "userDeposits"),
-      where("email", "==", email)
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const userDoc = snapshot.docs[0];
-        const userData = userDoc.data();
-        const newBalance = userData.amount ?? 0;
-        if (newBalance < balance) {
-          setBalanceDelta(balance - newBalance);
-          setTimeout(() => setBalanceDelta(0), 1000);
-        }
-        setBalance(newBalance);
-      } else {
-        setBalance(0);
-      }
-    });
-    return unsubscribe;
-  };
-
-  // Referral bonus check remains unchanged
-  const checkAndApplyReferralBonus = async (email: string) => {
-    try {
-      const q = query(
-        collection(db, "refers"),
-        where("user_email", "==", email)
-      );
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const referralDoc = querySnapshot.docs[0];
-        const referralData = referralDoc.data();
-        if (!referralData?.bonus_applied) {
-          const userDepositQuery = query(
-            collection(db, "userDeposits"),
-            where("email", "==", email)
-          );
-          const depositSnapshot = await getDocs(userDepositQuery);
-          if (!depositSnapshot.empty) {
-            const depositDoc = depositSnapshot.docs[0];
-            const depositRef = doc(db, "userDeposits", depositDoc.id);
-            await updateDoc(depositRef, {
-              amount: (depositDoc.data().amount ?? 0) + 2000,
-            });
-            const referralRef = doc(db, "refers", referralDoc.id);
-            await updateDoc(referralRef, {
-              bonus_applied: true,
-            });
-            console.log("Referral bonus applied for", email);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error applying referral bonus:", error);
-    }
-  };
-
-  // Convert balance based on user-selected currency (NGN or USD)
+  // Convert balance based on currency
   useEffect(() => {
-    const convertBalance = async () => {
-      try {
-        if (currency === "NGN") {
-          const converted = balance.toFixed(2);
-          setConvertedBalance(
-            new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "NGN",
-            }).format(parseFloat(converted))
-          );
-        } else {
-          const response = await fetch(
-            "https://api.exchangerate-api.com/v4/latest/NGN"
-          );
-          const data = await response.json();
-          const conversionRate = data.rates["USD"] || 1;
-          const converted = (balance * conversionRate).toFixed(2);
-          setConvertedBalance(
-            new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-            }).format(parseFloat(converted))
-          );
-        }
-      } catch (error) {
-        console.error("Error converting balance:", error);
-        setConvertedBalance("0.00");
+    const formatBalance = () => {
+      if (currency === "NGN") {
+        setConvertedBalance(
+          new Intl.NumberFormat("en-NG", {
+            style: "currency",
+            currency: "NGN",
+          }).format(balance)
+        );
+      } else {
+        // For USD conversion (simplified - in a real app you'd fetch rates)
+        const converted = balance / 750; // Example rate
+        setConvertedBalance(
+          new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+          }).format(converted)
+        );
       }
     };
 
-    convertBalance();
+    formatBalance();
   }, [balance, currency]);
 
-  const handleClickOutside = (event: MouseEvent) => {
-    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-      setIsMenuOpen(false);
-    }
-  };
-
+  // Close menu when clicking outside
   useEffect(() => {
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.body.style.overflow = "";
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
     };
-  }, [isMenuOpen]);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -222,312 +155,356 @@ const Header = () => {
     }
   };
 
-  return (
-    <>
-      <header className="sticky top-0 z-50 bg-white border-b py-3 px-4">
-        <div className="w-[90%] max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/">
-            <Image src="/favicon.png" alt="Logo" width={100} height={40} />
-          </Link>
+  // Balance change animation variants
+  const balanceVariants = {
+    initial: { y: 0, opacity: 1 },
+    animate: { y: balanceDelta > 0 ? -20 : 20, opacity: 0 },
+  };
 
-          <div className="flex items-center gap-2 lg:gap-4">
-            {user && (
-              <div className="relative">
-                <span
-                  className={`text-sm ${
-                    balance === 0 ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  {convertedBalance || "Loading..."}
-                </span>
-                {balanceDelta > 0 && (
-                  <span className="absolute -top-5 right-0 text-xs text-red-600 animate-flyout">
-                    -
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: currency === "NGN" ? "NGN" : "USD",
-                    }).format(balanceDelta)}
+  return (
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/favicon.png"
+            alt="Logo"
+            width={120}
+            height={48}
+            priority
+            className="h-10 w-auto"
+          />
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex items-center space-x-6">
+          {user ? (
+            <>
+              {/* Balance Display */}
+              <div className="relative flex items-center">
+                <div className="bg-blue-50 rounded-lg px-3 py-2 flex items-center">
+                  <span className="text-sm font-medium text-blue-800">
+                    {convertedBalance}
                   </span>
+                  {balanceDelta !== 0 && (
+                    <AnimatePresence>
+                      <motion.span
+                        key={balance}
+                        initial="initial"
+                        animate="animate"
+                        variants={balanceVariants}
+                        transition={{ duration: 0.5 }}
+                        className={`absolute -right-2 -top-4 text-xs px-1 rounded ${
+                          balanceDelta > 0
+                            ? "text-green-600 bg-green-50"
+                            : "text-red-600 bg-red-50"
+                        }`}
+                      >
+                        {balanceDelta > 0 ? "+" : ""}
+                        {currency === "NGN" ? "₦" : "$"}
+                        {Math.abs(balanceDelta).toFixed(2)}
+                      </motion.span>
+                    </AnimatePresence>
+                  )}
+                </div>
+
+                {/* Notifications */}
+                <button className="ml-4 p-2 rounded-full hover:bg-gray-100 relative">
+                  <FaBell className="text-gray-500" />
+                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                </button>
+
+                {/* User Profile */}
+                <div className="flex items-center ml-4">
+                  <div className="relative">
+                    <button
+                      onClick={() => setDropdownOpen(!dropdownOpen)}
+                      className="flex items-center space-x-2 focus:outline-none"
+                    >
+                      <div className="relative">
+                        <Image
+                          src={user.photoURL || "/default-avatar.png"}
+                          alt="User"
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                          onLoadingComplete={() => setIsLoadingImage(false)}
+                          style={{
+                            opacity: isLoadingImage ? 0 : 1,
+                            transition: "opacity 0.3s ease",
+                          }}
+                          unoptimized={true} // Add this if you're still having issues
+                        />
+                        {userSettings?.make_me_extra_private && (
+                          <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full">
+                            <FaUserSecret className="text-xs text-gray-600" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 hidden md:inline">
+                        {userSettings?.username || "Account"}
+                      </span>
+                      <FaChevronDown
+                        className={`text-xs text-gray-500 transition-transform ${
+                          dropdownOpen ? "transform rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {dropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-100">
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900">
+                            {userSettings?.username || "Welcome"}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                        <div className="py-1">
+                          <Link
+                            href="/dashboard"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            onClick={() => setDropdownOpen(false)}
+                          >
+                            Dashboard
+                          </Link>
+                          <Link
+                            href="/dashboard/settings"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            onClick={() => setDropdownOpen(false)}
+                          >
+                            Settings
+                          </Link>
+                          <button
+                            onClick={handleSignOut}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            Sign Out
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/about"
+                className="text-sm font-medium text-gray-600 hover:text-blue-600"
+              >
+                About
+              </Link>
+              <Link
+                href="/pricing"
+                className="text-sm font-medium text-gray-600 hover:text-blue-600"
+              >
+                Pricing
+              </Link>
+              <Link href="/signin">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                  Sign In
+                </button>
+              </Link>
+            </>
+          )}
+        </nav>
+
+        {/* Mobile Navigation */}
+        <div className="flex lg:hidden items-center space-x-3">
+          {user && (
+            <>
+              {/* Mobile Balance */}
+              <div className="relative">
+                <div className="bg-blue-50 rounded-lg px-2 py-1">
+                  <span className="text-xs font-medium text-blue-800">
+                    {convertedBalance.split(".")[0]}
+                  </span>
+                </div>
+                {balanceDelta !== 0 && (
+                  <AnimatePresence>
+                    <motion.span
+                      key={balance}
+                      initial="initial"
+                      animate="animate"
+                      variants={balanceVariants}
+                      transition={{ duration: 0.5 }}
+                      className={`absolute -right-2 -top-3 text-[10px] px-1 rounded ${
+                        balanceDelta > 0
+                          ? "text-green-600 bg-green-50"
+                          : "text-red-600 bg-red-50"
+                      }`}
+                    >
+                      {balanceDelta > 0 ? "+" : ""}
+                      {currency === "NGN" ? "₦" : "$"}
+                      {Math.abs(balanceDelta).toFixed(2)}
+                    </motion.span>
+                  </AnimatePresence>
                 )}
               </div>
-            )}
-            <button
-              className="lg:hidden text-2xl"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle Menu"
-            >
-              ☰
-            </button>
-          </div>
 
-          {/* Sidebar Menu */}
-          {isMenuOpen && (
-            <div className="fixed inset-0 z-40 bg-black bg-opacity-50">
-              <div
-                ref={menuRef}
-                className="bg-white w-[70%] h-full fixed top-0 right-0 shadow-lg flex flex-col p-6"
-              >
-                <button
-                  className="self-end text-xl text-gray-600"
-                  onClick={() => setIsMenuOpen(false)}
-                  aria-label="Close Menu"
-                >
-                  ✕
-                </button>
-                <ul className="flex flex-col gap-4 mt-4">
-                  {!user ? (
-                    <>
-                      <li>
-                        <Link href="/about" className="text-sm hover:underline">
-                          About Us
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/pricing"
-                          className="text-sm hover:underline"
-                        >
-                          Pricing
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/signin">
-                          <button className="bg-blue-500 text-white w-full py-2 rounded hover:bg-blue-600">
-                            Sign In
-                          </button>
-                        </Link>
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li>
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={
-                              user.photoURL ||
-                              "https://www.gravatar.com/avatar?d=mp"
-                            }
-                            alt="User profile"
-                            className="w-8 h-8 rounded-full"
-                            onLoad={() => setIsLoadingImage(false)}
-                            style={{
-                              opacity: isLoadingImage ? 0 : 1,
-                              transition: "opacity 0.3s ease",
-                            }}
-                          />
-                          {/* Greeting with dropdown: if username is set, display it; else prompt "+ Add Username" */}
-                          {!userSettings?.make_me_extra_private ? (
-                            <div className="relative">
-                              <button
-                                onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="flex items-center gap-1 focus:outline-none"
-                              >
-                                <span className="text-sm text-gray-800">
-                                  {userSettings &&
-                                  userSettings.username.trim() !== ""
-                                    ? userSettings.username
-                                    : "+ Add Username"}
-                                </span>
-                                <MdArrowDropDown className="text-xl cursor-pointer" />
-                              </button>
-                              {dropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                                  <button
-                                    onClick={() => {
-                                      router.push(
-                                        "/dashboard?activePage=Settings"
-                                      );
-                                      setDropdownOpen(false);
-                                    }}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                                  >
-                                    Change Username
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1">
-                              <FaUserSecret
-                                className="text-xl"
-                                title="all your request are private"
-                              />
-                              <span className="hidden sm:inline text-xs text-gray-800">
-                                (all your request are private)
-                              </span>
-                            </div>
+              {/* Mobile User Avatar */}
+              <div className="relative">
+                <Image
+                  src={user.photoURL || "/default-avatar.png"}
+                  alt="User"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                  onLoadingComplete={() => setIsLoadingImage(false)}
+                  style={{
+                    opacity: isLoadingImage ? 0 : 1,
+                    transition: "opacity 0.3s ease",
+                  }}
+                />
+                {userSettings?.make_me_extra_private && (
+                  <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full">
+                    <FaUserSecret className="text-xs text-gray-600" />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+          >
+            <GiHamburgerMenu className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black bg-opacity-50 lg:hidden"
+          >
+            <motion.div
+              ref={menuRef}
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween" }}
+              className="absolute top-0 right-0 w-4/5 h-full bg-white shadow-xl"
+            >
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-6">
+                  <Image
+                    src="/favicon.png"
+                    alt="Logo"
+                    width={100}
+                    height={40}
+                  />
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-2 text-gray-500 hover:text-gray-700"
+                  >
+                    <IoMdClose className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {user ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-3">
+                      <Image
+                        src={user.photoURL || "/default-avatar.png"}
+                        alt="User"
+                        width={48}
+                        height={48}
+                        className="rounded-full"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {userSettings?.username || "Welcome"}
+                        </p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">Balance</p>
+                        <p className="text-lg font-semibold text-blue-600">
+                          {convertedBalance}
+                        </p>
+                        <div className="flex items-center mt-1">
+                          {flag && (
+                            <img
+                              src={flag}
+                              alt="Flag"
+                              className="w-4 h-4 mr-2"
+                            />
                           )}
+                          <span className="text-xs text-gray-500">
+                            {selectedCountry} ({currency})
+                          </span>
                         </div>
-                      </li>
-                      <li>
+                      </div>
+
+                      <nav className="space-y-2">
                         <Link
                           href="/dashboard"
-                          className="text-sm hover:underline"
+                          className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                          onClick={() => setIsMenuOpen(false)}
                         >
                           Dashboard
                         </Link>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        {isLoadingFlag ? (
-                          <span className="text-sm text-gray-500">
-                            Loading...
-                          </span>
-                        ) : (
-                          <img
-                            src={flag}
-                            alt={`${selectedCountry} Flag`}
-                            className="w-5 h-5 rounded-sm"
-                            style={{
-                              opacity: flag ? 1 : 0,
-                              transition: "opacity 0.3s ease",
-                            }}
-                          />
-                        )}
-                        <span className="text-sm text-gray-800">
-                          {selectedCountry} ({currency})
-                        </span>
-                      </li>
-                      <li>
+                        <Link
+                          href="/dashboard/settings"
+                          className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Settings
+                        </Link>
                         <button
                           onClick={handleSignOut}
-                          className="bg-red-500 text-white w-full py-2 rounded hover:bg-red-600"
+                          className="w-full text-left py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
                         >
                           Sign Out
                         </button>
-                      </li>
-                    </>
-                  )}
-                </ul>
+                      </nav>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Link
+                      href="/about"
+                      className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      About Us
+                    </Link>
+                    <Link
+                      href="/pricing"
+                      className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Pricing
+                    </Link>
+                    <Link
+                      href="/signin"
+                      className="block py-2 px-3 text-center bg-blue-600 text-white rounded hover:bg-blue-700"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex lg:items-center lg:gap-6">
-            {!user ? (
-              <>
-                <Link href="/about" className="text-sm hover:underline">
-                  About Us
-                </Link>
-                <Link href="/pricing" className="text-sm hover:underline">
-                  Pricing
-                </Link>
-                <Link href="/signin">
-                  <button className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
-                    Sign In
-                  </button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={
-                      user.photoURL || "https://www.gravatar.com/avatar?d=mp"
-                    }
-                    alt="User profile"
-                    className="w-8 h-8 rounded-full"
-                    onLoad={() => setIsLoadingImage(false)}
-                    style={{
-                      opacity: isLoadingImage ? 0 : 1,
-                      transition: "opacity 0.3s ease",
-                    }}
-                  />
-                  {!userSettings?.make_me_extra_private ? (
-                    <div className="relative">
-                      <button
-                        onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className="flex items-center gap-1 focus:outline-none"
-                      >
-                        <span className="text-sm text-gray-800">
-                          {userSettings && userSettings.username.trim() !== ""
-                            ? userSettings.username
-                            : "+ Add Username"}
-                        </span>
-                        <MdArrowDropDown className="text-xl cursor-pointer" />
-                      </button>
-                      {dropdownOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                          <button
-                            onClick={() => {
-                              router.push("/dashboard?activePage=Settings");
-                              setDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                          >
-                            Change Username
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <FaUserSecret
-                        className="text-xl"
-                        title="all your request are private"
-                      />
-                      <span className="hidden sm:inline text-xs text-gray-800">
-                        (all your request are private)
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <Link href="/dashboard" className="text-sm hover:underline">
-                  Dashboard
-                </Link>
-                <div className="flex items-center gap-2">
-                  {isLoadingFlag ? (
-                    <span className="text-sm text-gray-500">Loading...</span>
-                  ) : (
-                    <img
-                      src={flag}
-                      alt={`${selectedCountry} Flag`}
-                      className="w-5 h-5 rounded-sm"
-                      style={{
-                        opacity: flag ? 1 : 0,
-                        transition: "opacity 0.3s ease",
-                      }}
-                    />
-                  )}
-                  <span className="text-sm text-gray-800">
-                    {selectedCountry} ({currency})
-                  </span>
-                </div>
-                <span
-                  className={`text-sm ${
-                    balance === 0 ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  Balance: {convertedBalance || "Loading..."}
-                </span>
-                <button
-                  onClick={handleSignOut}
-                  className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
-                >
-                  Sign Out
-                </button>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
-
-      <style jsx>{`
-        @keyframes flyout {
-          0% {
-            opacity: 1;
-            transform: translateY(0px);
-          }
-          100% {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-        }
-        .animate-flyout {
-          animation: flyout 1s ease-out forwards;
-        }
-      `}</style>
-    </>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 };
 

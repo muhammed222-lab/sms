@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -11,22 +13,16 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { FaCopy, FaCheck } from "react-icons/fa";
+import { FaCopy, FaCheck, FaSearch, FaSpinner } from "react-icons/fa";
 import { assignReferralCode } from "../utils/referralUtils";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiUser, FiDollarSign, FiCalendar, FiCreditCard } from "react-icons/fi";
 
 const Refer: React.FC = () => {
   const [referralLink, setReferralLink] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
-  const [invitedUsers, setInvitedUsers] = useState<
-    {
-      name: string;
-      email: string;
-      referDate: string;
-      status: string;
-      commission: number;
-    }[]
-  >([]);
+  const [invitedUsers, setInvitedUsers] = useState<any[]>([]);
   const [fetchingInvites, setFetchingInvites] = useState<boolean>(true);
   const [totalCommission, setTotalCommission] = useState<number>(0);
   const [accountNumber, setAccountNumber] = useState<string>("");
@@ -39,36 +35,27 @@ const Refer: React.FC = () => {
   const [verifyingAccount, setVerifyingAccount] = useState<boolean>(false);
   const [withdrawing, setWithdrawing] = useState<boolean>(false);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
+  const [showBankDropdown, setShowBankDropdown] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     const fetchAndAssignReferralCode = async () => {
       const currentUser = auth.currentUser;
-
       if (currentUser) {
         const userDocRef = doc(db, "users", currentUser.uid);
-
         try {
           const userDoc = await getDoc(userDocRef);
-
           if (userDoc.exists()) {
             let referralCode = userDoc.data()?.referral_code;
-
-            if (referralCode === undefined) {
+            if (!referralCode) {
               referralCode = await assignReferralCode(currentUser.uid);
-            } else if (!referralCode) {
-              await updateDoc(userDocRef, {
-                referral_code: await assignReferralCode(currentUser.uid),
-              });
-              referralCode = (await getDoc(userDocRef)).data()?.referral_code;
+              await updateDoc(userDocRef, { referral_code: referralCode });
             }
-
-            if (referralCode) {
-              const domain =
-                process.env.NODE_ENV === "development"
-                  ? "http://localhost:3000"
-                  : "https://www.smsglobe.net";
-              setReferralLink(`${domain}/invite/${referralCode}`);
-            }
+            const domain =
+              process.env.NODE_ENV === "development"
+                ? "http://localhost:3000"
+                : "https://www.smsglobe.net";
+            setReferralLink(`${domain}/invite/${referralCode}`);
           }
         } catch (error) {
           console.error("Error fetching or assigning referral code:", error);
@@ -83,7 +70,6 @@ const Refer: React.FC = () => {
 
   const fetchInvitedUsers = async () => {
     const currentUser = auth.currentUser;
-
     if (currentUser) {
       try {
         const refersCollection = collection(db, "refers");
@@ -97,7 +83,6 @@ const Refer: React.FC = () => {
           const data = doc.data();
           const commission = data.commission || 0;
           total += commission;
-
           return {
             name: data.user_name,
             email: data.user_email,
@@ -109,7 +94,6 @@ const Refer: React.FC = () => {
             commission,
           };
         });
-
         setInvitedUsers(users);
         setTotalCommission(total);
       } catch (error) {
@@ -124,20 +108,15 @@ const Refer: React.FC = () => {
     fetchInvitedUsers();
   }, []);
 
-  const fetchBankSuggestions = async () => {
+  const fetchBankSuggestions = async (query: string) => {
     try {
       const response = await fetch("/api/proxy-pay/banks", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: bankName }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
       });
-
       const data = await response.json();
-
       if (data.status === "success") {
-        // Ensure the structure is { name: string, code: string }
         setBankSuggestions(
           data.banks.map((bank: { name: string; code: string }) => ({
             name: bank.name,
@@ -153,20 +132,23 @@ const Refer: React.FC = () => {
     }
   };
 
-  const handleBankInputChange = (value: string) => {
+  const handleBankSearch = (value: string) => {
     setBankName(value);
+    setSearchQuery(value);
     if (value.length >= 2) {
-      fetchBankSuggestions();
+      setShowBankDropdown(true);
+      fetchBankSuggestions(value);
     } else {
+      setShowBankDropdown(false);
       setBankSuggestions([]);
     }
   };
 
   const handleSelectBank = (bank: { name: string; code: string }) => {
-    const numericCode = bank.code.replace(/\D/g, ""); // Remove non-numeric characters
     setBankName(bank.name);
-    setSelectedBankCode(numericCode);
-    setBankSuggestions([]); // Clear suggestions after selection
+    setSelectedBankCode(bank.code.replace(/\D/g, ""));
+    setShowBankDropdown(false);
+    setSearchQuery("");
   };
 
   const handleVerifyAccount = async () => {
@@ -175,34 +157,19 @@ const Refer: React.FC = () => {
       return;
     }
 
-    // Ensure the selectedBankCode is numeric
-    const sanitizedBankCode = selectedBankCode.trim().replace(/\D/g, ""); // Remove any non-numeric characters
-    console.log("Sanitized Bank Code:", sanitizedBankCode);
-
-    if (isNaN(Number(sanitizedBankCode))) {
-      alert("Invalid bank code. Please select a valid bank.");
-      return;
-    }
-
     setVerifyingAccount(true);
-
     try {
       const response = await fetch("/api/proxy-pay/verify", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           account_number: accountNumber,
-          account_bank: sanitizedBankCode, // Use sanitized bank code
+          account_bank: selectedBankCode,
         }),
       });
-
       const data = await response.json();
-
       if (data.status === "success") {
         setAccountName(data.data.account_name);
-        alert(`Account verified: ${data.data.account_name}`);
       } else {
         setAccountName(null);
         alert(`Account verification failed: ${data.message}`);
@@ -221,27 +188,30 @@ const Refer: React.FC = () => {
       return;
     }
 
-    setWithdrawing(true);
+    if (withdrawAmount < 100 || withdrawAmount > totalCommission) {
+      alert(
+        `Withdrawal amount must be between 100 NGN and ${totalCommission} NGN`
+      );
+      return;
+    }
 
+    setWithdrawing(true);
     try {
       const response = await fetch("/api/proxy-pay/withdraw", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           account_bank: selectedBankCode,
           account_number: accountNumber,
-          amount: totalCommission,
+          amount: withdrawAmount,
           narration: "Commission withdrawal",
         }),
       });
-
       const data = await response.json();
-
       if (data.status === "success") {
         alert("Withdrawal successful!");
-        setTotalCommission(0); // Reset commission after successful withdrawal
+        setTotalCommission((prev) => prev - withdrawAmount);
+        setWithdrawAmount(0);
       } else {
         alert(`Withdrawal failed: ${data.message}`);
       }
@@ -253,170 +223,280 @@ const Refer: React.FC = () => {
     }
   };
 
+  const copyToClipboard = () => {
+    if (!referralLink) return;
+    navigator.clipboard
+      .writeText(referralLink)
+      .then(() => {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      })
+      .catch(() => alert("Failed to copy the referral link."));
+  };
+
   return (
-    <div>
-      <h3 className="text-lg font-semibold mb-4">Referral</h3>
-      <p className="text-gray-600 mb-4">
-        Share your referral link with your friends to earn rewards!
-      </p>
-      <div className="bg-gray-100 p-4 rounded-lg">
-        <p className="text-sm mb-2">Your Referral Link:</p>
-        <div className="flex items-center justify-between">
-          <span
-            className="text-sm text-gray-500 truncate overflow-hidden max-w-[80%]"
-            title={loading ? "Loading..." : referralLink} // Tooltip for full link on hover
-          >
-            {loading ? "Loading..." : referralLink}
-          </span>
-          <button
-            onClick={() => {
-              if (!referralLink) return;
-              navigator.clipboard
-                .writeText(referralLink)
-                .then(() => {
-                  setCopySuccess(true);
-                  setTimeout(() => setCopySuccess(false), 2000);
-                })
-                .catch(() => alert("Failed to copy the referral link."));
-            }}
-            className="flex items-center gap-2 text-blue-500 text-sm"
-            disabled={!referralLink || copySuccess} // Disable while copy is in progress
-          >
-            {copySuccess ? (
-              <>
-                <FaCheck className="text-green-500" />
-                Copied
-              </>
-            ) : (
-              <>
-                <FaCopy />
-                Copy
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+    <div className="max-w-4xl mx-auto p-4">
+      {/* Referral Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-sm border border-gray-100"
+      >
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">
+          Your Referral Program
+        </h3>
+        <p className="text-gray-600 mb-6">
+          Share your referral link and earn 5% commission on all deposits from
+          your invited users.
+        </p>
 
-      <div className="mt-6">
-        <h4 className="text-md font-semibold">Total Commission</h4>
-        <p className="text-lg text-green-500">{totalCommission} NGN</p>
-        {totalCommission > 0 && (
-          <div className="mt-4">
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            Your Referral Link
+          </p>
+          <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Bank Name"
-              value={bankName}
-              onChange={(e) => handleBankInputChange(e.target.value)}
-              className="border p-2 rounded w-full mb-2"
+              readOnly
+              value={
+                loading ? "Generating your referral link..." : referralLink
+              }
+              className="flex-1 p-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-700 truncate"
             />
-            {bankSuggestions.length > 0 && (
-              <ul className="border rounded bg-white max-h-40 overflow-y-auto">
-                {bankSuggestions.map((bank, index) => (
-                  <li
-                    key={index}
-                    className="p-2 hover:bg-gray-200 cursor-pointer"
-                    onClick={() => handleSelectBank(bank)}
-                  >
-                    {bank.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <input
-              type="text"
-              placeholder="Account Number"
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
-              className="border p-2 rounded w-full mb-2"
-            />
-
-            <section className="bg-gray-200 p-4 mt-4">
-              <h2 className="text-green-800 f">Select Amount to withdraw</h2>
-              {/* amount field */}
-              <h2>Total Commission: {totalCommission} NGN</h2>{" "}
-              {/* Display total */}
-              <label htmlFor="withdrawAmount">
-                Withdraw Amount (Min: 100 NGN, Max: {totalCommission} NGN):
-              </label>
-              <input
-                type="number"
-                id="withdrawAmount"
-                value={withdrawAmount}
-                className="w-32 p-2 border-2 mr-2 rounded-md"
-                min={100}
-                max={totalCommission}
-                onChange={(e) => setWithdrawAmount(Number(e.target.value))}
-              />
-              {/* amount field */}
-            </section>
             <button
-              onClick={handleVerifyAccount}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4 mr-2"
-              disabled={verifyingAccount}
+              onClick={copyToClipboard}
+              disabled={loading || copySuccess}
+              className={`p-3 rounded-lg flex items-center justify-center ${
+                copySuccess
+                  ? "bg-green-100 text-green-700"
+                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+              } transition-colors`}
             >
-              {verifyingAccount ? "Verifying..." : "Verify Account"}
-            </button>
-            {accountName && (
-              <p className="text-sm text-green-500">
-                Account Name: {accountName}
-              </p>
-            )}
-
-            <button
-              onClick={handleWithdraw}
-              className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              disabled={withdrawing}
-            >
-              {withdrawing ? "Processing..." : "Withdraw"}
+              {copySuccess ? <FaCheck /> : <FaCopy />}
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      </motion.div>
 
-      <div className="mt-6">
-        <h4 className="text-md font-semibold">Your Invited Users</h4>
+      {/* Commission Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-xl p-6 mb-8 shadow-sm border border-gray-100"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div>
+            <h4 className="text-xl font-bold text-gray-800 mb-1">
+              Your Earnings
+            </h4>
+            <p className="text-gray-600">Total commission from referrals</p>
+          </div>
+          <div className="text-3xl font-bold text-green-600 mt-4 md:mt-0">
+            {totalCommission.toLocaleString()} NGN
+          </div>
+        </div>
+
+        {totalCommission > 0 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Bank Search */}
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bank Name
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search bank..."
+                    value={bankName}
+                    onChange={(e) => handleBankSearch(e.target.value)}
+                    className="w-full p-3 pl-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <FaSearch className="absolute left-3 top-3.5 text-gray-400" />
+                </div>
+                <AnimatePresence>
+                  {showBankDropdown && bankSuggestions.length > 0 && (
+                    <motion.ul
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                    >
+                      {bankSuggestions.map((bank, index) => (
+                        <motion.li
+                          key={index}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          onClick={() => handleSelectBank(bank)}
+                        >
+                          {bank.name}
+                        </motion.li>
+                      ))}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Account Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Account Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter account number"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Account Verification */}
+            {accountName && (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                <p className="text-green-700 font-medium">
+                  Verified Account:{" "}
+                  <span className="font-normal">{accountName}</span>
+                </p>
+              </div>
+            )}
+
+            {/* Withdrawal Amount */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Withdrawal Amount (Min: 100 NGN, Max:{" "}
+                {totalCommission.toLocaleString()} NGN)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={withdrawAmount}
+                  className="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  min={100}
+                  max={totalCommission}
+                  onChange={(e) => setWithdrawAmount(Number(e.target.value))}
+                />
+                <span className="text-gray-500">NGN</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                onClick={handleVerifyAccount}
+                disabled={verifyingAccount || !bankName || !accountNumber}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {verifyingAccount ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <FiCreditCard />
+                    Verify Account
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleWithdraw}
+                disabled={
+                  withdrawing ||
+                  !accountName ||
+                  withdrawAmount < 100 ||
+                  withdrawAmount > totalCommission
+                }
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {withdrawing ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <FiDollarSign />
+                    Withdraw Funds
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Invited Users */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+      >
+        <h4 className="text-xl font-bold text-gray-800 mb-6">
+          Your Invited Users
+        </h4>
+
         {fetchingInvites ? (
-          <p className="text-gray-500 mt-4">Loading invited users...</p>
+          <div className="flex justify-center py-8">
+            <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+          </div>
         ) : invitedUsers.length === 0 ? (
-          <div className="text-gray-500 mt-4">
-            <p>You have not invited any users yet.</p>
-            <p className="text-sm mt-2">
-              Share your referral link to invite users and earn a 5% commission
-              on their all deposit.
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-2">
+              You haven&lsquo;t invited any users yet
+            </p>
+            <p className="text-sm text-gray-400">
+              Share your referral link to invite users and start earning
+              commissions
             </p>
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="space-y-3">
             {invitedUsers.map((user, index) => {
               const truncatedEmail = user.email.replace(
                 /^(.{3}).+(.{3}@.+)$/,
                 "$1......$2"
               );
-
               return (
-                <div
+                <motion.div
                   key={index}
-                  className="flex justify-between bg-white p-3 rounded-lg mb-2 shadow"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-sm text-gray-500">{truncatedEmail}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-100 text-blue-600 p-2 rounded-full">
+                      <FiUser />
+                    </div>
+                    <div>
+                      <p className="font-medium">{user.name || "Anonymous"}</p>
+                      <p className="text-sm text-gray-500">{truncatedEmail}</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">{user.referDate}</p>
-                    <p className="text-sm text-blue-500">{user.status}</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1 justify-end">
+                      <FiCalendar />
+                      {user.referDate}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        user.commission > 0 ? "text-green-600" : "text-gray-500"
+                      }`}
+                    >
+                      {user.status}
+                    </p>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-
-            <p className="text-sm text-gray-500 mt-4">
-              You will earn a 5% commission on all deposit of each invited user.
-              Your earnings are withdrawable.
-            </p>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

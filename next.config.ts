@@ -4,9 +4,24 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   experimental: {},
+  images: {
+    domains: [
+      "lh3.googleusercontent.com", // Google user avatars
+      "flagcdn.com", // Country flags
+      "www.gravatar.com", // Fallback avatars
+      "res.cloudinary.com", // Cloudinary images
+      "images.unsplash.com", // Unsplash images
+      "smsglobe.net",
+      "www.smsglobe.net",
+      "api.deemax.com",
+      "deemax.com",
+      "deemax.com.ng",
+      "logo.clearbit.com",
+    ],
+  },
   env: {
-    FLW_PUBLIC_KEY: process.env.FLW_PUBLIC_KEY, // Pass to the client/server
-    FLW_SECRET_KEY: process.env.FLW_SECRET_KEY, // Server-side only
+    FLW_PUBLIC_KEY: process.env.FLW_PUBLIC_KEY,
+    FLW_SECRET_KEY: process.env.FLW_SECRET_KEY,
   },
   async rewrites() {
     return [

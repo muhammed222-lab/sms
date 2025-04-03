@@ -1,379 +1,371 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @next/next/no-img-element */
-import React, { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { ReactNode, useState } from "react";
 import {
-  IoIosCloseCircle,
-  IoIosCheckmarkCircle,
-  IoIosTime,
-  IoIosRefresh,
-  IoIosSearch,
-} from "react-icons/io";
-import { auth, db } from "../../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+  FaCopy,
+  FaCheck,
+  FaTimes,
+  FaArrowLeft,
+  FaArrowRight,
+} from "react-icons/fa";
+import { FiRefreshCw } from "react-icons/fi";
 
-// Helper: Return FlagCDN URL (expects a two-letter ISO country code)
-const getFlagUrl = (country: string) => {
-  return `https://flagcdn.com/w40/${country.toLowerCase()}.png`;
-};
-
-// Helper: Return Service Icon URL (using Clearbit Logo API)
-// It expects that the service name is also the domain base (for example: "airbnb" returns "https://logo.clearbit.com/airbnb.com")
-const getServiceIconUrl = (service: string) => {
-  return `https://logo.clearbit.com/${service.toLowerCase()}.com`;
-};
-
-interface SmsOrder {
+// Update the SmsOrder interface so that sms is typed correctly.
+export interface SmsOrderBase {
   id: number;
   orderId: string;
   phone: string;
   operator: string;
   product: string;
-  price: string; // Price in RUB coming directly from the API
+  price: string;
   status: string;
   expires: string;
-  sms: string | null;
-  created_at: string;
+  created_at: any;
   country: string;
   number: string;
   user_email: string;
   service: string;
+  is_reused?: boolean;
 }
 
-const OrderHistory = () => {
-  const [orders, setOrders] = useState<SmsOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
-  // We'll store the NGN-to-USD rate and RUB-to-USD rate.
-  // According to Google, 1 RUB = 0.012 USD.
-  const rubToUsdRate = 0.012;
-  const [ngnToUsdRate, setNgnToUsdRate] = useState<number | null>(null);
+export interface SmsOrder {
+  localCurrency: ReactNode;
+  id: number;
+  orderId: string;
+  phone: string;
+  operator: string;
+  product: string;
+  price: string;
+  status: string;
+  expires: string;
+  sms: { 
+    created_at: any; 
+    date: any; 
+    sender: string; 
+    text: string; 
+    code: string; 
+  } | string | null; // allow sms to be a string
+  created_at: any;
+  country: string;
+  number: string;
+  user_email: string;
+  service: string;
+  is_reused?: boolean;
+}
 
-  // Fetch live conversion rate from NGN to USD using a free API
-  useEffect(() => {
-    const fetchExchangeRate = async () => {
-      try {
-        // Using open.er-api.com for a free, accurate NGN-to-USD conversion rate
-        const res = await fetch("https://open.er-api.com/v6/latest/NGN");
-        if (!res.ok) {
-          console.error("Failed to fetch NGN exchange rate");
-          return;
-        }
-        const data = await res.json();
-        // data.rates.USD is the value of 1 NGN in USD
-        setNgnToUsdRate(data.rates.USD);
-      } catch (error) {
-        console.error("Exchange rate error:", error);
-      }
-    };
-    fetchExchangeRate();
-  }, []);
+export interface OrderHistoryProps {
+  orders: SmsOrder[];
+  onRefresh: (orderId: string) => Promise<void>;
+  onCancel: (orderId: string) => Promise<void>;
+  onRemove: (orderId: string) => Promise<void>;
+}
 
-  const filteredOrders = orders.filter(
+const OrderHistory: React.FC<OrderHistoryProps> = ({
+  orders,
+  onRefresh,
+  onCancel,
+  onRemove,
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
+  const ordersPerPage = 5;
+
+  // Filter out active orders so that we only show history orders.
+  const historyOrders = orders.filter(
     (order) =>
-      order.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
+      new Date(order.expires).getTime() <= Date.now() ||
+      !["PENDING", "RECEIVED"].includes(order.status)
   );
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user && user.email) {
-        setUserEmail(user.email);
-        await fetchOrders(user.email);
-      } else {
-        setUserEmail(null);
-        setOrders([]);
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = historyOrders.slice(
+    indexOfFirstOrder,
+    indexOfLastOrder
+  );
+  const totalPages = Math.ceil(historyOrders.length / ordersPerPage);
 
-  const fetchOrders = async (email: string) => {
-    try {
-      setLoading(true);
-      const q = query(
-        collection(db, "sms_orders"),
-        where("user_email", "==", email),
-        orderBy("created_at", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-      const firestoreOrders = querySnapshot.docs.map(
-        (doc) => doc.data() as SmsOrder
-      );
-      const ordersWithDetails = await Promise.all(
-        firestoreOrders.map(async (order) => {
-          try {
-            const response = await fetch(
-              `/api/proxy-order-history?orderId=${order.orderId}`
-            );
-            if (!response.ok) {
-              console.error(`Failed to fetch order ${order.orderId}`);
-              return order;
-            }
-            const orderDetails = await response.json();
-            return { ...order, ...orderDetails };
-          } catch (error) {
-            console.error(`Error fetching order ${order.orderId}:`, error);
-            return order;
-          }
-        })
-      );
-      setOrders(ordersWithDetails);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  const copyToClipboard = (text: string, orderId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedOrderId(orderId);
+    setTimeout(() => setCopiedOrderId(null), 2000);
   };
 
-  const handleRefresh = async () => {
-    if (!userEmail) return;
-    setRefreshing(true);
-    await fetchOrders(userEmail);
+  const formatDate = (dateValue: any) => {
+    // If dateValue has a toDate function, assume it's a Firestore Timestamp
+    const date =
+      dateValue && typeof dateValue.toDate === "function"
+        ? dateValue.toDate()
+        : new Date(dateValue);
+    return date.toLocaleString();
   };
 
-  const handleRebuy = async (order: SmsOrder) => {
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-      const res = await fetch(
-        `/api/proxy-sms?action=reuse-number&product=${
-          order.product
-        }&number=${order.phone.replace("+", "")}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!res.ok) {
-        throw new Error("Failed to rebuy number");
-      }
-      const data = await res.json();
-      if (data.id && userEmail) {
-        await fetchOrders(userEmail);
-      }
-    } catch (error) {
-      console.error("Rebuy error:", error);
-    }
-  };
-
-  const getStatusBadge = (order: SmsOrder) => {
-    const now = new Date();
-    const expires = new Date(order.expires);
-    if (now > expires) {
-      return (
-        <span className="flex items-center gap-1 text-red-500">
-          <IoIosCloseCircle className="text-xl" /> Expired
-        </span>
-      );
-    }
-    switch (order.status) {
-      case "RECEIVED":
-        return (
-          <span className="flex items-center gap-1 text-green-500">
-            <IoIosCheckmarkCircle className="text-xl" /> Active
-          </span>
-        );
-      case "PENDING":
-        return (
-          <span className="flex items-center gap-1 text-yellow-500">
-            <IoIosTime className="text-xl" /> Pending
-          </span>
-        );
+  const getStatusBadge = (status: string) => {
+    switch (status) {
       case "FINISHED":
-        return <span className="text-blue-500">Completed</span>;
-      case "BANNED":
-        return <span className="text-red-500">Banned</span>;
+        return (
+          <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            Completed
+          </span>
+        );
       case "CANCELED":
-        return <span className="text-gray-500">Canceled</span>;
+        return (
+          <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            Canceled
+          </span>
+        );
+      case "BANNED":
+        return (
+          <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            Banned
+          </span>
+        );
+      case "TIMEOUT":
+        return (
+          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            Timeout
+          </span>
+        );
       default:
-        return <span className="text-gray-500">{order.status}</span>;
+        return (
+          <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            {status}
+          </span>
+        );
     }
   };
 
-  const getTimeRemaining = (expires: string) => {
-    const now = new Date();
-    const expiryDate = new Date(expires);
-    const diffMs = expiryDate.getTime() - now.getTime();
-    if (diffMs <= 0) return "Expired";
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffSecs = Math.floor((diffMs % 60000) / 1000);
-    return `${diffMins}m ${diffSecs}s`;
-  };
-
-  // Convert the order price (which is in RUB) to USD using a fixed rate from Google.
-  const convertRubToUsd = (priceRub: string) => {
-    const priceNumber = parseFloat(priceRub);
-    return (priceNumber * rubToUsdRate).toFixed(2);
-  };
-
-  // Deduct the amount – where the amount to deduct is Price in USD plus 50% markup.
-  // Before deducting, convert the user's NGN balance to USD using the live NGN-to-USD rate.
-  const calculateDeductionInNgn = (priceRub: string) => {
-    const priceUsd = parseFloat(convertRubToUsd(priceRub));
-    const totalUsd = priceUsd * 1.5; // Adding 50%
-    if (ngnToUsdRate && ngnToUsdRate > 0) {
-      // Convert USD to NGN: NGN = USD / (NGN-to-USD rate)
-      return (totalUsd / ngnToUsdRate).toFixed(2);
+  const renderSmsContent = (order: SmsOrder) => {
+    if (!order.sms) return null;
+    // When sms is a string, simply display it.
+    if (typeof order.sms === "string") {
+      return (
+        <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+          <p>Code: {order.sms}</p>
+        </div>
+      );
     }
-    return "";
-  };
-
-  // Format price display: show price in USD (converted from RUB) and equivalent NGN price
-  const formatPrice = (priceRub: string) => {
-    const priceUsd = convertRubToUsd(priceRub);
-    if (ngnToUsdRate && ngnToUsdRate > 0) {
-      const priceNgn = (parseFloat(priceUsd) / ngnToUsdRate).toFixed(2);
-      return `$${priceUsd} USD / ₦${priceNgn} NGN`;
-    }
-    return `$${priceUsd} USD`;
+    // When sms is an object, safely convert each field to a string.
+    const safeString = (value: any) =>
+      typeof value === "string" ? value : JSON.stringify(value);
+    return (
+      <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+        <p>Sender: {safeString(order.sms.sender)}</p>
+        <p>Text: {safeString(order.sms.text)}</p>
+        <p>Code: {safeString(order.sms.code)}</p>
+        <p className="text-gray-500 text-xs">
+          {formatDate(order.sms.created_at)}
+        </p>
+      </div>
+    );
   };
 
   return (
-    <div className="p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <h2 className="text-2xl font-bold text-gray-800">Your Orders</h2>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <IoIosSearch className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search orders..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+    <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Order ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Phone
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Service
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Price
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {currentOrders.length > 0 ? (
+              currentOrders.map((order) => (
+                <React.Fragment key={order.orderId}>
+                  <tr className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <div className="flex items-center">
+                        #{order.orderId}
+                        <button
+                          onClick={() =>
+                            copyToClipboard(order.orderId, order.orderId)
+                          }
+                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          title="Copy Order ID"
+                        >
+                          {copiedOrderId === order.orderId ? (
+                            <FaCheck className="text-green-500" />
+                          ) : (
+                            <FaCopy />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {order.phone}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {order.service}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {order.price} {order.localCurrency}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(order.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(order.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        {order.status === "PENDING" && (
+                          <button
+                            onClick={() => onCancel(order.orderId)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Cancel Order"
+                          >
+                            <FaTimes />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onRefresh(order.orderId)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Refresh Status"
+                        >
+                          <FiRefreshCw />
+                        </button>
+                        <button
+                          onClick={() => onRemove(order.orderId)}
+                          className="text-gray-600 hover:text-gray-900"
+                          title="Remove Order"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {order.sms && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-2">
+                        {renderSmsContent(order)}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-6 py-4 text-center text-sm text-gray-500"
+                >
+                  No order history found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+          <div className="flex-1 flex justify-between sm:hidden">
             <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="p-2 bg-white border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
-              <IoIosRefresh
-                className={`text-xl ${refreshing ? "animate-spin" : ""}`}
-              />
+              Previous
+            </button>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Next
             </button>
           </div>
-        </div>
-        {loading ? (
-          <div className="text-center py-12">Loading orders...</div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              {searchTerm ? "No matching orders found" : "No orders yet"}
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing{" "}
+                <span className="font-medium">{indexOfFirstOrder + 1}</span> to{" "}
+                <span className="font-medium">
+                  {Math.min(indexOfLastOrder, historyOrders.length)}
+                </span>{" "}
+                of <span className="font-medium">{historyOrders.length}</span>{" "}
+                results
+              </p>
             </div>
-            {!searchTerm && (
-              <button
-                onClick={() => (window.location.href = "/buy")}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            <div>
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
               >
-                Buy a Number
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredOrders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="p-4 md:p-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={getFlagUrl(order.country)}
-                        alt={order.country}
-                        className="w-6 h-6 rounded-full object-cover"
-                        onError={(e) =>
-                          ((e.target as HTMLImageElement).src =
-                            "/default-flag.png")
-                        }
-                      />
-                      <img
-                        src={getServiceIconUrl(order.service)}
-                        alt={order.service}
-                        className="w-6 h-6 object-contain"
-                        onError={(e) =>
-                          ((e.target as HTMLImageElement).src =
-                            "/default-logo.png")
-                        }
-                      />
-                      <div>
-                        <h3 className="font-semibold text-lg capitalize text-gray-800">
-                          {order.service}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          Order #{order.orderId}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(order)}
-                      <span className="text-sm text-gray-500">
-                        {getTimeRemaining(order.expires)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">
-                        Phone Number
-                      </p>
-                      <p className="font-mono text-gray-800">{order.number}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">
-                        Country
-                      </p>
-                      <p className="capitalize text-gray-800">
-                        {order.country}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">
-                        Price
-                      </p>
-                      <p className="text-gray-800">
-                        {formatPrice(order.price)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">
-                        SMS Code
-                      </p>
-                      <p className="font-mono text-lg">
-                        {order.sms || (
-                          <span className="text-gray-400">
-                            Waiting for code...
-                          </span>
-                        )}
-                      </p>
-                    </div>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  <span className="sr-only">Previous</span>
+                  <FaArrowLeft className="h-5 w-5" />
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
                     <button
-                      onClick={() => handleRebuy(order)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        currentPage === pageNum
+                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                      }`}
                     >
-                      Rebuy
+                      {pageNum}
                     </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                  );
+                })}
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  <span className="sr-only">Next</span>
+                  <FaArrowRight className="h-5 w-5" />
+                </button>
+              </nav>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

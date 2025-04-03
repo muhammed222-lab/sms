@@ -95,3 +95,71 @@ body {
 .accept-button:hover {
   background-color: darken(var(--color-primary), 10%);
 }
+
+input:focus,
+textarea:focus {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* Remove highlight on focus */
+  -webkit-text-size-adjust: none; /* Disable auto-zoom on focus */
+}
+input,
+textarea {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* Remove highlight on focus */
+  -webkit-text-size-adjust: none; /* Disable auto-zoom on focus */
+}
+/* input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="time"],
+input[type="color"],
+input[type="file"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="image"],
+input[type="hidden"],
+input[type="select"],
+input[type="textarea"],
+input[type="select-one"],
+input[type="select-multiple"],
+input[type="select-text"],
+input[type="select-text-multiple"],
+input[type="select-text-one"],
+input[type="select-text-multiple-one"],
+input[type="select-text-multiple-two"],
+input[type="select-text-multiple-three"],
+input[type="select-text-multiple-four"],
+input[type="select-text-multiple-five"],
+input[type="select-text-multiple-six"],
+input[type="select-text-multiple-seven"],
+input[type="select-text-multiple-eight"],
+input[type="select-text-multiple-nine"],
+input[type="select-text-multiple-ten"],
+input[type="select-text-multiple-eleven"],
+input[type="select-text-multiple-twelve"]{
+  
+} */
+
+/* Globe specific styles */
+.react-simple-maps {
+  background-color: transparent !important;
+}
+
+.rsm-zoomable-group {
+  transition: transform 0.5s ease-out;
+}
+
+.rsm-geography {
+  transition: fill 0.2s;
+}

@@ -56,7 +56,7 @@ const History: React.FC = () => {
             const deposit: DepositHistory = {
               user_email: data.user_email,
               amount: parseFloat(data.amount),
-              date: data.date.toDate().toISOString(), // Ensure date is correctly formatted
+              date: data.date.toDate().toISOString(),
               mode: data.mode,
               status: data.status,
             };
@@ -84,26 +84,14 @@ const History: React.FC = () => {
     }).format(amount);
   };
 
-  // const formatDate = (dateString: string): string => {
-  //   const date = new Date(dateString);
-  //   return date.toLocaleString("en-GB", {
-  //     day: "2-digit",
-  //     month: "long",
-  //     year: "numeric",
-  //     hour: "2-digit",
-  //     minute: "2-digit",
-  //     second: "2-digit",
-  //   });
-  // };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "success":
-        return <AiOutlineCheckCircle style={{ color: "green" }} />;
+        return <AiOutlineCheckCircle className="text-green-500 text-xl" />;
       case "failed":
-        return <AiOutlineCloseCircle style={{ color: "red" }} />;
+        return <AiOutlineCloseCircle className="text-red-500 text-xl" />;
       case "pending":
-        return <AiOutlineClockCircle style={{ color: "orange" }} />;
+        return <AiOutlineClockCircle className="text-orange-500 text-xl" />;
       default:
         return null;
     }
@@ -130,55 +118,66 @@ const History: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1>Deposit History</h1>
-      <h2>Total Deposit: {formatCurrency(totalDeposit)}</h2>
-      <div
-        style={{
-          marginTop: "20px",
-          display: "flex",
-          gap: "5px",
-        }}
-      >
-        <button
-          onClick={() => handleSort("date")}
-          style={{ padding: "10px", cursor: "pointer" }}
-        >
-          Sort by Date
-        </button>
-        <button
-          onClick={() => handleSort("amount")}
-          style={{ padding: "10px", cursor: "pointer" }}
-        >
-          Sort by Amount
-        </button>
-        <button
-          onClick={() => handleSort("status")}
-          style={{ padding: "10px", cursor: "pointer" }}
-        >
-          Sort by Status
-        </button>
-      </div>
-      <div style={{ marginTop: "20px" }}>
-        {history.map((item, index) => (
-          <div
-            key={index}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "10px",
-              borderBottom: "1px solid #ddd",
-            }}
+    <div className="p-6 font-sans">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">Deposit History</h1>
+      <h2 className="text-lg text-gray-700">
+        Total Deposit:{" "}
+        <span className="text-green-600 font-semibold">
+          {formatCurrency(totalDeposit)}
+        </span>
+      </h2>
+
+      {/* Sorting Buttons */}
+      <div className="mt-4 flex space-x-2">
+        {["date", "amount", "status"].map((field) => (
+          <button
+            key={field}
+            onClick={() => handleSort(field)}
+            className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all"
           >
-            <div style={{ flex: 1, fontSize: "10px" }}>{item.date}</div>
-            <div style={{ flex: 1 }}>{formatCurrency(item.amount)}</div>
-            <div style={{ flex: 1 }}>{item.mode}</div>
-            <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
-              {getStatusIcon(item.status)}
-              <span style={{ marginLeft: "8px" }}>{item.status}</span>
-            </div>
-          </div>
+            Sort by {field.charAt(0).toUpperCase() + field.slice(1)}
+          </button>
         ))}
+      </div>
+
+      {/* Deposit History Table */}
+      <div className="mt-6 overflow-hidden rounded-lg border">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-gray-800 text-white">
+            <tr>
+              <th className="p-3">Date</th>
+              <th className="p-3">Amount</th>
+              <th className="p-3">Mode</th>
+              <th className="p-3">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {history.length > 0 ? (
+              history.map((item, index) => (
+                <tr
+                  key={index}
+                  className="hover:bg-gray-100 transition-all duration-200"
+                >
+                  <td className="p-3 text-sm text-gray-600">{item.date}</td>
+                  <td className="p-3 text-sm font-semibold">
+                    {formatCurrency(item.amount)}
+                  </td>
+                  <td className="p-3 text-sm text-gray-600">{item.mode}</td>
+                  <td className="p-3 flex items-center gap-2">
+                    {getStatusIcon(item.status)}
+                    <span className="capitalize">{item.status}</span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="p-3 text-center text-gray-500">
+                  No deposit history available.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       <CryptoData />

@@ -1,26 +1,91 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-
 import Footer from "./components/footer";
-import { AuthProvider } from "./components/AuthProvider"; // Assuming this manages Firebase auth
+import { AuthProvider } from "./components/AuthProvider";
 import Chat from "./components/chat";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
+  display: "swap",
 });
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Smsglobe",
-  description: "Secure an Instant SMS Verification",
+  title: {
+    default: "Smsglobe - Secure Instant SMS Verification",
+    template: "%s | Smsglobe",
+  },
+  description:
+    "Get secure, instant SMS verification services with global coverage. Private, reliable phone numbers for verification needs.",
+  keywords: [
+    "SMS verification",
+    "phone verification",
+    "OTP service",
+    "virtual numbers",
+    "secure SMS",
+    "temporary numbers",
+  ],
+  authors: [{ name: "Smsglobe Team", url: "https://smsglobe.net" }],
+  creator: "Smsglobe",
+  publisher: "Smsglobe",
+  metadataBase: new URL("https://smsglobe.net"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Smsglobe - Secure Instant SMS Verification",
+    description:
+      "Get secure, instant SMS verification services with global coverage.",
+    url: "https://smsglobe.net",
+    siteName: "Smsglobe",
+    images: [
+      {
+        url: "https://smsglobe.net/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Smsglobe - Secure SMS Verification",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Smsglobe - Secure Instant SMS Verification",
+    description:
+      "Get secure, instant SMS verification services with global coverage.",
+    images: ["https://smsglobe.net/twitter-image.jpg"],
+    creator: "@smsglobe",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
+  verification: {
+    google: "your-google-verification-code",
+    yandex: "your-yandex-verification-code",
+  },
 };
 
 export default function RootLayout({
@@ -30,56 +95,52 @@ export default function RootLayout({
 }) {
   return (
     <AuthProvider>
-      <html lang="en">
+      <html lang="en" className="scroll-smooth">
         <head>
           <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
           />
+          <meta name="theme-color" content="#ffffff" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+          />
+          <meta name="format-detection" content="telephone=no" />
+
           <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+            integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+            crossOrigin="anonymous"
+            referrerPolicy="no-referrer"
           />
+
           <script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "WebSite",
+              "@type": "Organization",
               name: "Smsglobe",
               url: "https://www.smsglobe.net",
-              potentialAction: [
-                {
-                  "@type": "SearchAction",
-                  target:
-                    "https://www.smsglobe.net/search?q={search_term_string}",
-                  "query-input": "required name=search_term_string",
-                },
-                {
-                  "@type": "RegisterAction",
-                  target: "https://www.smsglobe.net/signup",
-                },
-                {
-                  "@type": "LoginAction",
-                  target: "https://www.smsglobe.net/signin",
-                },
-                {
-                  "@type": "ContactAction",
-                  target: "https://www.smsglobe.net/contact",
-                },
-                {
-                  "@type": "FAQPage",
-                  url: "https://www.smsglobe.net/faq",
-                },
-                {
-                  "@type": "OfferCatalog",
-                  name: "Pricing",
-                  url: "https://www.smsglobe.net/pricing",
-                },
+              logo: "https://www.smsglobe.net/logo.png",
+              sameAs: [
+                "https://twitter.com/smsglobe",
+                "https://facebook.com/smsglobe",
               ],
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+1-XXX-XXX-XXXX",
+                contactType: "customer service",
+                areaServed: "US,UK,CA,NG",
+              },
             })}
           </script>
         </head>
         <body
-          className={`container ${geistSans.variable} ${geistMono.variable}`}
+          className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+          suppressHydrationWarning={true}
         >
           {children}
           <Chat />

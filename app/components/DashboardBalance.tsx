@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -48,11 +49,28 @@ const DashboardBalance: React.FC = () => {
   >(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [balance, setBalance] = useState<number>(0);
-  const [windowWidth, setWindowWidth] = useState<number>(
-    typeof window !== "undefined" ? window.innerWidth : 1024
-  );
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "";
+
+  // Payment options configuration
+  const paymentMethods = [
+    {
+      id: "flutterwave",
+      name: "Flutterwave",
+      description: "Pay with card, bank transfer, or mobile money",
+      logo: "/flutter.png",
+      supportedOptions: ["card", "banktransfer", "mobilemoney", "ussd"],
+    },
+    {
+      id: "Cryptocurrency",
+      name: "Cryptocurrency",
+      description: "Pay with Bitcoin, Ethereum, or USDT",
+      logo: "/bitcoin.png",
+    },
+  ];
 
   // Load Flutterwave script
   useEffect(() => {
@@ -65,13 +83,7 @@ const DashboardBalance: React.FC = () => {
     };
   }, []);
 
-  // Listen for window resize to adjust layout
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
+  // Auth state listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -79,6 +91,7 @@ const DashboardBalance: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  // Fetch user balance
   useEffect(() => {
     const fetchUserBalance = async () => {
       if (user) {
@@ -98,6 +111,7 @@ const DashboardBalance: React.FC = () => {
           }
         } catch (error) {
           console.error("Error fetching user balance:", error);
+          setError("Failed to load balance. Please refresh the page.");
         }
       }
     };
@@ -107,268 +121,347 @@ const DashboardBalance: React.FC = () => {
 
   const handleTopUp = (method: "flutterwave" | "Cryptocurrency") => {
     setSelectedMethod(method);
+    setError(null);
+    setSuccess(null);
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    if (value >= 1000 && value <= 100000) {
+    if (!isNaN(value) && value >= 1000 && value <= 100000) {
       setAmount(value);
+      setError(null);
     } else {
       setAmount(null);
+      setError("Please enter an amount between ₦1,000 and ₦100,000");
     }
   };
 
   const handleFlutterwavePayment = async () => {
     if (!amount) {
-      alert("Please enter a valid amount between 1,000 and 100,000 Naira.");
+      setError("Please enter a valid amount between ₦1,000 and ₦100,000");
       return;
     }
-    const transactionRef = `TX-${Date.now()}`;
-    window.FlutterwaveCheckout({
-      public_key: publicKey,
-      tx_ref: transactionRef,
-      amount: amount,
-      currency: "NGN",
-      payment_options: "card,banktransfer",
-      customer: {
-        email: user?.email || "default@example.com",
-        phone_number: user?.phoneNumber || "08012345678",
-        name: user?.displayName || "John Doe",
-      },
-      customizations: {
-        title: "Top Up Balance",
-        description: `Deposit ${amount} Naira to your account.`,
-        logo: "/deemax.png",
-      },
-      callback: async (response) => {
-        try {
-          const verifyResponse = await fetch("/api/verify-transaction", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ transactionId: response.transaction_id }),
-          });
-          const verifyData = await verifyResponse.json();
-          if (
-            verifyData.status === "success" &&
-            verifyData.data.status === "successful" &&
-            verifyData.data.amount === amount &&
-            verifyData.data.currency === "NGN"
-          ) {
-            alert("Payment verified successfully!");
-            const email = user?.email || "default@example.com";
-            const depositCollection = collection(db, "userDeposits");
-            const userQuery = query(
-              depositCollection,
-              where("email", "==", email)
-            );
-            const querySnapshot = await getDocs(userQuery);
-            if (!querySnapshot.empty) {
-              const docRef = querySnapshot.docs[0].ref;
-              const existingData = querySnapshot.docs[0].data() as DocumentData;
-              const newAmount = (existingData.amount || 0) + amount;
-              await updateDoc(docRef, { amount: newAmount });
-            } else {
-              await addDoc(depositCollection, {
-                email,
-                amount,
-                date: new Date().toISOString(),
-              });
-            }
-            setBalance((prevBalance) => prevBalance + amount);
-            const depositHistoryCollection = collection(db, "deposit_history");
-            await addDoc(depositHistoryCollection, {
-              user_email: email,
-              amount,
-              date: new Date(),
-              mode: "Flutterwave",
-              status: "success",
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    const transactionRef = `TX-${Date.now()}-${user?.uid || "guest"}`;
+
+    try {
+      window.FlutterwaveCheckout({
+        public_key: publicKey,
+        tx_ref: transactionRef,
+        amount: amount,
+        currency: "NGN",
+        payment_options: paymentMethods[0]?.supportedOptions?.join(",") ?? "",
+        customer: {
+          email: user?.email || "default@example.com",
+          phone_number: user?.phoneNumber || "08012345678",
+          name: user?.displayName || "Customer",
+        },
+        customizations: {
+          title: "Top Up Balance",
+          description: `Deposit ₦${amount.toLocaleString()} to your account`,
+          logo: "/deemax.png",
+        },
+        callback: async (response) => {
+          try {
+            const verifyResponse = await fetch("/api/verify-transaction", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ transactionId: response.transaction_id }),
             });
-            // Check referral commission
-            const refersQuery = query(
-              collection(db, "refers"),
-              where("user_email", "==", email)
-            );
-            const refersSnapshot = await getDocs(refersQuery);
-            if (!refersSnapshot.empty) {
-              const referrerDoc = refersSnapshot.docs[0];
-              const referrerData = referrerDoc.data() as DocumentData;
-              const referrerEmail = referrerData.refer_by_email;
-              const referrerCommission = referrerData.commission || 0;
-              const commission = (5 / 100) * amount;
-              await updateDoc(referrerDoc.ref, {
-                commission: referrerCommission + commission,
-              });
-              console.log(
-                `Commission of ${commission} added to referrer: ${referrerEmail}`
+
+            const verifyData = await verifyResponse.json();
+
+            if (
+              verifyData.status === "success" &&
+              verifyData.data.status === "successful" &&
+              verifyData.data.amount === amount &&
+              verifyData.data.currency === "NGN"
+            ) {
+              setSuccess(
+                "Payment verified successfully! Updating your balance..."
               );
+
+              // Update user balance
+              const email = user?.email || "default@example.com";
+              const depositCollection = collection(db, "userDeposits");
+              const userQuery = query(
+                depositCollection,
+                where("email", "==", email)
+              );
+              const querySnapshot = await getDocs(userQuery);
+
+              if (!querySnapshot.empty) {
+                const docRef = querySnapshot.docs[0].ref;
+                const existingData =
+                  querySnapshot.docs[0].data() as DocumentData;
+                const newAmount = (existingData.amount || 0) + amount;
+                await updateDoc(docRef, { amount: newAmount });
+              } else {
+                await addDoc(depositCollection, {
+                  email,
+                  amount,
+                  date: new Date().toISOString(),
+                });
+              }
+
+              setBalance((prevBalance) => prevBalance + amount);
+
+              // Record transaction history
+              await addDoc(collection(db, "deposit_history"), {
+                user_email: email,
+                amount,
+                date: new Date(),
+                mode: "Flutterwave",
+                status: "success",
+                transaction_id: response.transaction_id,
+              });
+
+              // Handle referral commission
+              const refersQuery = query(
+                collection(db, "refers"),
+                where("user_email", "==", email)
+              );
+              const refersSnapshot = await getDocs(refersQuery);
+
+              if (!refersSnapshot.empty) {
+                const referrerDoc = refersSnapshot.docs[0];
+                const referrerData = referrerDoc.data() as DocumentData;
+                const commission = (5 / 100) * amount;
+                await updateDoc(referrerDoc.ref, {
+                  commission: (referrerData.commission || 0) + commission,
+                });
+              }
+
+              setSuccess(`Payment successful! Your balance has been updated.`);
+            } else {
+              setError("Payment verification failed. Please contact support.");
+              await recordFailedTransaction();
             }
-          } else {
-            alert("Payment verification failed. Please try again.");
-            const depositHistoryCollection = collection(db, "deposit_history");
-            await addDoc(depositHistoryCollection, {
-              user_email: user?.email || "default@example.com",
-              amount,
-              date: new Date(),
-              mode: "Flutterwave",
-              status: "failed",
-            });
+          } catch (error) {
+            console.error("Error verifying transaction:", error);
+            setError("An error occurred during payment verification.");
+            await recordFailedTransaction();
+          } finally {
+            setLoading(false);
           }
-        } catch (error) {
-          console.error("Error verifying transaction:", error);
-          alert("An error occurred during payment verification.");
-          const depositHistoryCollection = collection(db, "deposit_history");
-          await addDoc(depositHistoryCollection, {
-            user_email: user?.email || "default@example.com",
-            amount,
-            date: new Date(),
-            mode: "Flutterwave",
-            status: "failed",
-          });
-        }
-      },
-      onclose: () => {
-        alert("Payment window closed.");
-        const depositHistoryCollection = collection(db, "deposit_history");
-        addDoc(depositHistoryCollection, {
-          user_email: user?.email || "default@example.com",
-          amount,
-          date: new Date(),
-          mode: "Flutterwave",
-          status: "pending",
-        });
-      },
-    });
+        },
+        onclose: () => {
+          setLoading(false);
+          setError(
+            "Payment window was closed. Please try again if you want to complete the payment."
+          );
+          recordPendingTransaction();
+        },
+      });
+    } catch (error) {
+      console.error("Error initiating payment:", error);
+      setError("Failed to initiate payment. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  const recordFailedTransaction = async () => {
+    try {
+      await addDoc(collection(db, "deposit_history"), {
+        user_email: user?.email || "default@example.com",
+        amount,
+        date: new Date(),
+        mode: "Flutterwave",
+        status: "failed",
+      });
+    } catch (error) {
+      console.error("Error recording failed transaction:", error);
+    }
+  };
+
+  const recordPendingTransaction = async () => {
+    try {
+      await addDoc(collection(db, "deposit_history"), {
+        user_email: user?.email || "default@example.com",
+        amount,
+        date: new Date(),
+        mode: "Flutterwave",
+        status: "pending",
+      });
+    } catch (error) {
+      console.error("Error recording pending transaction:", error);
+    }
   };
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
     }).format(amount);
   };
 
-  // Determine flex direction based on window width (column for mobile)
-  const methodContainerStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: windowWidth < 768 ? "column" : "row",
-    gap: "20px",
-    alignItems: "center",
+  const resetPaymentMethod = () => {
+    setSelectedMethod(null);
+    setAmount(null);
+    setError(null);
+    setSuccess(null);
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1>Dashboard</h1>
-      <div style={{ marginBottom: "20px" }}>
-        <h2>
-          Current Balance: <strong>{formatCurrency(balance)}</strong>
-        </h2>
-        <p>Hey, {user?.displayName || "User"}! Let&apos;s make a deposit.</p>
+    <div className="max-w-4xl mx-auto p-4 md:p-6 bg-white rounded-lg shadow-sm">
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+          Dashboard
+        </h1>
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+          <h2 className="text-xl font-semibold">
+            Current Balance:{" "}
+            <span className="text-blue-600">{formatCurrency(balance)}</span>
+          </h2>
+          <p className="text-gray-600 mt-1">
+            Welcome back, {user?.displayName || "User"}! Ready to make a
+            deposit?
+          </p>
+        </div>
       </div>
 
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-500 text-green-700">
+          <p>{success}</p>
+        </div>
+      )}
+
       {selectedMethod ? (
-        <div>
-          <h3>
-            You selected:{" "}
-            {selectedMethod === "flutterwave"
-              ? "Flutterwave"
-              : "Cryptocurrency"}
-          </h3>
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">
+              {selectedMethod === "flutterwave"
+                ? "Card/Bank Payment"
+                : "Crypto Payment"}
+            </h3>
+            <button
+              onClick={resetPaymentMethod}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              ← Back to payment methods
+            </button>
+          </div>
+
           {selectedMethod === "flutterwave" && (
-            <div>
-              <p>Enter the amount to deposit (₦1,000 - ₦100,000):</p>
-              <input
-                type="number"
-                placeholder="Enter amount"
-                onChange={handleAmountChange}
-                style={{
-                  padding: "10px",
-                  marginTop: "10px",
-                  marginBottom: "10px",
-                  width: "200px",
-                  border: "1px solid gray",
-                  borderRadius: "5px",
-                }}
-              />
-              <div style={{ marginTop: "10px" }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amount to deposit (₦1,000 - ₦100,000)
+                </label>
+                <input
+                  type="number"
+                  placeholder="Enter amount"
+                  min="1000"
+                  max="100000"
+                  onChange={handleAmountChange}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Minimum: ₦1,000 | Maximum: ₦100,000
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+                {[1000, 2000, 5000, 10000].map((value) => (
+                  <button
+                    key={value}
+                    onClick={() => {
+                      setAmount(value);
+                      setError(null);
+                    }}
+                    className={`p-2 border rounded-md text-center ${
+                      amount === value
+                        ? "border-blue-500 bg-blue-50 text-blue-600"
+                        : "border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    ₦{value.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6">
                 <button
                   onClick={handleFlutterwavePayment}
-                  disabled={!amount}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: amount ? "#4CAF50" : "gray",
-                    color: "white",
-                    border: "none",
-                    cursor: amount ? "pointer" : "not-allowed",
-                    borderRadius: "5px",
-                    width: windowWidth < 768 ? "100%" : "auto",
-                  }}
+                  disabled={!amount || loading}
+                  className={`w-full py-3 px-4 rounded-md text-white font-medium ${
+                    !amount || loading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
                 >
-                  Proceed
+                  {loading ? "Processing..." : "Proceed to Payment"}
                 </button>
-                <button
-                  onClick={() => setSelectedMethod(null)}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#f44336",
-                    color: "white",
-                    border: "none",
-                    cursor: "pointer",
-                    marginLeft: windowWidth < 768 ? "0" : "10px",
-                    marginTop: windowWidth < 768 ? "10px" : "0",
-                    borderRadius: "5px",
-                    width: windowWidth < 768 ? "100%" : "auto",
-                  }}
-                >
-                  Back
-                </button>
+              </div>
+
+              <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
+                <p className="text-sm">
+                  You'll be redirected to Flutterwave's secure payment page to
+                  complete your transaction.
+                </p>
               </div>
             </div>
           )}
+
           {selectedMethod === "Cryptocurrency" && <Crypto />}
         </div>
       ) : (
-        <div>
-          <h3>Choose a Top-Up Method</h3>
-          <div style={methodContainerStyle}>
-            <button
-              onClick={() => handleTopUp("flutterwave")}
-              style={{
-                padding: "10px",
-                border: "1px solid gray",
-                borderRadius: "8px",
-                backgroundColor: "white",
-                cursor: "pointer",
-                width: windowWidth < 768 ? "100%" : "auto",
-              }}
-            >
-              <Image
-                src="/flutter.png"
-                width={200}
-                height={100}
-                alt="Flutterwave"
-              />
-            </button>
-            <button
-              onClick={() => handleTopUp("Cryptocurrency")}
-              style={{
-                padding: "10px",
-                border: "1px solid gray",
-                borderRadius: "8px",
-                backgroundColor: "white",
-                cursor: "pointer",
-                width: windowWidth < 768 ? "100%" : "auto",
-              }}
-            >
-              <Image
-                src="/bitcoin.png"
-                width={200}
-                height={50}
-                alt="Cryptocurrency"
-                className="rounded"
-              />
-            </button>
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-gray-800">
+              Choose Payment Method
+            </h3>
+            <p className="text-gray-600 mt-1">
+              Select your preferred payment option below
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {paymentMethods.map((method) => (
+              <div
+                key={method.id}
+                onClick={() =>
+                  handleTopUp(method.id as "flutterwave" | "Cryptocurrency")
+                }
+                className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <Image
+                      src={method.logo}
+                      width={60}
+                      height={60}
+                      alt={method.name}
+                      className="object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">{method.name}</h4>
+                    <p className="text-sm text-gray-500">
+                      {method.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-medium text-gray-800 mb-2">Payment Security</h4>
+            <p className="text-sm text-gray-600">
+              All transactions are secured with 256-bit SSL encryption. We don't
+              store your payment details.
+            </p>
           </div>
         </div>
       )}
@@ -377,5 +470,3 @@ const DashboardBalance: React.FC = () => {
 };
 
 export default DashboardBalance;
-// export { DashboardBalance };
-// export type { FlutterwaveCheckoutOptions };
