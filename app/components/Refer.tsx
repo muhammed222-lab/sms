@@ -323,12 +323,12 @@ const Refer: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-[5px]">
       {/* Referral Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 shadow-sm border border-gray-100"
+        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-[10px] mb-8"
       >
         <h3 className="text-2xl font-bold text-gray-800 mb-2">
           Your Referral Program
@@ -371,7 +371,7 @@ const Refer: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white rounded-xl p-6 mb-8 shadow-sm border border-gray-100"
+        className="rounded-xl p-[10px] mb-8"
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
@@ -559,7 +559,7 @@ const Refer: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+        className=" rounded-xl"
       >
         <h4 className="text-xl font-bold text-gray-800 mb-6">
           Your Invited Users
