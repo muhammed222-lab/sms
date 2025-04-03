@@ -38,19 +38,23 @@ export interface SmsOrder {
   price: string;
   status: string;
   expires: string;
-  sms: { 
-    created_at: any; 
-    date: any; 
-    sender: string; 
-    text: string; 
-    code: string; 
-  } | string | null; // allow sms to be a string
+  sms:
+    | {
+        created_at: any;
+        date: any;
+        sender: string;
+        text: string;
+        code: string;
+      }
+    | string
+    | null; // allow sms to be a string
   created_at: any;
   country: string;
   number: string;
   user_email: string;
   service: string;
   is_reused?: boolean;
+  priceLocal?: string;
 }
 
 export interface OrderHistoryProps {

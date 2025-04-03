@@ -23,6 +23,7 @@ import ActiveOrder from "./sms_components/ActiveOrder";
 import OrderHistory, { SmsOrder } from "./sms_components/OrderHistory";
 import OtpHelp from "./OtpHelp";
 import OrderEmpty from "./OrderEmpty";
+import { string } from "prop-types";
 
 interface User {
   email: string | null;
@@ -996,7 +997,11 @@ const Sms = () => {
                   // Update your ActiveOrder rendering to include the remove handler
                   <ActiveOrder
                     key={order.orderId}
-                    order={order}
+                    order={{
+                      ...order,
+                      priceLocal: order.priceLocal || "N/A",
+                      sms: typeof order.sms === "string" ? order.sms : null,
+                    }}
                     countdown={getCountdown(order.expires)}
                     onFetchSms={() => fetchSmsCode(order.orderId)}
                     onCancel={() => cancelOrder(order.orderId)}

@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { auth, db } from "../firebaseConfig";
 import {
   doc,
@@ -13,10 +14,11 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { FaCopy, FaCheck, FaSearch, FaSpinner } from "react-icons/fa";
+import { FaCopy, FaCheck, FaSearch, FaSpinner, FaTimes } from "react-icons/fa";
 import { assignReferralCode } from "../utils/referralUtils";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiDollarSign, FiCalendar, FiCreditCard } from "react-icons/fi";
+import debounce from "lodash.debounce";
 
 const Refer: React.FC = () => {
   const [referralLink, setReferralLink] = useState<string>("");
@@ -37,6 +39,56 @@ const Refer: React.FC = () => {
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
   const [showBankDropdown, setShowBankDropdown] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [allBanks, setAllBanks] = useState<{ name: string; code: string }[]>(
+    []
+  );
+  const [isSearchingBanks, setIsSearchingBanks] = useState(false);
+  useEffect(() => {
+    const loadAllBanks = async () => {
+      try {
+        const response = await fetch("/api/proxy-pay/banks");
+        const data = await response.json();
+        if (data.status === "success") {
+          setAllBanks(
+            data.banks.map((bank: { name: string; code: string }) => ({
+              name: bank.name,
+              code: bank.code,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error loading banks:", error);
+      }
+    };
+    loadAllBanks();
+  }, []);
+
+  // Filter banks based on search query
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      setIsSearchingBanks(true);
+      const filtered = allBanks.filter((bank) =>
+        bank.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setBankSuggestions(filtered);
+      setIsSearchingBanks(false);
+      setShowBankDropdown(true);
+    } else {
+      setBankSuggestions([]);
+      setShowBankDropdown(false);
+    }
+  }, [searchQuery, allBanks]);
+
+  // Removed duplicate declaration of handleBankSearch
+
+  // Removed duplicate declaration of handleSelectBank
+
+  const clearSearch = () => {
+    setBankName("");
+    setSearchQuery("");
+    setBankSuggestions([]);
+    setShowBankDropdown(false);
+  };
 
   useEffect(() => {
     const fetchAndAssignReferralCode = async () => {
@@ -137,13 +189,20 @@ const Refer: React.FC = () => {
     setSearchQuery(value);
     if (value.length >= 2) {
       setShowBankDropdown(true);
-      fetchBankSuggestions(value);
+      debouncedBankSearch(value);
     } else {
       setShowBankDropdown(false);
       setBankSuggestions([]);
     }
   };
-
+  // Simple debounce function
+  function debounce(func: (...args: any[]) => void, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }
   const handleSelectBank = (bank: { name: string; code: string }) => {
     setBankName(bank.name);
     setSelectedBankCode(bank.code.replace(/\D/g, ""));
@@ -222,7 +281,36 @@ const Refer: React.FC = () => {
       setWithdrawing(false);
     }
   };
-
+  const debouncedBankSearch = useCallback(
+    debounce(async (query: string) => {
+      if (query.length >= 2) {
+        try {
+          const response = await fetch("/api/proxy-pay/banks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query }),
+          });
+          const data = await response.json();
+          if (data.status === "success") {
+            setBankSuggestions(
+              data.banks.map((bank: { name: string; code: string }) => ({
+                name: bank.name,
+                code: bank.code,
+              }))
+            );
+          } else {
+            setBankSuggestions([]);
+          }
+        } catch (error) {
+          console.error("Error fetching bank suggestions:", error);
+          setBankSuggestions([]);
+        }
+      } else {
+        setBankSuggestions([]);
+      }
+    }, 300),
+    []
+  );
   const copyToClipboard = () => {
     if (!referralLink) return;
     navigator.clipboard
@@ -301,31 +389,55 @@ const Refer: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Bank Search */}
-              <div className="relative">
+              {/* Fixed Bank Search Component */}
+              <div className="relative mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Bank Name
                 </label>
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search bank..."
+                    placeholder="Search for your bank..."
                     value={bankName}
                     onChange={(e) => handleBankSearch(e.target.value)}
-                    className="w-full p-3 pl-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 pl-10 pr-8 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onFocus={() =>
+                      searchQuery.length >= 2 && setShowBankDropdown(true)
+                    }
                   />
                   <FaSearch className="absolute left-3 top-3.5 text-gray-400" />
+                  {bankName && (
+                    <button
+                      onClick={clearSearch}
+                      className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
                 </div>
+
                 <AnimatePresence>
+                  {isSearchingBanks && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex justify-center"
+                    >
+                      <FaSpinner className="animate-spin text-blue-500" />
+                    </motion.div>
+                  )}
+
                   {showBankDropdown && bankSuggestions.length > 0 && (
                     <motion.ul
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-y-auto max-h-60"
                     >
-                      {bankSuggestions.map((bank, index) => (
+                      {bankSuggestions.map((bank) => (
                         <motion.li
-                          key={index}
+                          key={bank.code}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
@@ -336,6 +448,19 @@ const Refer: React.FC = () => {
                       ))}
                     </motion.ul>
                   )}
+
+                  {showBankDropdown &&
+                    bankSuggestions.length === 0 &&
+                    searchQuery.length >= 2 &&
+                    !isSearchingBanks && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-gray-500"
+                      >
+                        No banks found matching &quot;{searchQuery}&quot;
+                      </motion.div>
+                    )}
                 </AnimatePresence>
               </div>
 
