@@ -18,6 +18,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
+import Select from "react-select";
 
 interface Product {
   Category: string;
@@ -57,6 +58,7 @@ const RentNumbers: React.FC = () => {
   >([
     { display: "Afghanistan", code: "afghanistan" },
     { display: "Albania", code: "albania" },
+    { display: "Venezuela", code: "venezuela" },
     { display: "Vietnam", code: "vietnam" },
     { display: "Zambia", code: "zambia" },
     { display: "Algeria", code: "algeria" },
@@ -214,7 +216,6 @@ const RentNumbers: React.FC = () => {
     { display: "Uruguay", code: "uruguay" },
     { display: "USA", code: "usa" },
     { display: "Uzbekistan", code: "uzbekistan" },
-    { display: "Venezuela", code: "venezuela" },
   ]);
   const [operators, setOperators] = useState<string[]>([
     "any",
@@ -225,7 +226,7 @@ const RentNumbers: React.FC = () => {
   const [products, setProducts] = useState<Record<string, Product>>({});
   const [selectedCountry, setSelectedCountry] = useState<string>("any");
   const [selectedOperator, setSelectedOperator] = useState<string>("any");
-  const [selectedProduct, setSelectedProduct] = useState<string>("telegram");
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -240,7 +241,8 @@ const RentNumbers: React.FC = () => {
   const [rentalDuration, setRentalDuration] = useState<string>("1 hour");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [serviceSearchTerm, setServiceSearchTerm] = useState<string>("");
-
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [lastDeduction, setLastDeduction] = useState<number>(0);
   // Load from localStorage on component mount
   useEffect(() => {
     const savedActiveOrders = localStorage.getItem("activeOrders");
@@ -361,6 +363,10 @@ const RentNumbers: React.FC = () => {
 
       if (response.ok) {
         setProducts(data);
+        // Auto-select the first product if none is selected
+        if (!selectedProduct && Object.keys(data).length > 0) {
+          setSelectedProduct(Object.keys(data)[0]);
+        }
       } else {
         setMessage(data.error || "Failed to fetch products");
       }
@@ -413,6 +419,7 @@ const RentNumbers: React.FC = () => {
   };
 
   // Rent a number
+  // In rentNumber function, replace the USD conversion check and deduction:
   const rentNumber = async () => {
     if (!selectedProduct) {
       setMessage("Please select a product");
@@ -425,10 +432,9 @@ const RentNumbers: React.FC = () => {
 
     const basePrice = Number(products[selectedProduct]?.Price) || 0;
     const finalPrice = calculateFinalPrice(basePrice, rentalDuration);
-    const orderCostUSD = finalPrice * rubleToUSDRate;
-    const depositUSD = balance * ngnToUSDRate;
 
-    if (depositUSD < orderCostUSD) {
+    // Compare the balance directly with the final price (all in USD)
+    if (balance < finalPrice) {
       setMessage("Insufficient funds");
       return;
     }
@@ -445,7 +451,11 @@ const RentNumbers: React.FC = () => {
       if (response.ok) {
         setMessage(`Successfully rented: ${data.phone}`);
 
-        // Deduct the cost from user deposit (in NGN)
+        // Store the exact amount deducted in localStorage
+        localStorage.setItem("lastDeduction", finalPrice.toString());
+        setLastDeduction(finalPrice);
+
+        // Deduct the cost from user deposit in USD
         const q = query(
           collection(db, "userDeposits"),
           where("email", "==", userEmail)
@@ -453,19 +463,15 @@ const RentNumbers: React.FC = () => {
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const depositDoc = querySnapshot.docs[0];
-          const currentAmount = depositDoc.data().amount || 0;
-          const costNGN = orderCostUSD / ngnToUSDRate;
-          const newAmount = currentAmount - costNGN;
-          const amount = Number(querySnapshot.docs[0].data().amount) || 0;
+          const currentAmount = Number(depositDoc.data().amount) || 0;
+          const newAmount = parseFloat((currentAmount - finalPrice).toFixed(2));
           await updateDoc(depositDoc.ref, { amount: newAmount });
-          // setBalance(newAmount);
-          setBalance(amount);
+          setBalance(newAmount);
         }
 
-        // Calculate expiration time based on duration
+        // Calculate order expiration based on duration
         const now = new Date();
         let expires = new Date(now);
-
         switch (rentalDuration) {
           case "1 hour":
             expires.setHours(now.getHours() + 1);
@@ -480,7 +486,7 @@ const RentNumbers: React.FC = () => {
             expires.setHours(now.getHours() + 1);
         }
 
-        // Save the order to Firestore
+        // Save the order to Firestore with finalPrice in USD
         const orderData = {
           user_email: userEmail,
           phone: data.phone,
@@ -499,17 +505,7 @@ const RentNumbers: React.FC = () => {
         };
 
         const docRef = await addDoc(collection(db, "rentals"), orderData);
-
-        // Add to active orders
-        setActiveOrders((prev) => [
-          ...prev,
-          {
-            ...orderData,
-            id: docRef.id,
-          },
-        ]);
-
-        // Refresh orders list
+        setActiveOrders((prev) => [...prev, { ...orderData, id: docRef.id }]);
         fetchOrders();
       } else {
         setMessage(data.error || "Failed to rent number");
@@ -616,6 +612,7 @@ const RentNumbers: React.FC = () => {
   };
 
   // Cancel order
+  // In your cancelOrder function, update the refund calculation as follows:
   const cancelOrder = async (orderId: string) => {
     if (!selectedOrder) return;
 
@@ -639,11 +636,12 @@ const RentNumbers: React.FC = () => {
           await updateDoc(orderDoc.ref, { status: "CANCELED" });
         }
 
-        // Refund the amount
-        const refundCostUSD = selectedOrder.finalPrice * rubleToUSDRate;
-        const refundNGN = refundCostUSD / ngnToUSDRate;
+        // Get the exact amount to refund from localStorage
+        const refundAmount = parseFloat(
+          localStorage.getItem("lastDeduction") || "0"
+        );
 
-        // Update user deposit by adding refund
+        // Refund the exact amount
         const q = query(
           collection(db, "userDeposits"),
           where("email", "==", userEmail)
@@ -651,8 +649,10 @@ const RentNumbers: React.FC = () => {
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const depositDoc = querySnapshot.docs[0];
-          const currentAmount = depositDoc.data().amount || 0;
-          const newAmount = currentAmount + refundNGN;
+          const currentAmount = Number(depositDoc.data().amount) || 0;
+          const newAmount = parseFloat(
+            (currentAmount + refundAmount).toFixed(2)
+          );
           await updateDoc(depositDoc.ref, { amount: newAmount });
           setBalance(newAmount);
         }
@@ -662,20 +662,35 @@ const RentNumbers: React.FC = () => {
           prev.filter((order) => order.order_id !== orderId)
         );
 
-        setMessage("Order canceled and amount refunded");
+        setMessage(
+          `Order canceled and $${refundAmount.toFixed(
+            2
+          )} refunded to your balance`
+        );
+        setTimeout(() => setMessage(""), 5000);
+
         fetchOrders();
         setSelectedOrder(null);
       } else {
         setMessage(data.error || "Failed to cancel order");
+        setTimeout(() => setMessage(""), 5000);
       }
     } catch (error) {
       setMessage("Network error canceling order");
+      setTimeout(() => setMessage(""), 5000);
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
   // Ban number
   const banNumber = async (orderId: string) => {
     if (!selectedOrder) return;
@@ -746,6 +761,42 @@ const RentNumbers: React.FC = () => {
     }
   }, [activeTab, userEmail]);
 
+  // Reset current step when tab changes
+  useEffect(() => {
+    if (activeTab === "rent") {
+      setCurrentStep(1);
+    }
+  }, [activeTab]);
+
+  // Handle country selection
+  const handleCountrySelect = (value: string) => {
+    setSelectedCountry(value);
+    setCurrentStep(2); // Move to next step
+  };
+
+  // Handle operator selection
+  const handleOperatorSelect = (value: string) => {
+    setSelectedOperator(value);
+    setCurrentStep(3); // Move to next step
+  };
+
+  // Handle product selection
+  const handleProductSelect = (value: string) => {
+    setSelectedProduct(value);
+    setCurrentStep(4); // Move to next step
+  };
+
+  // Handle duration selection
+  const handleDurationSelect = (value: string) => {
+    setRentalDuration(value);
+  };
+
+  // Get price for a product based on current duration
+  const getProductPrice = (productKey: string) => {
+    const basePrice = products[productKey]?.Price || 0;
+    return calculateFinalPrice(basePrice, rentalDuration);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4">
       <div className="bg-white rounded-lg border overflow-hidden">
@@ -756,8 +807,8 @@ const RentNumbers: React.FC = () => {
 
           <div className="mt-4 flex justify-between items-center">
             <div className="bg-blue-700 px-4 py-2 rounded-lg">
-              <span className="font-medium">Balance:</span> ₦
-              {(balance * ngnToUSDRate).toFixed(2)}
+              <span className="font-medium">Balance:</span> $
+              {parseFloat((balance * ngnToUSDRate).toFixed(2))}
             </div>
             <div className="flex space-x-2">
               <button
@@ -800,120 +851,248 @@ const RentNumbers: React.FC = () => {
 
           {activeTab === "rent" ? (
             <div className="space-y-6">
+              {/* Step Guide */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-bold mb-4">How to rent a number:</h3>
+                <div className="flex flex-wrap gap-4">
+                  <div
+                    className={`flex-1 min-w-[200px] p-3 rounded-lg border ${
+                      currentStep >= 1
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${
+                          currentStep >= 1
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        1
+                      </div>
+                      <h4 className="font-medium">Select Country</h4>
+                    </div>
+                    {currentStep >= 1 && (
+                      <p className="text-sm text-gray-600">
+                        Choose the country for your number
+                      </p>
+                    )}
+                  </div>
+                  <div
+                    className={`flex-1 min-w-[200px] p-3 rounded-lg border ${
+                      currentStep >= 2
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${
+                          currentStep >= 2
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        2
+                      </div>
+                      <h4 className="font-medium">Select Operator</h4>
+                    </div>
+                    {currentStep >= 2 && (
+                      <p className="text-sm text-gray-600">
+                        Choose the mobile operator
+                      </p>
+                    )}
+                  </div>
+                  <div
+                    className={`flex-1 min-w-[200px] p-3 rounded-lg border ${
+                      currentStep >= 3
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${
+                          currentStep >= 3
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        3
+                      </div>
+                      <h4 className="font-medium">Select Service</h4>
+                    </div>
+                    {currentStep >= 3 && (
+                      <p className="text-sm text-gray-600">
+                        Choose the service you need
+                      </p>
+                    )}
+                  </div>
+                  <div
+                    className={`flex-1 min-w-[200px] p-3 rounded-lg border ${
+                      currentStep >= 4
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${
+                          currentStep >= 4
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        4
+                      </div>
+                      <h4 className="font-medium">Select Duration</h4>
+                    </div>
+                    {currentStep >= 4 && (
+                      <p className="text-sm text-gray-600">
+                        Choose rental duration
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Selection Form */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Country with search */}
+                {/* Country */}
                 <div>
                   <label className="block font-medium mb-2">Country</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search country..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full border rounded px-3 py-2 mb-2"
-                    />
-                    <select
-                      value={selectedCountry}
-                      onChange={(e) => setSelectedCountry(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
-                      disabled={loading}
-                    >
-                      {filteredCountries.map((country) => (
-                        <option key={country.code} value={country.code}>
-                          {country.display}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <Select
+                    options={countries.map((country) => ({
+                      value: country.code,
+                      label: country.display,
+                    }))}
+                    value={{
+                      value: selectedCountry,
+                      label:
+                        countries.find((c) => c.code === selectedCountry)
+                          ?.display || "Select Country",
+                    }}
+                    onChange={(selectedOption) => {
+                      if (selectedOption) {
+                        handleCountrySelect(selectedOption.value);
+                      }
+                    }}
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    isDisabled={loading}
+                    placeholder="Select country..."
+                  />
                 </div>
 
                 {/* Operator */}
                 <div>
                   <label className="block font-medium mb-2">Operator</label>
-                  <select
-                    value={selectedOperator}
-                    onChange={(e) => setSelectedOperator(e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                    disabled={loading}
-                  >
-                    {operators.map((operator) => (
-                      <option key={operator} value={operator}>
-                        {operator.charAt(0).toUpperCase() + operator.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    options={operators.map((operator) => ({
+                      value: operator,
+                      label:
+                        operator.charAt(0).toUpperCase() + operator.slice(1),
+                    }))}
+                    value={{
+                      value: selectedOperator,
+                      label:
+                        selectedOperator.charAt(0).toUpperCase() +
+                        selectedOperator.slice(1),
+                    }}
+                    onChange={(selectedOption) => {
+                      if (selectedOption) {
+                        handleOperatorSelect(selectedOption.value);
+                      }
+                    }}
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    isDisabled={loading || currentStep < 2}
+                    placeholder="Select operator..."
+                  />
                 </div>
 
-                {/* Product with search */}
+                {/* Service */}
                 <div>
                   <label className="block font-medium mb-2">Service</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search service..."
-                      value={serviceSearchTerm}
-                      onChange={(e) => setServiceSearchTerm(e.target.value)}
-                      className="w-full border rounded px-3 py-2 mb-2"
-                      disabled={!Object.keys(products).length}
-                    />
-                    <select
-                      value={selectedProduct}
-                      onChange={(e) => setSelectedProduct(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
-                      disabled={loading || !Object.keys(products).length}
-                    >
-                      {filteredProducts.length ? (
-                        filteredProducts.map((product) => (
-                          <option key={product} value={product}>
-                            {product} (${products[product].Price})
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">No matching services</option>
-                      )}
-                    </select>
-                  </div>
+                  <Select
+                    options={Object.keys(products).map((product) => ({
+                      value: product,
+                      label: `${product} ($${getProductPrice(product).toFixed(
+                        2
+                      )})`,
+                    }))}
+                    value={
+                      selectedProduct
+                        ? {
+                            value: selectedProduct,
+                            label: `${selectedProduct} ($${getProductPrice(
+                              selectedProduct
+                            ).toFixed(2)})`,
+                          }
+                        : null
+                    }
+                    onChange={(selectedOption) => {
+                      if (selectedOption) {
+                        handleProductSelect(selectedOption.value);
+                      }
+                    }}
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    isDisabled={
+                      loading ||
+                      currentStep < 3 ||
+                      !Object.keys(products).length
+                    }
+                    placeholder={
+                      Object.keys(products).length
+                        ? "Select service..."
+                        : "No services available"
+                    }
+                  />
                 </div>
               </div>
 
               {/* Duration selection with price calculation */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <label className="font-medium block mb-2">
-                  Rental Duration:
-                </label>
-                <div className="flex flex-wrap gap-4">
-                  {["1 hour", "1 day", "1 week"].map((duration) => (
-                    <div key={duration} className="flex items-center">
-                      <input
-                        type="radio"
-                        id={duration}
-                        name="duration"
-                        value={duration}
-                        checked={rentalDuration === duration}
-                        onChange={() => setRentalDuration(duration)}
-                        className="mr-2"
-                      />
-                      <label htmlFor={duration} className="flex items-center">
-                        {duration}
-                        {selectedProduct && (
-                          <span className="ml-2 text-blue-600 font-medium">
-                            ($
-                            {calculateFinalPrice(
-                              products[selectedProduct]?.Price || 0,
-                              duration
-                            ).toFixed(2)}
-                            )
-                          </span>
-                        )}
-                      </label>
-                    </div>
-                  ))}
+              {currentStep >= 4 && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <label className="font-medium block mb-2">
+                    Rental Duration:
+                  </label>
+                  <div className="flex flex-wrap gap-4">
+                    {["1 hour", "1 day", "1 week"].map((duration) => (
+                      <div key={duration} className="flex items-center">
+                        <input
+                          type="radio"
+                          id={duration}
+                          name="duration"
+                          value={duration}
+                          checked={rentalDuration === duration}
+                          onChange={() => handleDurationSelect(duration)}
+                          className="mr-2"
+                        />
+                        <label htmlFor={duration} className="flex items-center">
+                          {duration}
+                          {selectedProduct && (
+                            <span className="ml-2 text-blue-600 font-medium">
+                              ($
+                              {calculateFinalPrice(
+                                products[selectedProduct]?.Price || 0,
+                                duration
+                              ).toFixed(2)}
+                              )
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Product Info */}
-              {Object.keys(products).length > 0 && (
+              {selectedProduct && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <FiInfo className="text-blue-600" />
@@ -935,22 +1114,24 @@ const RentNumbers: React.FC = () => {
               )}
 
               {/* Rent Button */}
-              <div className="flex justify-center">
-                <button
-                  onClick={rentNumber}
-                  disabled={loading || !selectedProduct}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center disabled:opacity-50"
-                >
-                  {loading ? (
-                    <>
-                      <AiOutlineLoading3Quarters className="animate-spin mr-2" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Rent Number Now"
-                  )}
-                </button>
-              </div>
+              {currentStep >= 4 && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={rentNumber}
+                    disabled={loading || !selectedProduct}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <AiOutlineLoading3Quarters className="animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Rent Number Now"
+                    )}
+                  </button>
+                </div>
+              )}
 
               {/* Active Orders */}
               {activeOrders.length > 0 && (
@@ -1000,7 +1181,7 @@ const RentNumbers: React.FC = () => {
                       .toFixed(2)}
                   </p>
                   <p className="font-medium">
-                    Available Balance: ₦ {Number(adjustedBalance).toFixed(2)}
+                    Available Balance: $ {Number(adjustedBalance).toFixed(2)}
                   </p>
                 </div>
               )}

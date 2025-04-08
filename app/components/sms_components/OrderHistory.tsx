@@ -55,6 +55,7 @@ export interface SmsOrder {
   service: string;
   is_reused?: boolean;
   priceLocal?: string;
+  priceRub?: string;
 }
 
 export interface OrderHistoryProps {
@@ -62,6 +63,7 @@ export interface OrderHistoryProps {
   onRefresh: (orderId: string) => Promise<void>;
   onCancel: (orderId: string) => Promise<void>;
   onRemove: (orderId: string) => Promise<void>;
+  onRebuy: (order: SmsOrder) => Promise<void>;
 }
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({

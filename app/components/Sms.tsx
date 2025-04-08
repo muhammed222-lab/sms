@@ -23,7 +23,6 @@ import ActiveOrder from "./sms_components/ActiveOrder";
 import OrderHistory, { SmsOrder } from "./sms_components/OrderHistory";
 import OtpHelp from "./OtpHelp";
 import OrderEmpty from "./OrderEmpty";
-import { string } from "prop-types";
 
 interface User {
   email: string | null;
@@ -64,19 +63,18 @@ const Sms = () => {
   const [message, setMessage] = useState({ type: "", content: "" });
   const [isFetchingCode, setIsFetchingCode] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [balance, setBalance] = useState<number>(0); // balance in NGN
+  const [balance, setBalance] = useState<number>(0); // balance in USD
   const [orders, setOrders] = useState<SmsOrder[]>([]);
   const [activeTab, setActiveTab] = useState<"Active" | "History">("Active");
   const [search, setSearch] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [servicePage, setServicePage] = useState(1);
-  const [ngnToUsdRate, setNgnToUsdRate] = useState<number | null>(null);
-  const pageSize = 20;
-  // Add these state variables
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [rubToUsdRate, setRubToUsdRate] = useState<number | null>(null);
-  const [usdToNgnRate, setUsdToNgnRate] = useState<number | null>(null);
+  const pageSize = 20;
+
+  // Fetch exchange rates
   useEffect(() => {
     const fetchExchangeRates = async () => {
       try {
@@ -84,13 +82,12 @@ const Sms = () => {
         const rubRes = await fetch("https://open.er-api.com/v6/latest/RUB");
         const rubData = await rubRes.json();
         setRubToUsdRate(rubData.rates.USD);
-
-        // Fetch USD to NGN rate (1 USD = X NGN)
-        const usdRes = await fetch("https://open.er-api.com/v6/latest/USD");
-        const usdData = await usdRes.json();
-        setUsdToNgnRate(usdData.rates.NGN);
       } catch (error) {
         console.error("Error fetching exchange rates:", error);
+        setMessage({
+          type: "error",
+          content: "Error loading exchange rates. Please refresh the page.",
+        });
       }
     };
 
@@ -114,7 +111,6 @@ const Sms = () => {
     }
   };
 
-  // Update your onAuthStateChanged useEffect to fetch settings
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -126,7 +122,33 @@ const Sms = () => {
         if (currentUser.email) {
           await fetchUserSettings(currentUser.email);
         }
-        // ... rest of your existing code
+
+        // Fetch user balance (stored in USD)
+        try {
+          const q = query(
+            collection(db, "userDeposits"),
+            where("email", "==", currentUser.email)
+          );
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data();
+            setBalance(userData.amount || 0);
+          }
+
+          // Fetch user orders
+          const ordersQuery = query(
+            collection(db, "sms_orders"),
+            where("user_email", "==", currentUser.email)
+          );
+          const ordersSnapshot = await getDocs(ordersQuery);
+          const ordersList = ordersSnapshot.docs.map(
+            (doc) => doc.data() as SmsOrder
+          );
+          setOrders(ordersList);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
       } else {
         setUser(null);
         setUserSettings(null);
@@ -140,25 +162,6 @@ const Sms = () => {
   const getServiceLogoUrl = (serviceName: string) => {
     return `https://logo.clearbit.com/${serviceName}.com`;
   };
-
-  // Fetch live NGN-to-USD conversion rate (e.g., if 1 NGN = 0.0026 USD)
-  useEffect(() => {
-    const fetchExchangeRate = async () => {
-      try {
-        const res = await fetch("https://open.er-api.com/v6/latest/NGN");
-        if (!res.ok) {
-          console.error("Failed to fetch NGN exchange rate");
-          return;
-        }
-        const data = await res.json();
-        // data.rates.USD is the amount in USD for 1 NGN
-        setNgnToUsdRate(data.rates.USD);
-      } catch (error) {
-        console.error("Exchange rate error:", error);
-      }
-    };
-    fetchExchangeRate();
-  }, []);
 
   const fetchCountries = async () => {
     try {
@@ -220,15 +223,13 @@ const Sms = () => {
         for (const [productName, operators] of Object.entries(
           products as any
         )) {
-          // Get the first operator's price
           const operatorData = Object.values(operators as any)[0] as any;
 
-          // Make sure we have a valid price
           if (operatorData && operatorData.cost) {
             services.push({
               label: productName,
               value: productName.toLowerCase(),
-              price: operatorData.cost, // Use cost instead of cost_usd
+              price: operatorData.cost, // Original price in RUB
               stock: operatorData.count,
               country: countryName.toLowerCase(),
             });
@@ -268,9 +269,12 @@ const Sms = () => {
     }
   };
 
-  // ... Inside your Sms component, update handleRequestNumber as follows:
+  const calculatePriceInUSD = (rubPrice: number): number => {
+    if (!rubToUsdRate) return 0;
+    // Double the RUB price first, then convert to USD
+    return rubPrice * 2 * rubToUsdRate;
+  };
 
-  // In handleRequestNumber:
   const handleRequestNumber = async () => {
     if (!selectedCountry || !selectedService || !user?.email || !userSettings) {
       setMessage({
@@ -280,7 +284,7 @@ const Sms = () => {
       return;
     }
 
-    if (rubToUsdRate === null || usdToNgnRate === null) {
+    if (rubToUsdRate === null) {
       setMessage({
         type: "error",
         content: "Exchange rates not available. Please try again later.",
@@ -313,46 +317,24 @@ const Sms = () => {
 
       const data = await res.json();
 
-      // Double the price from API: e.g. 10 RUB becomes 20 RUB.
-      const originalPriceRub = Number(data.price);
-      const doubledPriceRub = originalPriceRub * 2;
+      // Calculate the price in USD (doubled RUB price converted to USD)
+      const priceUsd = calculatePriceInUSD(Number(data.price));
 
-      // Convert the doubled RUB amount to USD.
-      const priceUsd = rubToUsdRate ? doubledPriceRub * rubToUsdRate : 0;
-
-      // Compute the amount to charge in NGN (for database deduction/refund)
-      const priceToChargeNGN = priceUsd * usdToNgnRate;
-
-      // For display, if settings is USD, we show the USD value; otherwise, we show NGN.
-      let displayPrice: string, currencyToDisplay: string;
-      if (userSettings.currency === "USD") {
-        displayPrice = priceUsd.toFixed(2);
-        currencyToDisplay = "USD";
-      } else {
-        displayPrice = (priceUsd * usdToNgnRate).toFixed(2);
-        currencyToDisplay = "NGN";
-      }
-
-      // Check user balance – database balance is stored in NGN.
-      if (balance < priceToChargeNGN) {
+      // Check user balance (in USD)
+      if (balance < priceUsd) {
         throw new Error(
-          `Insufficient balance. You need ${priceToChargeNGN.toFixed(2)} NGN.`
+          `Insufficient balance. You need $${priceUsd.toFixed(2)} USD.`
         );
       }
 
-      // Create order data. For reference we store:
-      // - price (in USD) as derived from the double RUB price,
-      // - priceLocal as the NGN amount.
-      const orderData = {
+      // Create order data (all prices in USD)
+      const orderData: SmsOrder = {
         id: Number(data.id),
         orderId: data.id.toString(),
         phone: data.phone,
         operator: data.operator || "any",
         product: selectedService.value,
-        price: priceUsd.toFixed(2), // Reference in USD
-        priceRub: doubledPriceRub.toFixed(2),
-        priceLocal: priceToChargeNGN.toFixed(2), // NGN amount
-        localCurrency: "NGN", // All payments are recorded in NGN
+        price: priceUsd.toFixed(2), // Price in USD
         status: data.status || "PENDING",
         expires: data.expires,
         sms: null,
@@ -361,13 +343,15 @@ const Sms = () => {
         number: data.phone,
         user_email: user.email,
         service: selectedService.value,
+        priceRub: (Number(data.price) * 2).toFixed(2), // Store doubled RUB price for reference
+        localCurrency: "USD", // Add the required property
       };
 
       // Save order to Firestore
       await addDoc(collection(db, "sms_orders"), orderData);
       setOrders((prev) => [...prev, orderData]);
 
-      // Deduct the computed NGN amount from user's balance.
+      // Deduct the USD amount from user's balance
       const userBalanceQuery = query(
         collection(db, "userDeposits"),
         where("email", "==", user.email)
@@ -376,14 +360,16 @@ const Sms = () => {
       if (!userBalanceSnapshot.empty) {
         const userDoc = userBalanceSnapshot.docs[0];
         const currentBalance = userDoc.data().amount || 0;
-        const newBalance = currentBalance - priceToChargeNGN;
+        const newBalance = currentBalance - priceUsd;
         await updateDoc(userDoc.ref, { amount: newBalance });
         setBalance(newBalance);
       }
 
       setMessage({
         type: "success",
-        content: `Number purchased successfully for ${displayPrice} ${currencyToDisplay}!`,
+        content: `Number purchased successfully for $${priceUsd.toFixed(
+          2
+        )} USD!`,
       });
     } catch (error: any) {
       console.error("Error requesting number:", error);
@@ -396,26 +382,13 @@ const Sms = () => {
     }
   };
 
-  // In renderServicePrice:
   const renderServicePrice = (service: any) => {
-    if (!service.price) return "N/A";
+    if (!service.price || !rubToUsdRate) return "Loading...";
 
-    // Double the API price in RUB.
-    const originalPriceRub = Number(service.price);
-    const doubledPriceRub = originalPriceRub * 2;
-    // Convert to USD.
-    const priceUsd = rubToUsdRate ? doubledPriceRub * rubToUsdRate : 0;
-    if (userSettings?.currency === "NGN" && usdToNgnRate) {
-      // If user prefers NGN, show the amount converted to NGN.
-      const priceNgn =
-        rubToUsdRate && usdToNgnRate ? priceUsd * usdToNgnRate : 0;
-      return `${priceNgn.toFixed(2)} NGN`;
-    }
-    // Otherwise (if USD), display the converted USD value.
-    return `${priceUsd.toFixed(2)} USD`;
+    // Calculate price in USD (doubled RUB price converted to USD)
+    const priceUsd = calculatePriceInUSD(Number(service.price));
+    return `$${priceUsd.toFixed(2)} USD`;
   };
-
-  // In cancelOrder (refund using the exact deducted NGN amount):
 
   const fetchSmsCode = async (orderId: string) => {
     try {
@@ -485,13 +458,10 @@ const Sms = () => {
     }
   };
 
-  // ... For cancellations, ensure the refund is based on the NGN value saved in priceLocal:
-
   const cancelOrder = async (orderId: string) => {
     try {
       const currentUser = auth.currentUser;
-      if (!currentUser || !userSettings)
-        throw new Error("User not authenticated");
+      if (!currentUser) throw new Error("User not authenticated");
 
       const token = await currentUser.getIdToken();
       const response = await fetch(
@@ -520,15 +490,15 @@ const Sms = () => {
         const orderDoc = orderSnapshot.docs[0];
         const orderData = orderDoc.data();
 
-        // Refund amount uses the local NGN amount recorded in priceLocal
-        const refundAmount = Number(orderData.priceLocal);
+        // Refund amount in USD (the exact amount that was charged)
+        const refundAmount = Number(orderData.price);
 
         // Update order status
         await updateDoc(orderDoc.ref, {
           status: "CANCELED",
         });
 
-        // Refund to user's balance in NGN
+        // Refund to user's balance in USD
         const userBalanceQuery = query(
           collection(db, "userDeposits"),
           where("email", "==", currentUser.email)
@@ -553,9 +523,9 @@ const Sms = () => {
 
         setMessage({
           type: "success",
-          content: `Order cancelled successfully. ${refundAmount.toFixed(2)} ${
-            orderData.localCurrency
-          } has been refunded to your balance.`,
+          content: `Order cancelled successfully. $${refundAmount.toFixed(
+            2
+          )} USD has been refunded to your balance.`,
         });
       }
     } catch (error: any) {
@@ -566,7 +536,7 @@ const Sms = () => {
       });
     }
   };
-  // Removed duplicate declaration of renderServicePrice
+
   const rebuyNumber = async (order: SmsOrder) => {
     try {
       const currentUser = auth.currentUser;
@@ -589,9 +559,15 @@ const Sms = () => {
       const data = await response.json();
 
       if (data.id) {
-        const baseCostUsd = Number(data.price) * 0.012;
-        const costUsdMarkup = baseCostUsd * 1.5;
-        const costNgN = costUsdMarkup / ngnToUsdRate!;
+        // Calculate price in USD (doubled RUB price converted to USD)
+        const priceUsd = calculatePriceInUSD(Number(data.price));
+
+        // Check user balance (in USD)
+        if (balance < priceUsd) {
+          throw new Error(
+            `Insufficient balance. You need $${priceUsd.toFixed(2)} USD.`
+          );
+        }
 
         const newOrder: SmsOrder = {
           id: Number(data.id),
@@ -599,7 +575,7 @@ const Sms = () => {
           phone: data.phone,
           operator: data.operator || order.operator,
           product: order.product,
-          price: costUsdMarkup.toFixed(2),
+          price: priceUsd.toFixed(2), // Price in USD
           status: data.status || "PENDING",
           expires: data.expires,
           sms: null,
@@ -608,14 +584,16 @@ const Sms = () => {
           number: data.phone,
           user_email: currentUser.email || "",
           service: order.service,
-          priceLocal: (costUsdMarkup * usdToNgnRate!).toFixed(2), // Example conversion
-          localCurrency: "NGN", // Example currency
+          priceRub: (Number(data.price) * 2).toFixed(2), // Store doubled RUB price for reference
           is_reused: true,
+          localCurrency: undefined,
         };
 
+        // Save order to Firestore
         await addDoc(collection(db, "sms_orders"), newOrder);
         setOrders((prev) => [...prev, newOrder]);
 
+        // Deduct from user's balance in USD
         const userBalanceQuery = query(
           collection(db, "userDeposits"),
           where("email", "==", currentUser.email)
@@ -625,14 +603,16 @@ const Sms = () => {
         if (!userBalanceSnapshot.empty) {
           const userDoc = userBalanceSnapshot.docs[0];
           const currentBalance = userDoc.data().amount || 0;
-          const newBalance = currentBalance - costNgN;
+          const newBalance = currentBalance - priceUsd;
           await updateDoc(userDoc.ref, { amount: newBalance });
           setBalance(newBalance);
         }
 
         setMessage({
           type: "success",
-          content: "Number successfully re-bought.",
+          content: `Number successfully re-bought for $${priceUsd.toFixed(
+            2
+          )} USD.`,
         });
       } else {
         throw new Error(data.error || "Failed to rebuy number");
@@ -647,46 +627,39 @@ const Sms = () => {
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser({
-          email: currentUser.email,
-          displayName: currentUser.displayName,
-        });
+  const removeOrder = async (orderId: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
 
-        try {
-          const q = query(
-            collection(db, "userDeposits"),
-            where("email", "==", currentUser.email)
-          );
-          const querySnapshot = await getDocs(q);
+      // Delete from Firestore
+      const orderQuery = query(
+        collection(db, "sms_orders"),
+        where("orderId", "==", orderId),
+        where("user_email", "==", currentUser.email)
+      );
+      const orderSnapshot = await getDocs(orderQuery);
 
-          if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data();
-            setBalance(userData.amount || 0);
-          }
-
-          const ordersQuery = query(
-            collection(db, "sms_orders"),
-            where("user_email", "==", currentUser.email)
-          );
-          const ordersSnapshot = await getDocs(ordersQuery);
-          const ordersList = ordersSnapshot.docs.map(
-            (doc) => doc.data() as SmsOrder
-          );
-          setOrders(ordersList);
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      } else {
-        setUser(null);
+      if (!orderSnapshot.empty) {
+        const orderDoc = orderSnapshot.docs[0];
+        await deleteDoc(orderDoc.ref);
       }
-    });
 
-    fetchCountries();
-    return () => unsubscribe();
-  }, []);
+      // Update local state
+      setOrders((prev) => prev.filter((order) => order.orderId !== orderId));
+
+      setMessage({
+        type: "success",
+        content: "Order removed successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error removing order:", error);
+      setMessage({
+        type: "error",
+        content: error.message || "Failed to remove order. Please try again.",
+      });
+    }
+  };
 
   useEffect(() => {
     if (selectedCountry) {
@@ -730,40 +703,6 @@ const Sms = () => {
       localStorage.setItem("savedService", JSON.stringify(selectedService));
       setSuccessMessage("Service saved successfully.");
       setShowSuccess(true);
-    }
-  };
-  // Add this function to your Sms component
-  const removeOrder = async (orderId: string) => {
-    try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) throw new Error("User not authenticated");
-
-      // Delete from Firestore
-      const orderQuery = query(
-        collection(db, "sms_orders"),
-        where("orderId", "==", orderId),
-        where("user_email", "==", currentUser.email)
-      );
-      const orderSnapshot = await getDocs(orderQuery);
-
-      if (!orderSnapshot.empty) {
-        const orderDoc = orderSnapshot.docs[0];
-        await deleteDoc(orderDoc.ref);
-      }
-
-      // Update local state
-      setOrders((prev) => prev.filter((order) => order.orderId !== orderId));
-
-      setMessage({
-        type: "success",
-        content: "Order removed successfully.",
-      });
-    } catch (error: any) {
-      console.error("Error removing order:", error);
-      setMessage({
-        type: "error",
-        content: error.message || "Failed to remove order. Please try again.",
-      });
     }
   };
 
@@ -913,7 +852,6 @@ const Sms = () => {
                     </div>
                   </td>
 
-                  {/* // In your table cell: */}
                   <td className="border px-4 py-2">
                     {rubToUsdRate
                       ? renderServicePrice(selectedService)
@@ -994,18 +932,17 @@ const Sms = () => {
               activeOrders
                 .filter((o) => o.number.includes(search))
                 .map((order) => (
-                  // Update your ActiveOrder rendering to include the remove handler
                   <ActiveOrder
                     key={order.orderId}
                     order={{
                       ...order,
-                      priceLocal: order.priceLocal || "N/A",
                       sms: typeof order.sms === "string" ? order.sms : null,
                     }}
                     countdown={getCountdown(order.expires)}
                     onFetchSms={() => fetchSmsCode(order.orderId)}
                     onCancel={() => cancelOrder(order.orderId)}
                     onRemove={() => removeOrder(order.orderId)}
+                    onRebuy={rebuyNumber}
                   />
                 ))
             ) : (
@@ -1018,6 +955,7 @@ const Sms = () => {
               onRefresh={fetchSmsCode}
               onCancel={cancelOrder}
               onRemove={removeOrder}
+              onRebuy={rebuyNumber}
             />
           ) : (
             <p className="text-gray-500 text-center">No order history found.</p>

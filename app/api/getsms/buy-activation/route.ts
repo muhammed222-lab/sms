@@ -106,7 +106,7 @@ export async function GET(req: Request) {
       created_at: data.created_at,
     });
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("Server Error:", error);
     return NextResponse.json({ error: "An error occurred" }, { status: 500 });
   }
 }

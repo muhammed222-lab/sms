@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
   if (!token) {
     return NextResponse.json(
-      { error: "API key not configured" },
+      { error: "Server key not configured" },
       { status: 500 }
     );
   }
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
       const text = await response.text();
       return NextResponse.json(
         {
-          error: "API returned non-JSON response",
+          error: "Server returned non-JSON response",
           details: text,
         },
         { status: 500 }

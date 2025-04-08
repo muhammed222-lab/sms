@@ -22,10 +22,9 @@ const Header = () => {
   // Local states
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("Detecting...");
-  const [currency, setCurrency] = useState("NGN");
+  const [currency, setCurrency] = useState("USD"); // Default to USD now
   const [flag, setFlag] = useState("");
   const [balance, setBalance] = useState(0);
-  const [convertedBalance, setConvertedBalance] = useState("₦0.00");
   const [balanceDelta, setBalanceDelta] = useState(0);
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingImage, setIsLoadingImage] = useState(true);
@@ -39,6 +38,16 @@ const Header = () => {
     username: string;
   } | null>(null);
 
+  // Format balance in USD
+  const formatBalance = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   // Fetch user location
   useEffect(() => {
     const fetchUserLocation = async () => {
@@ -46,7 +55,6 @@ const Header = () => {
         const response = await fetch("https://ipapi.co/json/");
         const data = await response.json();
         setSelectedCountry(data.country_name || "Unknown");
-        setCurrency(data.currency || "NGN");
         setFlag(
           `https://flagcdn.com/w40/${data.country_code.toLowerCase()}.png`
         );
@@ -74,7 +82,6 @@ const Header = () => {
               username: string;
             };
             setUserSettings(data);
-            if (data.currency) setCurrency(data.currency);
           }
         });
 
@@ -108,31 +115,6 @@ const Header = () => {
 
     return () => unsubscribeAuth();
   }, [balance]);
-
-  // Convert balance based on currency
-  useEffect(() => {
-    const formatBalance = () => {
-      if (currency === "NGN") {
-        setConvertedBalance(
-          new Intl.NumberFormat("en-NG", {
-            style: "currency",
-            currency: "NGN",
-          }).format(balance)
-        );
-      } else {
-        // For USD conversion (simplified - in a real app you'd fetch rates)
-        const converted = balance / 750; // Example rate
-        setConvertedBalance(
-          new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(converted)
-        );
-      }
-    };
-
-    formatBalance();
-  }, [balance, currency]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -184,7 +166,7 @@ const Header = () => {
               <div className="relative flex items-center">
                 <div className="bg-blue-50 rounded-lg px-3 py-2 flex items-center">
                   <span className="text-sm font-medium text-blue-800">
-                    {convertedBalance}
+                    {formatBalance(balance)}
                   </span>
                   {balanceDelta !== 0 && (
                     <AnimatePresence>
@@ -201,8 +183,7 @@ const Header = () => {
                         }`}
                       >
                         {balanceDelta > 0 ? "+" : ""}
-                        {currency === "NGN" ? "₦" : "$"}
-                        {Math.abs(balanceDelta).toFixed(2)}
+                        {formatBalance(balanceDelta)}
                       </motion.span>
                     </AnimatePresence>
                   )}
@@ -233,7 +214,7 @@ const Header = () => {
                             opacity: isLoadingImage ? 0 : 1,
                             transition: "opacity 0.3s ease",
                           }}
-                          unoptimized={true} // Add this if you're still having issues
+                          unoptimized={true}
                         />
                         {userSettings?.make_me_extra_private && (
                           <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full">
@@ -321,7 +302,7 @@ const Header = () => {
               <div className="relative">
                 <div className="bg-blue-50 rounded-lg px-2 py-1">
                   <span className="text-xs font-medium text-blue-800">
-                    {convertedBalance.split(".")[0]}
+                    {formatBalance(balance).split(".")[0]}
                   </span>
                 </div>
                 {balanceDelta !== 0 && (
@@ -339,8 +320,7 @@ const Header = () => {
                       }`}
                     >
                       {balanceDelta > 0 ? "+" : ""}
-                      {currency === "NGN" ? "₦" : "$"}
-                      {Math.abs(balanceDelta).toFixed(2)}
+                      {formatBalance(balanceDelta).replace("$", "")}
                     </motion.span>
                   </AnimatePresence>
                 )}
@@ -434,7 +414,7 @@ const Header = () => {
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <p className="text-xs text-gray-500">Balance</p>
                         <p className="text-lg font-semibold text-blue-600">
-                          {convertedBalance}
+                          {formatBalance(balance)}
                         </p>
                         <div className="flex items-center mt-1">
                           {flag && (
@@ -445,7 +425,7 @@ const Header = () => {
                             />
                           )}
                           <span className="text-xs text-gray-500">
-                            {selectedCountry} ({currency})
+                            {selectedCountry} (USD)
                           </span>
                         </div>
                       </div>

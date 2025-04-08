@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -14,11 +15,35 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { FaCopy, FaCheck, FaSearch, FaSpinner, FaTimes } from "react-icons/fa";
+import {
+  FaCopy,
+  FaCheck,
+  FaSearch,
+  FaSpinner,
+  FaTimes,
+  FaWallet,
+} from "react-icons/fa";
 import { assignReferralCode } from "../utils/referralUtils";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiDollarSign, FiCalendar, FiCreditCard } from "react-icons/fi";
 import debounce from "lodash.debounce";
+import Select from "react-select";
+import { MdAccountBalance } from "react-icons/md";
+
+interface Bank {
+  id: number;
+  code: string;
+  name: string;
+  logo?: string;
+}
+
+interface NIBSSBank {
+  id: number;
+  InstitutionCode: string;
+  InstitutionName: string;
+  Category: string;
+  logo: string;
+}
 
 const Refer: React.FC = () => {
   const [referralLink, setReferralLink] = useState<string>("");
@@ -29,67 +54,65 @@ const Refer: React.FC = () => {
   const [totalCommission, setTotalCommission] = useState<number>(0);
   const [accountNumber, setAccountNumber] = useState<string>("");
   const [bankName, setBankName] = useState<string>("");
-  const [bankSuggestions, setBankSuggestions] = useState<
-    { name: string; code: string }[]
-  >([]);
+  const [bankSuggestions, setBankSuggestions] = useState<Bank[]>([]);
   const [selectedBankCode, setSelectedBankCode] = useState<string>("");
   const [accountName, setAccountName] = useState<string | null>(null);
   const [verifyingAccount, setVerifyingAccount] = useState<boolean>(false);
   const [withdrawing, setWithdrawing] = useState<boolean>(false);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
-  const [showBankDropdown, setShowBankDropdown] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [allBanks, setAllBanks] = useState<{ name: string; code: string }[]>(
-    []
-  );
+  const [allBanks, setAllBanks] = useState<Bank[]>([]);
   const [isSearchingBanks, setIsSearchingBanks] = useState(false);
+  const [isUSAccount, setIsUSAccount] = useState(false);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [walletType, setWalletType] = useState("");
+  const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
+  const [bankSearch, setBankSearch] = useState<string>("");
+  const [nibssBanks, setNibssBanks] = useState<NIBSSBank[]>([]);
+
+  // Load NIBSS banks
   useEffect(() => {
-    const loadAllBanks = async () => {
+    const loadNibssBanks = async () => {
       try {
-        const response = await fetch("/api/proxy-pay/banks");
+        const response = await fetch(
+          "https://gist.githubusercontent.com/OlabodeAbesin/1bb27b3e1847d8efaabcd9a1eb950147/raw/9976389dac715b59f78930682083e5c54e47ec8b/NIbssistitutionlist"
+        );
         const data = await response.json();
-        if (data.status === "success") {
-          setAllBanks(
-            data.banks.map((bank: { name: string; code: string }) => ({
-              name: bank.name,
-              code: bank.code,
-            }))
-          );
-        }
+        setNibssBanks(data);
       } catch (error) {
-        console.error("Error loading banks:", error);
+        console.error("Error loading NIBSS banks:", error);
       }
     };
-    loadAllBanks();
+    loadNibssBanks();
   }, []);
+
+  // Load all banks with logos from NIBSS data
+  useEffect(() => {
+    if (nibssBanks.length > 0) {
+      const banks = nibssBanks.map((bank) => ({
+        id: bank.id,
+        code: bank.InstitutionCode,
+        name: bank.InstitutionName,
+        logo: bank.logo || undefined,
+      }));
+      setAllBanks(banks);
+    }
+  }, [nibssBanks]);
 
   // Filter banks based on search query
   useEffect(() => {
-    if (searchQuery.length >= 2) {
+    if (bankSearch.length >= 2) {
       setIsSearchingBanks(true);
       const filtered = allBanks.filter((bank) =>
-        bank.name.toLowerCase().includes(searchQuery.toLowerCase())
+        bank.name.toLowerCase().includes(bankSearch.toLowerCase())
       );
       setBankSuggestions(filtered);
       setIsSearchingBanks(false);
-      setShowBankDropdown(true);
     } else {
       setBankSuggestions([]);
-      setShowBankDropdown(false);
     }
-  }, [searchQuery, allBanks]);
+  }, [bankSearch, allBanks]);
 
-  // Removed duplicate declaration of handleBankSearch
-
-  // Removed duplicate declaration of handleSelectBank
-
-  const clearSearch = () => {
-    setBankName("");
-    setSearchQuery("");
-    setBankSuggestions([]);
-    setShowBankDropdown(false);
-  };
-
+  // Fetch referral code and link
   useEffect(() => {
     const fetchAndAssignReferralCode = async () => {
       const currentUser = auth.currentUser;
@@ -116,10 +139,10 @@ const Refer: React.FC = () => {
         }
       }
     };
-
     fetchAndAssignReferralCode();
   }, []);
 
+  // Fetch invited users and calculate commission
   const fetchInvitedUsers = async () => {
     const currentUser = auth.currentUser;
     if (currentUser) {
@@ -160,56 +183,14 @@ const Refer: React.FC = () => {
     fetchInvitedUsers();
   }, []);
 
-  const fetchBankSuggestions = async (query: string) => {
-    try {
-      const response = await fetch("/api/proxy-pay/banks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-      });
-      const data = await response.json();
-      if (data.status === "success") {
-        setBankSuggestions(
-          data.banks.map((bank: { name: string; code: string }) => ({
-            name: bank.name,
-            code: bank.code,
-          }))
-        );
-      } else {
-        setBankSuggestions([]);
-      }
-    } catch (error) {
-      console.error("Error fetching bank suggestions:", error);
-      setBankSuggestions([]);
-    }
-  };
-
-  const handleBankSearch = (value: string) => {
-    setBankName(value);
-    setSearchQuery(value);
-    if (value.length >= 2) {
-      setShowBankDropdown(true);
-      debouncedBankSearch(value);
-    } else {
-      setShowBankDropdown(false);
-      setBankSuggestions([]);
-    }
-  };
-  // Simple debounce function
-  function debounce(func: (...args: any[]) => void, wait: number) {
-    let timeout: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
-    };
-  }
-  const handleSelectBank = (bank: { name: string; code: string }) => {
+  // Handle bank selection
+  const handleSelectBank = (bank: Bank) => {
+    setSelectedBank(bank);
     setBankName(bank.name);
     setSelectedBankCode(bank.code.replace(/\D/g, ""));
-    setShowBankDropdown(false);
-    setSearchQuery("");
   };
 
+  // Verify account details
   const handleVerifyAccount = async () => {
     if (!accountNumber || !selectedBankCode) {
       alert("Please provide both account number and bank name.");
@@ -241,6 +222,7 @@ const Refer: React.FC = () => {
     }
   };
 
+  // Handle withdrawal and update referral balance
   const handleWithdraw = async () => {
     if (!accountName || !selectedBankCode || !accountNumber) {
       alert("Please verify your account details before withdrawing.");
@@ -256,6 +238,16 @@ const Refer: React.FC = () => {
 
     setWithdrawing(true);
     try {
+      // First update the referral balance in Firestore
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(db, "users", currentUser.uid);
+        await updateDoc(userDocRef, {
+          referral_balance: totalCommission - withdrawAmount,
+        });
+      }
+
+      // Then process the withdrawal
       const response = await fetch("/api/proxy-pay/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -271,6 +263,8 @@ const Refer: React.FC = () => {
         alert("Withdrawal successful!");
         setTotalCommission((prev) => prev - withdrawAmount);
         setWithdrawAmount(0);
+        // Refresh the invited users to reflect the new balance
+        await fetchInvitedUsers();
       } else {
         alert(`Withdrawal failed: ${data.message}`);
       }
@@ -281,36 +275,7 @@ const Refer: React.FC = () => {
       setWithdrawing(false);
     }
   };
-  const debouncedBankSearch = useCallback(
-    debounce(async (query: string) => {
-      if (query.length >= 2) {
-        try {
-          const response = await fetch("/api/proxy-pay/banks", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query }),
-          });
-          const data = await response.json();
-          if (data.status === "success") {
-            setBankSuggestions(
-              data.banks.map((bank: { name: string; code: string }) => ({
-                name: bank.name,
-                code: bank.code,
-              }))
-            );
-          } else {
-            setBankSuggestions([]);
-          }
-        } catch (error) {
-          console.error("Error fetching bank suggestions:", error);
-          setBankSuggestions([]);
-        }
-      } else {
-        setBankSuggestions([]);
-      }
-    }, 300),
-    []
-  );
+
   const copyToClipboard = () => {
     if (!referralLink) return;
     navigator.clipboard
@@ -322,23 +287,70 @@ const Refer: React.FC = () => {
       .catch(() => alert("Failed to copy the referral link."));
   };
 
+  // Custom option component for bank select with logos
+  const BankOption = ({ innerProps, label, data }: any) => (
+    <div
+      {...innerProps}
+      className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+    >
+      {data.logo ? (
+        <img
+          src={data.logo}
+          alt={label}
+          className="w-6 h-6 mr-2 rounded-full object-contain"
+          onError={(e) => {
+            (e.target as HTMLImageElement).onerror = null;
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      ) : (
+        <span className="w-6 h-6 mr-2 flex items-center justify-center">
+          🏦
+        </span>
+      )}
+      <span>{label}</span>
+    </div>
+  );
+
+  // Custom single value component for bank select
+  const BankSingleValue = ({ data }: any) => (
+    <div className="flex items-center">
+      {data.logo ? (
+        <img
+          src={data.logo}
+          alt={data.name}
+          className="w-6 h-6 mr-2 rounded-full object-contain"
+          onError={(e) => {
+            (e.target as HTMLImageElement).onerror = null;
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      ) : (
+        <span className="w-6 h-6 mr-2 flex items-center justify-center">
+          🏦
+        </span>
+      )}
+      <span>{data.name}</span>
+    </div>
+  );
+
   return (
-    <div className="max-w-4xl mx-auto p-[5px]">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
       {/* Referral Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-[10px] mb-8"
+        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8"
       >
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
           Your Referral Program
         </h3>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 mb-4 sm:mb-6">
           Share your referral link and earn 5% commission on all deposits from
           your invited users.
         </p>
 
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
           <p className="text-sm font-medium text-gray-700 mb-2">
             Your Referral Link
           </p>
@@ -349,12 +361,12 @@ const Refer: React.FC = () => {
               value={
                 loading ? "Generating your referral link..." : referralLink
               }
-              className="flex-1 p-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-700 truncate"
+              className="flex-1 p-2 sm:p-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-700 truncate text-sm sm:text-base"
             />
             <button
               onClick={copyToClipboard}
               disabled={loading || copySuccess}
-              className={`p-3 rounded-lg flex items-center justify-center ${
+              className={`p-2 sm:p-3 rounded-lg flex items-center justify-center ${
                 copySuccess
                   ? "bg-green-100 text-green-700"
                   : "bg-blue-100 text-blue-600 hover:bg-blue-200"
@@ -366,21 +378,72 @@ const Refer: React.FC = () => {
         </div>
       </motion.div>
 
+      {/* US Account Checkbox */}
+      <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-white rounded-lg border border-gray-200">
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isUSAccount}
+            onChange={(e) => setIsUSAccount(e.target.checked)}
+            className="rounded text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-gray-700">My account is US-based</span>
+        </label>
+
+        {isUSAccount && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 space-y-3"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Wallet Type
+              </label>
+              <select
+                value={walletType}
+                onChange={(e) => setWalletType(e.target.value)}
+                className="w-full p-2 sm:p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select wallet type</option>
+                <option value="BTC">Bitcoin</option>
+                <option value="ETH">Ethereum</option>
+                <option value="USDT">USDT</option>
+                <option value="SOL">Solana</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Wallet Address
+              </label>
+              <input
+                type="text"
+                placeholder="Enter your wallet address"
+                value={walletAddress}
+                onChange={(e) => setWalletAddress(e.target.value)}
+                className="w-full p-2 sm:p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </motion.div>
+        )}
+      </div>
+
       {/* Commission Summary */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="rounded-xl p-[10px] mb-8"
+        className="bg-white rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-200"
       >
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 sm:mb-6">
           <div>
-            <h4 className="text-xl font-bold text-gray-800 mb-1">
+            <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-1">
               Your Earnings
             </h4>
             <p className="text-gray-600">Total commission from referrals</p>
           </div>
-          <div className="text-3xl font-bold text-green-600 mt-4 md:mt-0">
+          <div className="text-2xl sm:text-3xl font-bold text-green-600 mt-2 sm:mt-0">
             {totalCommission.toLocaleString()} NGN
           </div>
         </div>
@@ -388,80 +451,35 @@ const Refer: React.FC = () => {
         {totalCommission > 0 && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Bank Search */}
-              {/* Fixed Bank Search Component */}
-              <div className="relative mb-4">
+              {/* Bank Select with React Select */}
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Bank Name
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search for your bank..."
-                    value={bankName}
-                    onChange={(e) => handleBankSearch(e.target.value)}
-                    className="w-full p-3 pl-10 pr-8 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    onFocus={() =>
-                      searchQuery.length >= 2 && setShowBankDropdown(true)
+                <Select
+                  options={allBanks}
+                  value={selectedBank}
+                  onChange={(selectedOption) => {
+                    if (selectedOption) {
+                      handleSelectBank(selectedOption);
                     }
-                  />
-                  <FaSearch className="absolute left-3 top-3.5 text-gray-400" />
-                  {bankName && (
-                    <button
-                      onClick={clearSearch}
-                      className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
-                    >
-                      <FaTimes />
-                    </button>
-                  )}
-                </div>
-
-                <AnimatePresence>
-                  {isSearchingBanks && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex justify-center"
-                    >
-                      <FaSpinner className="animate-spin text-blue-500" />
-                    </motion.div>
-                  )}
-
-                  {showBankDropdown && bankSuggestions.length > 0 && (
-                    <motion.ul
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-y-auto max-h-60"
-                    >
-                      {bankSuggestions.map((bank) => (
-                        <motion.li
-                          key={bank.code}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          onClick={() => handleSelectBank(bank)}
-                        >
-                          {bank.name}
-                        </motion.li>
-                      ))}
-                    </motion.ul>
-                  )}
-
-                  {showBankDropdown &&
-                    bankSuggestions.length === 0 &&
-                    searchQuery.length >= 2 &&
-                    !isSearchingBanks && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-gray-500"
-                      >
-                        No banks found matching &quot;{searchQuery}&quot;
-                      </motion.div>
-                    )}
-                </AnimatePresence>
+                  }}
+                  onInputChange={(inputValue) => {
+                    setBankSearch(inputValue);
+                    setBankName(inputValue);
+                  }}
+                  placeholder="Search for your bank..."
+                  isSearchable
+                  components={{
+                    Option: BankOption,
+                    SingleValue: BankSingleValue,
+                  }}
+                  getOptionLabel={(option) => option.name}
+                  getOptionValue={(option) => option.code}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  isLoading={isSearchingBanks}
+                />
               </div>
 
               {/* Account Number */}
@@ -474,14 +492,42 @@ const Refer: React.FC = () => {
                   placeholder="Enter account number"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-2 sm:p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
 
+            {/* Selected Bank Info */}
+            {selectedBank && (
+              <div className="bg-blue-50 p-3 rounded-lg flex items-center gap-3">
+                {selectedBank.logo ? (
+                  <img
+                    src={selectedBank.logo}
+                    alt={selectedBank.name}
+                    className="w-8 h-8 rounded-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).onerror = null;
+                      (e.target as HTMLImageElement).src = "";
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <span className="w-8 h-8 flex items-center justify-center text-xl">
+                    🏦
+                  </span>
+                )}
+                <div>
+                  <p className="font-medium">{selectedBank.name}</p>
+                  <p className="text-sm text-gray-600">
+                    Code: {selectedBank.code}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Account Verification */}
             {accountName && (
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+              <div className="bg-green-50 p-3 sm:p-4 rounded-lg border border-green-100">
                 <p className="text-green-700 font-medium">
                   Verified Account:{" "}
                   <span className="font-normal">{accountName}</span>
@@ -490,7 +536,7 @@ const Refer: React.FC = () => {
             )}
 
             {/* Withdrawal Amount */}
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-100">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Withdrawal Amount (Min: 100 NGN, Max:{" "}
                 {totalCommission.toLocaleString()} NGN)
@@ -499,7 +545,7 @@ const Refer: React.FC = () => {
                 <input
                   type="number"
                   value={withdrawAmount}
-                  className="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 p-2 sm:p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   min={100}
                   max={totalCommission}
                   onChange={(e) => setWithdrawAmount(Number(e.target.value))}
@@ -512,8 +558,8 @@ const Refer: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 onClick={handleVerifyAccount}
-                disabled={verifyingAccount || !bankName || !accountNumber}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                disabled={verifyingAccount || !selectedBank || !accountNumber}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 text-sm sm:text-base"
               >
                 {verifyingAccount ? (
                   <>
@@ -535,7 +581,7 @@ const Refer: React.FC = () => {
                   withdrawAmount < 100 ||
                   withdrawAmount > totalCommission
                 }
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 text-sm sm:text-base"
               >
                 {withdrawing ? (
                   <>
@@ -559,20 +605,20 @@ const Refer: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className=" rounded-xl"
+        className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200"
       >
-        <h4 className="text-xl font-bold text-gray-800 mb-6">
+        <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">
           Your Invited Users
         </h4>
 
         {fetchingInvites ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-4 sm:py-8">
             <FaSpinner className="animate-spin text-blue-500 text-2xl" />
           </div>
         ) : invitedUsers.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-4 sm:py-8">
             <p className="text-gray-500 mb-2">
-              You haven&lsquo;t invited any users yet
+              You haven&apos;t invited any users yet
             </p>
             <p className="text-sm text-gray-400">
               Share your referral link to invite users and start earning
@@ -592,15 +638,19 @@ const Refer: React.FC = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-blue-100 text-blue-600 p-2 rounded-full">
                       <FiUser />
                     </div>
                     <div>
-                      <p className="font-medium">{user.name || "Anonymous"}</p>
-                      <p className="text-sm text-gray-500">{truncatedEmail}</p>
+                      <p className="font-medium text-sm sm:text-base">
+                        {user.name || "Anonymous"}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500">
+                        {truncatedEmail}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -609,7 +659,7 @@ const Refer: React.FC = () => {
                       {user.referDate}
                     </p>
                     <p
-                      className={`text-sm ${
+                      className={`text-xs sm:text-sm ${
                         user.commission > 0 ? "text-green-600" : "text-gray-500"
                       }`}
                     >

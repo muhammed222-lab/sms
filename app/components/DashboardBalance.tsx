@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
@@ -52,6 +53,8 @@ const DashboardBalance: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [usdAmount, setUsdAmount] = useState<number | null>(null);
 
   const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "";
 
@@ -82,6 +85,35 @@ const DashboardBalance: React.FC = () => {
       document.body.removeChild(script);
     };
   }, []);
+
+  // Fetch exchange rate
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await fetch(
+          "https://api.exchangerate-api.com/v4/latest/USD"
+        );
+        const data = await response.json();
+        setExchangeRate(data.rates.NGN);
+      } catch (error) {
+        console.error("Error fetching exchange rate:", error);
+        // Fallback rate if API fails
+        setExchangeRate(1538.5); // Approximate rate as fallback
+      }
+    };
+
+    fetchExchangeRate();
+  }, []);
+
+  // Calculate USD amount when NGN amount changes
+  useEffect(() => {
+    if (amount && exchangeRate) {
+      const calculatedUsd = amount / exchangeRate;
+      setUsdAmount(parseFloat(calculatedUsd.toFixed(2)));
+    } else {
+      setUsdAmount(null);
+    }
+  }, [amount, exchangeRate]);
 
   // Auth state listener
   useEffect(() => {
@@ -137,7 +169,7 @@ const DashboardBalance: React.FC = () => {
   };
 
   const handleFlutterwavePayment = async () => {
-    if (!amount) {
+    if (!amount || !usdAmount) {
       setError("Please enter a valid amount between ₦1,000 and ₦100,000");
       return;
     }
@@ -162,7 +194,9 @@ const DashboardBalance: React.FC = () => {
         },
         customizations: {
           title: "Top Up Balance",
-          description: `Deposit ₦${amount.toLocaleString()} to your account`,
+          description: `Deposit ₦${amount.toLocaleString()} ($${usdAmount.toFixed(
+            2
+          )}) to your account`,
           logo: "/deemax.png",
         },
         callback: async (response) => {
@@ -175,17 +209,22 @@ const DashboardBalance: React.FC = () => {
 
             const verifyData = await verifyResponse.json();
 
+            if (verifyData.status !== "success" || !verifyData.data) {
+              throw new Error(verifyData.message || "Verification failed");
+            }
+
+            const transactionData = verifyData.data;
+
             if (
-              verifyData.status === "success" &&
-              verifyData.data.status === "successful" &&
-              verifyData.data.amount === amount &&
-              verifyData.data.currency === "NGN"
+              transactionData.status === "successful" &&
+              transactionData.amount === amount &&
+              transactionData.currency === "NGN"
             ) {
               setSuccess(
                 "Payment verified successfully! Updating your balance..."
               );
 
-              // Update user balance
+              // Update user balance in USD
               const email = user?.email || "default@example.com";
               const depositCollection = collection(db, "userDeposits");
               const userQuery = query(
@@ -198,29 +237,33 @@ const DashboardBalance: React.FC = () => {
                 const docRef = querySnapshot.docs[0].ref;
                 const existingData =
                   querySnapshot.docs[0].data() as DocumentData;
-                const newAmount = (existingData.amount || 0) + amount;
+                const newAmount = (existingData.amount || 0) + usdAmount;
                 await updateDoc(docRef, { amount: newAmount });
               } else {
                 await addDoc(depositCollection, {
                   email,
-                  amount,
+                  amount: usdAmount,
                   date: new Date().toISOString(),
                 });
               }
 
-              setBalance((prevBalance) => prevBalance + amount);
+              setBalance((prevBalance) => prevBalance + usdAmount);
 
               // Record transaction history
               await addDoc(collection(db, "deposit_history"), {
                 user_email: email,
-                amount,
+                amount: usdAmount,
+                original_amount: amount,
+                original_currency: "NGN",
+                exchange_rate: exchangeRate,
                 date: new Date(),
                 mode: "Flutterwave",
                 status: "success",
                 transaction_id: response.transaction_id,
+                flutterwave_data: transactionData, // Store the full response for reference
               });
 
-              // Handle referral commission
+              // Handle referral commission (in USD)
               const refersQuery = query(
                 collection(db, "refers"),
                 where("user_email", "==", email)
@@ -230,20 +273,28 @@ const DashboardBalance: React.FC = () => {
               if (!refersSnapshot.empty) {
                 const referrerDoc = refersSnapshot.docs[0];
                 const referrerData = referrerDoc.data() as DocumentData;
-                const commission = (5 / 100) * amount;
+                const commission = (5 / 100) * usdAmount;
                 await updateDoc(referrerDoc.ref, {
                   commission: (referrerData.commission || 0) + commission,
                 });
               }
 
-              setSuccess(`Payment successful! Your balance has been updated.`);
+              setSuccess(
+                `Payment successful! $${usdAmount.toFixed(
+                  2
+                )} has been added to your balance.`
+              );
             } else {
               setError("Payment verification failed. Please contact support.");
               await recordFailedTransaction();
             }
           } catch (error) {
             console.error("Error verifying transaction:", error);
-            setError("An error occurred during payment verification.");
+            setError(
+              error instanceof Error
+                ? error.message
+                : "An error occurred during payment verification."
+            );
             await recordFailedTransaction();
           } finally {
             setLoading(false);
@@ -268,7 +319,10 @@ const DashboardBalance: React.FC = () => {
     try {
       await addDoc(collection(db, "deposit_history"), {
         user_email: user?.email || "default@example.com",
-        amount,
+        amount: usdAmount,
+        original_amount: amount,
+        original_currency: "NGN",
+        exchange_rate: exchangeRate,
         date: new Date(),
         mode: "Flutterwave",
         status: "failed",
@@ -282,7 +336,10 @@ const DashboardBalance: React.FC = () => {
     try {
       await addDoc(collection(db, "deposit_history"), {
         user_email: user?.email || "default@example.com",
-        amount,
+        amount: usdAmount,
+        original_amount: amount,
+        original_currency: "NGN",
+        exchange_rate: exchangeRate,
         date: new Date(),
         mode: "Flutterwave",
         status: "pending",
@@ -299,11 +356,19 @@ const DashboardBalance: React.FC = () => {
     }).format(amount);
   };
 
+  const formatUsdCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
   const resetPaymentMethod = () => {
     setSelectedMethod(null);
     setAmount(null);
     setError(null);
     setSuccess(null);
+    setUsdAmount(null);
   };
 
   return (
@@ -315,7 +380,7 @@ const DashboardBalance: React.FC = () => {
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <h2 className="text-xl font-semibold">
             Current Balance:{" "}
-            <span className="text-blue-600">{formatCurrency(balance)}</span>
+            <span className="text-blue-600">{formatUsdCurrency(balance)}</span>
           </h2>
           <p className="text-gray-600 mt-1">
             Welcome back, {user?.displayName || "User"}! Ready to make a
@@ -369,6 +434,21 @@ const DashboardBalance: React.FC = () => {
                 <p className="mt-1 text-sm text-gray-500">
                   Minimum: ₦1,000 | Maximum: ₦100,000
                 </p>
+
+                {usdAmount && (
+                  <div className="mt-2 p-2 bg-gray-100 rounded-md">
+                    <p className="text-sm font-medium">
+                      Equivalent:{" "}
+                      <span className="text-blue-600">
+                        {formatUsdCurrency(usdAmount)}
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      This is the amount that will be added to your balance in
+                      USD.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
@@ -409,6 +489,12 @@ const DashboardBalance: React.FC = () => {
                   You'll be redirected to Flutterwave's secure payment page to
                   complete your transaction.
                 </p>
+                {usdAmount && (
+                  <p className="text-sm mt-1">
+                    Your account will be credited with{" "}
+                    {formatUsdCurrency(usdAmount)} after successful payment.
+                  </p>
+                )}
               </div>
             </div>
           )}
