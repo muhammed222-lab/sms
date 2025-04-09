@@ -1,175 +1,315 @@
 "use client";
 
-import React, { useState } from "react";
-import { auth } from "../firebaseConfig"; // Ensure this path is correct
+import React, { useState, useEffect } from "react";
+import { auth } from "../firebaseConfig";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import Image from "next/image";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { motion } from "framer-motion";
 
 const SignIn = () => {
-  const [email, setEmail] = useState<string>(""); // Specify string type
-  const [password, setPassword] = useState<string>(""); // Specify string type
-  const [error, setError] = useState<string>(""); // Specify string type
-  const [loading, setLoading] = useState<boolean>(false); // Specify boolean type
-  const [forgotPasswordMessage, setForgotPasswordMessage] =
-    useState<string>(""); // Specify string type
-  const [showPassword, setShowPassword] = useState<boolean>(false); // Toggle for password visibility
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    general?: string;
+  }>({});
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
   const router = useRouter();
+
+  // Load saved credentials if "remember me" was checked
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("savedEmail");
+    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+
+    if (savedRememberMe && savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    setForgotPasswordMessage("");
+    if (!validateForm()) return;
+
     setLoading(true);
+    setErrors({});
 
     try {
+      // Set persistence based on remember me
+      await setPersistence(
+        auth,
+        rememberMe ? browserLocalPersistence : browserSessionPersistence
+      );
+
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard"); // Redirect to dashboard after successful login
+
+      // Save to localStorage if "remember me" is checked
+      if (rememberMe) {
+        localStorage.setItem("savedEmail", email);
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        localStorage.removeItem("savedEmail");
+        localStorage.removeItem("rememberMe");
+      }
+
+      toast.success("Successfully signed in!", { autoClose: 2000 });
+      router.push("/dashboard");
     } catch (err) {
       setLoading(false);
+
       if (err instanceof FirebaseError) {
+        let errorMessage =
+          "An error occurred during sign in (Incorrect credentials).";
+
         switch (err.code) {
           case "auth/user-not-found":
-            setError("We couldn't find an account with this email address.");
+            errorMessage = "No account found with this email.";
             break;
           case "auth/wrong-password":
-            setError(
-              "The password you entered is incorrect. Please try again."
-            );
+            errorMessage = "Incorrect password. Please try again.";
             break;
-          default:
-            setError("Details not correct. Please try again later.");
+          case "auth/too-many-requests":
+            errorMessage = "Too many attempts. Please try again later.";
+            break;
+          case "auth/user-disabled":
+            errorMessage = "This account has been disabled.";
+            break;
         }
+
+        toast.error(errorMessage, { autoClose: 5000 });
       } else {
-        setError("An unexpected error occurred.");
+        toast.error("An unexpected error occurred.", { autoClose: 5000 });
       }
     }
-    setLoading(false);
   };
 
   const handleForgotPassword = async () => {
-    setError("");
-    setForgotPasswordMessage("");
+    setErrors({});
 
     if (!email) {
-      setError("Please enter your email to reset your password.");
+      setErrors({ email: "Please enter your email to reset your password." });
+      return;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErrors({ email: "Invalid email format" });
       return;
     }
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setForgotPasswordMessage("Password reset email sent. Check your inbox.");
+      toast.success("Password reset email sent. Check your inbox.", {
+        autoClose: 5000,
+      });
     } catch (err) {
       if (err instanceof FirebaseError) {
+        let errorMessage = "Failed to send password reset email.";
+
         if (err.code === "auth/user-not-found") {
-          setError("No user found with this email.");
-        } else {
-          setError("Failed to send password reset email. Please try again.");
+          errorMessage = "No account found with this email.";
         }
+
+        toast.error(errorMessage, { autoClose: 5000 });
       } else {
-        setError("An unexpected error occurred.");
+        toast.error("An unexpected error occurred.", { autoClose: 5000 });
       }
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="w-full max-w-md bg-white p-8 border rounded-lg">
-        {/* Logo */}
-        <div className="text-center mb-6">
-          <Image
-            src="/deemax.png"
-            alt="Deemax Logo"
-            width={100}
-            height={100}
-            className="mx-auto"
-          />
-          <h1 className="text-2xl font-bold mt-4">Welcome Back to Sms Globe</h1>
-          <p className="text-gray-600">Login to your account</p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <ToastContainer position="top-center" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md bg-white p-8 rounded-xl border"
+      >
+        {/* Logo and Welcome Text */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center">
+            <Image
+              src="/deemax.png"
+              alt="Sms Globe Logo"
+              width={80}
+              height={80}
+              className="rounded-lg"
+              priority
+            />
+          </div>
+          <h1 className="text-2xl font-bold mt-4 text-gray-800">
+            Welcome Back
+          </h1>
+          <p className="text-gray-500 mt-1">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSignIn}>
+        <form onSubmit={handleSignIn} className="space-y-4">
           {/* Email Input */}
-          <div className="mb-4">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Email Address
+            </label>
             <input
+              id="email"
               type="email"
-              placeholder="Email Address"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="john@example.com"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.email
+                  ? "border-red-500 focus:ring-red-200"
+                  : "border-gray-300 focus:ring-blue-200"
+              }`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+            )}
           </div>
 
           {/* Password Input with Toggle */}
-          <div className="mb-4 relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-3 flex items-center"
-              onClick={() => setShowPassword(!showPassword)}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
             >
-              {showPassword ? (
-                <FaEyeSlash className="text-gray-500" />
-              ) : (
-                <FaEye className="text-gray-500" />
-              )}
-            </button>
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                  errors.password
+                    ? "border-red-500 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-blue-200"
+                }`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+            )}
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
-          )}
+          {/* Remember Me & Forgot Password */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label
+                htmlFor="rememberMe"
+                className="ml-2 block text-sm text-gray-700"
+              >
+                Remember me
+              </label>
+            </div>
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:text-blue-800"
+              onClick={handleForgotPassword}
+            >
+              Forgot password?
+            </button>
+          </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className={`w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600 ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
+            className={`w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
             }`}
             disabled={loading}
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Signing In...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
-
-        {/* Forgot Password */}
-        <div className="mt-4 text-center">
-          <button
-            className="text-blue-500 text-sm hover:underline"
-            onClick={handleForgotPassword}
-          >
-            Forgot Password?
-          </button>
-        </div>
-        {forgotPasswordMessage && (
-          <p className="text-green-500 text-sm mt-2 text-center">
-            {forgotPasswordMessage}
-          </p>
-        )}
 
         {/* Sign Up Redirect */}
         <p className="text-center mt-6 text-sm text-gray-600">
           Don&apos;t have an account?{" "}
-          <span
-            className="text-blue-500 hover:underline cursor-pointer"
+          <button
+            className="text-blue-600 hover:text-blue-800 font-medium"
             onClick={() => router.push("/signup")}
+            disabled={loading}
           >
-            Create one now
-          </span>
+            Sign Up
+          </button>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };

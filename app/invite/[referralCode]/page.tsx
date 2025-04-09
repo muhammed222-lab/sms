@@ -87,9 +87,7 @@ const InvitePage: React.FC = () => {
           : "Checking referral details..."}
       </h1>
       <p className="text-gray-600 mb-6">
-        {inviter
-          ? "Join us now and get free N2,000 on your first deposit!"
-          : ""}
+        {inviter ? "Join us now and get free $2.00 on your first deposit!" : ""}
       </p>
       <button
         onClick={handleContinue}
