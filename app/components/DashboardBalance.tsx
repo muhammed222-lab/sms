@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/no-unescaped-entities */
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 "use client";
@@ -32,9 +36,15 @@ interface FlutterwaveCheckoutOptions {
     title: string;
     description: string;
     logo: string;
+    theme?: {
+      [key: string]: string;
+    };
   };
   callback: (response: { transaction_id: string; status: string }) => void;
   onclose: () => void;
+  meta?: {
+    [key: string]: any;
+  };
 }
 
 declare global {
@@ -55,6 +65,8 @@ const DashboardBalance: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [usdAmount, setUsdAmount] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [paymentConfig, setPaymentConfig] = useState<any>(null);
 
   const publicKey = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "";
 
@@ -75,16 +87,58 @@ const DashboardBalance: React.FC = () => {
     },
   ];
 
-  // Load Flutterwave script
+  // Check if device is mobile
   useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
+
+  // Load Flutterwave script and config
+  useEffect(() => {
+    const fetchPaymentConfig = async () => {
+      try {
+        // In a real app, you might fetch this from your API
+        const config = {
+          theme: {
+            color: "#4F46E5",
+            button_text: "#FFFFFF",
+            button_color: "#4F46E5",
+            background_color: "#F9FAFB",
+            modal_color: "#FFFFFF",
+          },
+          display: {
+            position: isMobile ? "center" : "right",
+            floating: !isMobile,
+          },
+        };
+        setPaymentConfig(config);
+      } catch (error) {
+        console.error("Error loading payment config:", error);
+        // Fallback config
+        setPaymentConfig({
+          theme: {
+            color: "#4F46E5",
+            button_text: "#FFFFFF",
+            button_color: "#4F46E5",
+          },
+        });
+      }
+    };
+
     const script = document.createElement("script");
     script.src = "https://checkout.flutterwave.com/v3.js";
     script.async = true;
+    script.onload = fetchPaymentConfig;
     document.body.appendChild(script);
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
+  }, [isMobile]);
 
   // Fetch exchange rate
   useEffect(() => {
@@ -97,8 +151,7 @@ const DashboardBalance: React.FC = () => {
         setExchangeRate(data.rates.NGN);
       } catch (error) {
         console.error("Error fetching exchange rate:", error);
-        // Fallback rate if API fails
-        setExchangeRate(1538.5); // Approximate rate as fallback
+        setExchangeRate(1538.5);
       }
     };
 
@@ -181,12 +234,12 @@ const DashboardBalance: React.FC = () => {
     const transactionRef = `TX-${Date.now()}-${user?.uid || "guest"}`;
 
     try {
-      window.FlutterwaveCheckout({
+      const paymentOptions: any = {
         public_key: publicKey,
         tx_ref: transactionRef,
         amount: amount,
         currency: "NGN",
-        payment_options: paymentMethods[0]?.supportedOptions?.join(",") ?? "",
+        payment_options: "card,mobilemoney,ussd,banktransfer",
         customer: {
           email: user?.email || "default@example.com",
           phone_number: user?.phoneNumber || "08012345678",
@@ -196,16 +249,27 @@ const DashboardBalance: React.FC = () => {
           title: "Top Up Balance",
           description: `Deposit ₦${amount.toLocaleString()} ($${usdAmount.toFixed(
             2
-          )}) to your account`,
+          )})`,
           logo: "/deemax.png",
         },
-        callback: async (response) => {
+        meta: {
+          user_id: user?.uid || "guest",
+          app_version: "1.0.0",
+        },
+        callback: async (response: any) => {
           try {
             const verifyResponse = await fetch("/api/verify-transaction", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": process.env.NEXT_PUBLIC_API_SECRET || "",
+              },
               body: JSON.stringify({ transactionId: response.transaction_id }),
             });
+
+            if (!verifyResponse.ok) {
+              throw new Error(`HTTP error! status: ${verifyResponse.status}`);
+            }
 
             const verifyData = await verifyResponse.json();
 
@@ -260,10 +324,10 @@ const DashboardBalance: React.FC = () => {
                 mode: "Flutterwave",
                 status: "success",
                 transaction_id: response.transaction_id,
-                flutterwave_data: transactionData, // Store the full response for reference
+                flutterwave_data: transactionData,
               });
 
-              // Handle referral commission (in USD)
+              // Handle referral commission
               const refersQuery = query(
                 collection(db, "refers"),
                 where("user_email", "==", email)
@@ -307,7 +371,34 @@ const DashboardBalance: React.FC = () => {
           );
           recordPendingTransaction();
         },
-      });
+      };
+
+      // Enhanced mobile responsiveness
+      paymentOptions.customizations.theme = {
+        color: "#4F46E5", // Primary button color
+        button_text: "#FFFFFF", // Button text color
+        button_color: "#4F46E5", // Button background color
+        background_color: "#F9FAFB", // Background color
+        modal_color: "#FFFFFF", // Modal background color
+        close_button_color: "#6B7280", // Close button color
+        error_color: "#EF4444", // Error message color
+        success_color: "#10B981", // Success message color
+        text_color: "#111827", // Main text color
+        link_color: "#4F46E5", // Link color
+        header_text: "#111827", // Header text color
+        footer_text: "#6B7280", // Footer text color
+      };
+
+      paymentOptions.display = {
+        theme: "light",
+        position: isMobile ? "center" : "right",
+        floating: !isMobile,
+        show_form: true,
+        mobile_view: isMobile,
+        ...paymentConfig?.display,
+      };
+
+      window.FlutterwaveCheckout(paymentOptions);
     } catch (error) {
       console.error("Error initiating payment:", error);
       setError("Failed to initiate payment. Please try again.");
@@ -413,7 +504,7 @@ const DashboardBalance: React.FC = () => {
               onClick={resetPaymentMethod}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
-              ← Back to payment methods
+              ← Back
             </button>
           </div>
 
@@ -474,13 +565,64 @@ const DashboardBalance: React.FC = () => {
                 <button
                   onClick={handleFlutterwavePayment}
                   disabled={!amount || loading}
-                  className={`w-full py-3 px-4 rounded-md text-white font-medium ${
-                    !amount || loading
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                  className={`
+                    w-full py-3 px-4 rounded-md text-white font-medium transition-all
+                    ${
+                      !amount || loading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700 transform hover:scale-[1.01]"
+                    }
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                    active:scale-95
+                    md:w-auto md:px-6 md:py-3
+                  `}
                 >
-                  {loading ? "Processing..." : "Proceed to Payment"}
+                  <span className="flex items-center justify-center">
+                    {loading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <span className="hidden md:inline">
+                          Proceed to Secure Payment
+                        </span>
+                        <span className="md:hidden">Pay Now</span>
+                        <svg
+                          className="ml-2 -mr-1 w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          ></path>
+                        </svg>
+                      </>
+                    )}
+                  </span>
                 </button>
               </div>
 

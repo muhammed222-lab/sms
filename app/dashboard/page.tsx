@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -100,13 +101,13 @@ const Dashboard = () => {
           } flex-col lg:flex-row lg:w-64 w-full lg:relative`}
         >
           <div className="lg:hidden flex justify-between items-center p-2">
-            <button
+            {/* <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="text-white flex items-center gap-2"
             >
               <FaBars />
               <span>Menu</span>
-            </button>
+            </button> */}
           </div>
           <div
             className={`flex flex-col lg:flex-col lg:space-y-2 space-y-2 lg:space-x-0 p-4 w-full`}

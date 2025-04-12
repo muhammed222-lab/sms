@@ -140,45 +140,56 @@ const SignUp = () => {
 
       // If referrer data exists, save to 'refers' collection and give bonus
       if (referrer) {
-        await runTransaction(db, async (transaction) => {
-          // Add referral record
-          const referDocRef = await addDoc(collection(db, "refers"), {
-            user_email: email,
-            user_name: firstName,
-            refer_by_email: referrer.email,
-            refer_by_name: referrer.name,
-            refer_date: new Date(),
-            commission: 2, // $2 referral bonus
-            status: "pending",
-          });
-
-          // Update referrer's balance
-          const referrerDocRef = doc(db, "users", referrer.code); // Assuming referrer.code is their UID
-          const referrerDoc = await transaction.get(referrerDocRef);
-
-          if (referrerDoc.exists()) {
-            const currentBalance = referrerDoc.data().referral_balance || 0;
-            transaction.update(referrerDocRef, {
-              referral_balance: currentBalance + 2,
+        try {
+          await runTransaction(db, async (transaction) => {
+            // Add referral record
+            const referDocRef = await addDoc(collection(db, "refers"), {
+              user_email: email,
+              user_name: firstName,
+              refer_by_email: referrer.email,
+              refer_by_name: referrer.name,
+              refer_date: new Date(),
+              commission: 2, // $2 referral bonus
+              status: "pending",
             });
-          }
 
-          // Give new user a bonus
-          const newUserDocRef = doc(db, "users", userCredential.user.uid);
-          transaction.update(newUserDocRef, {
-            balance: 2, // $2 signup bonus
+            // Update referrer's balance
+            const referrerDocRef = doc(db, "users", referrer.code);
+            const referrerDoc = await transaction.get(referrerDocRef);
+
+            if (referrerDoc.exists()) {
+              const currentBalance = referrerDoc.data().referral_balance || 0;
+              transaction.update(referrerDocRef, {
+                referral_balance: currentBalance + 2,
+              });
+            }
+
+            // Give new user a bonus
+            const newUserDocRef = doc(db, "users", userCredential.user.uid);
+            transaction.update(newUserDocRef, {
+              balance: 2, // $2 signup bonus
+            });
           });
-        });
 
-        // Clear referrer from local storage
-        localStorage.removeItem("referrer");
+          // IMMEDIATELY clear referrer from local storage upon successful transaction
+          localStorage.removeItem("referrer");
+          setReferrer(null); // Also clear from state
+
+          toast.success("Referral bonus applied successfully!", {
+            autoClose: 3000,
+          });
+        } catch (referralError) {
+          console.error("Referral processing error:", referralError);
+          toast.warn(
+            "Referral bonus could not be applied, but account was created",
+            { autoClose: 5000 }
+          );
+        }
       }
 
       toast.success(
         "Account created successfully! Please check your email to verify your account.",
-        {
-          autoClose: 5000,
-        }
+        { autoClose: 5000 }
       );
 
       router.push("/verify-email");
@@ -252,38 +263,51 @@ const SignUp = () => {
 
       // If referrer data exists, save to 'refers' collection and give bonus
       if (referrer && user.email) {
-        await runTransaction(db, async (transaction) => {
-          // Add referral record
-          const referDocRef = await addDoc(collection(db, "refers"), {
-            user_email: user.email,
-            user_name: user.displayName,
-            refer_by_email: referrer.email,
-            refer_by_name: referrer.name,
-            refer_date: new Date(),
-            commission: 2, // $2 referral bonus
-            status: "pending",
-          });
-
-          // Update referrer's balance
-          const referrerDocRef = doc(db, "users", referrer.code);
-          const referrerDoc = await transaction.get(referrerDocRef);
-
-          if (referrerDoc.exists()) {
-            const currentBalance = referrerDoc.data().referral_balance || 0;
-            transaction.update(referrerDocRef, {
-              referral_balance: currentBalance + 2,
+        try {
+          await runTransaction(db, async (transaction) => {
+            // Add referral record
+            const referDocRef = await addDoc(collection(db, "refers"), {
+              user_email: user.email,
+              user_name: user.displayName,
+              refer_by_email: referrer.email,
+              refer_by_name: referrer.name,
+              refer_date: new Date(),
+              commission: 2, // $2 referral bonus
+              status: "pending",
             });
-          }
 
-          // Give new user a bonus
-          const newUserDocRef = doc(db, "users", user.uid);
-          transaction.update(newUserDocRef, {
-            balance: 2, // $2 signup bonus
+            // Update referrer's balance
+            const referrerDocRef = doc(db, "users", referrer.code);
+            const referrerDoc = await transaction.get(referrerDocRef);
+
+            if (referrerDoc.exists()) {
+              const currentBalance = referrerDoc.data().referral_balance || 0;
+              transaction.update(referrerDocRef, {
+                referral_balance: currentBalance + 2,
+              });
+            }
+
+            // Give new user a bonus
+            const newUserDocRef = doc(db, "users", user.uid);
+            transaction.update(newUserDocRef, {
+              balance: 2, // $2 signup bonus
+            });
           });
-        });
 
-        // Clear referrer from local storage
-        localStorage.removeItem("referrer");
+          // IMMEDIATELY clear referrer from local storage upon successful transaction
+          localStorage.removeItem("referrer");
+          setReferrer(null); // Also clear from state
+
+          toast.success("Referral bonus applied successfully!", {
+            autoClose: 3000,
+          });
+        } catch (referralError) {
+          console.error("Referral processing error:", referralError);
+          toast.warn(
+            "Referral bonus could not be applied, but sign-in was successful",
+            { autoClose: 5000 }
+          );
+        }
       }
 
       toast.success("Successfully signed in with Google!", { autoClose: 3000 });
@@ -307,7 +331,6 @@ const SignUp = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
       <ToastContainer position="top-center" />

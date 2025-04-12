@@ -43,7 +43,7 @@ export async function GET(request: Request) {
       const text = await responseClone.text();
 
       // Special case for "order not found"
-      if (text.includes("order not found")) {
+      if (text.includes("Order is cancelled already")) {
         return NextResponse.json(
           {
             error: "Order not found in API (but may exist in dashboard)",

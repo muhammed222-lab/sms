@@ -63,7 +63,7 @@ const Sms = () => {
   const [message, setMessage] = useState({ type: "", content: "" });
   const [isFetchingCode, setIsFetchingCode] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [balance, setBalance] = useState<number>(0); // balance in USD
+  const [balance, setBalance] = useState<number>(0);
   const [orders, setOrders] = useState<SmsOrder[]>([]);
   const [activeTab, setActiveTab] = useState<"Active" | "History">("Active");
   const [search, setSearch] = useState("");
@@ -71,23 +71,24 @@ const Sms = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [servicePage, setServicePage] = useState(1);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
-  const [rubToUsdRate, setRubToUsdRate] = useState<number | null>(null);
+  const [rubToUsdRate, setRubToUsdRate] = useState<number>(0.011);
   const pageSize = 20;
 
-  // Fetch exchange rates
+  const calculateFinalPrice = (rubPrice: number): number => {
+    const priceInUsd = rubPrice * rubToUsdRate;
+    return parseFloat((priceInUsd * 1.3).toFixed(2));
+  };
+
   useEffect(() => {
     const fetchExchangeRates = async () => {
       try {
-        // Fetch RUB to USD rate (1 RUB = X USD)
         const rubRes = await fetch("https://open.er-api.com/v6/latest/RUB");
         const rubData = await rubRes.json();
-        setRubToUsdRate(rubData.rates.USD);
+        if (rubData.rates?.USD) {
+          setRubToUsdRate(rubData.rates.USD);
+        }
       } catch (error) {
-        console.error("Error fetching exchange rates:", error);
-        setMessage({
-          type: "error",
-          content: "Error loading exchange rates. Please refresh the page.",
-        });
+        console.error("Using default exchange rate due to API error:", error);
       }
     };
 
@@ -123,7 +124,6 @@ const Sms = () => {
           await fetchUserSettings(currentUser.email);
         }
 
-        // Fetch user balance (stored in USD)
         try {
           const q = query(
             collection(db, "userDeposits"),
@@ -136,7 +136,6 @@ const Sms = () => {
             setBalance(userData.amount || 0);
           }
 
-          // Fetch user orders
           const ordersQuery = query(
             collection(db, "sms_orders"),
             where("user_email", "==", currentUser.email)
@@ -229,7 +228,7 @@ const Sms = () => {
             services.push({
               label: productName,
               value: productName.toLowerCase(),
-              price: operatorData.cost, // Original price in RUB
+              price: operatorData.cost,
               stock: operatorData.count,
               country: countryName.toLowerCase(),
             });
@@ -269,17 +268,11 @@ const Sms = () => {
     }
   };
 
-  const calculatePriceInUSD = (rubPrice: number): number => {
-    if (!rubToUsdRate) return 0;
-    // Double the RUB price first, then convert to USD
-    return rubPrice * 2 * rubToUsdRate;
-  };
-
   const handleRequestNumber = async () => {
-    if (!selectedCountry || !selectedService || !user?.email || !userSettings) {
+    if (!selectedCountry || !selectedService?.value || !user?.email) {
       setMessage({
         type: "error",
-        content: "Please select a country and service.",
+        content: "Please select both a country and service.",
       });
       return;
     }
@@ -294,12 +287,13 @@ const Sms = () => {
 
     setLoading(true);
     setMessage({ type: "", content: "" });
+
     try {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("User not authenticated");
 
       const token = await currentUser.getIdToken();
-      const res = await fetch(
+      const response = await fetch(
         `/api/proxy-sms?action=buy-activation&country=${selectedCountry.value}&operator=any&product=${selectedService.value}`,
         {
           method: "GET",
@@ -310,31 +304,43 @@ const Sms = () => {
         }
       );
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to purchase number");
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        throw new Error("Failed to parse API response");
       }
 
-      const data = await res.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to purchase number");
+      }
 
-      // Calculate the price in USD (doubled RUB price converted to USD)
-      const priceUsd = calculatePriceInUSD(Number(data.price));
-
-      // Check user balance (in USD)
-      if (balance < priceUsd) {
+      if (data.error === "no free phones") {
         throw new Error(
-          `Insufficient balance. You need $${priceUsd.toFixed(2)} USD.`
+          "No available numbers for this service. Please try another service."
         );
       }
 
-      // Create order data (all prices in USD)
+      const finalPriceCalc = selectedService.price
+        ? calculateFinalPrice(Number(selectedService.price))
+        : 0;
+
+      if (balance < finalPriceCalc) {
+        throw new Error(
+          `Insufficient balance. You need $${finalPriceCalc.toFixed(
+            2
+          )} USD. Current balance: $${balance.toFixed(
+            2
+          )} USD. Please fund your account.`
+        );
+      }
       const orderData: SmsOrder = {
         id: Number(data.id),
         orderId: data.id.toString(),
         phone: data.phone,
         operator: data.operator || "any",
         product: selectedService.value,
-        price: priceUsd.toFixed(2), // Price in USD
+        price: finalPriceCalc.toString(),
         status: data.status || "PENDING",
         expires: data.expires,
         sms: null,
@@ -343,34 +349,40 @@ const Sms = () => {
         number: data.phone,
         user_email: user.email,
         service: selectedService.value,
-        priceRub: (Number(data.price) * 2).toFixed(2), // Store doubled RUB price for reference
-        localCurrency: "USD", // Add the required property
+        priceRub: data.price.toString(),
+        originalPrice: (Number(data.price) * rubToUsdRate).toFixed(2),
+        localCurrency: "USD",
+        is_reused: false,
+        priceLocal: finalPriceCalc.toFixed(2), // now a valid string value
       };
 
-      // Save order to Firestore
       await addDoc(collection(db, "sms_orders"), orderData);
       setOrders((prev) => [...prev, orderData]);
 
-      // Deduct the USD amount from user's balance
       const userBalanceQuery = query(
         collection(db, "userDeposits"),
         where("email", "==", user.email)
       );
       const userBalanceSnapshot = await getDocs(userBalanceQuery);
+
       if (!userBalanceSnapshot.empty) {
         const userDoc = userBalanceSnapshot.docs[0];
         const currentBalance = userDoc.data().amount || 0;
-        const newBalance = currentBalance - priceUsd;
+        const newBalance = parseFloat(
+          (currentBalance - finalPriceCalc).toFixed(2)
+        );
         await updateDoc(userDoc.ref, { amount: newBalance });
         setBalance(newBalance);
       }
 
       setMessage({
         type: "success",
-        content: `Number purchased successfully for $${priceUsd.toFixed(
+        content: `Number purchased successfully for $${finalPriceCalc.toFixed(
           2
         )} USD!`,
       });
+      setShowSuccess(true);
+      setSuccessMessage("Number purchased successfully!");
     } catch (error: any) {
       console.error("Error requesting number:", error);
       setMessage({
@@ -383,11 +395,11 @@ const Sms = () => {
   };
 
   const renderServicePrice = (service: any) => {
-    if (!service.price || !rubToUsdRate) return "Loading...";
-
-    // Calculate price in USD (doubled RUB price converted to USD)
-    const priceUsd = calculatePriceInUSD(Number(service.price));
-    return `$${priceUsd.toFixed(2)} USD`;
+    if (!service.price) return "Loading...";
+    const finalPriceCalc = service.price
+      ? calculateFinalPrice(Number(service.price))
+      : 0;
+    return `$${finalPriceCalc.toFixed(2)} USD`;
   };
 
   const fetchSmsCode = async (orderId: string) => {
@@ -439,6 +451,8 @@ const Sms = () => {
         );
 
         setMessage({ type: "success", content: "SMS code received." });
+        setShowSuccess(true);
+        setSuccessMessage("SMS code received successfully!");
       } else if (data.error_code === "wait_sms") {
         setMessage({
           type: "info",
@@ -490,15 +504,12 @@ const Sms = () => {
         const orderDoc = orderSnapshot.docs[0];
         const orderData = orderDoc.data();
 
-        // Refund amount in USD (the exact amount that was charged)
-        const refundAmount = Number(orderData.price);
+        const refundAmount = parseFloat(orderData.price);
 
-        // Update order status
         await updateDoc(orderDoc.ref, {
           status: "CANCELED",
         });
 
-        // Refund to user's balance in USD
         const userBalanceQuery = query(
           collection(db, "userDeposits"),
           where("email", "==", currentUser.email)
@@ -527,6 +538,8 @@ const Sms = () => {
             2
           )} USD has been refunded to your balance.`,
         });
+        setShowSuccess(true);
+        setSuccessMessage("Order cancelled successfully!");
       }
     } catch (error: any) {
       console.error("Error cancelling order:", error);
@@ -559,13 +572,17 @@ const Sms = () => {
       const data = await response.json();
 
       if (data.id) {
-        // Calculate price in USD (doubled RUB price converted to USD)
-        const priceUsd = calculatePriceInUSD(Number(data.price));
+        const finalPriceCalc = data.price
+          ? calculateFinalPrice(Number(data.price))
+          : 0;
 
-        // Check user balance (in USD)
-        if (balance < priceUsd) {
+        if (balance < finalPriceCalc) {
           throw new Error(
-            `Insufficient balance. You need $${priceUsd.toFixed(2)} USD.`
+            `Insufficient balance. You need $${finalPriceCalc.toFixed(
+              2
+            )} USD. Current balance: $${balance.toFixed(
+              2
+            )} USD. Please fund your account.`
           );
         }
 
@@ -575,7 +592,7 @@ const Sms = () => {
           phone: data.phone,
           operator: data.operator || order.operator,
           product: order.product,
-          price: priceUsd.toFixed(2), // Price in USD
+          price: finalPriceCalc.toFixed(2),
           status: data.status || "PENDING",
           expires: data.expires,
           sms: null,
@@ -584,16 +601,16 @@ const Sms = () => {
           number: data.phone,
           user_email: currentUser.email || "",
           service: order.service,
-          priceRub: (Number(data.price) * 2).toFixed(2), // Store doubled RUB price for reference
+          priceRub: Number(data.price).toString(),
           is_reused: true,
-          localCurrency: undefined,
+          localCurrency: "USD",
+          originalPrice: (Number(data.price) * rubToUsdRate).toFixed(2),
+          priceLocal: finalPriceCalc.toFixed(2), // Now never undefined
         };
 
-        // Save order to Firestore
         await addDoc(collection(db, "sms_orders"), newOrder);
         setOrders((prev) => [...prev, newOrder]);
 
-        // Deduct from user's balance in USD
         const userBalanceQuery = query(
           collection(db, "userDeposits"),
           where("email", "==", currentUser.email)
@@ -603,17 +620,21 @@ const Sms = () => {
         if (!userBalanceSnapshot.empty) {
           const userDoc = userBalanceSnapshot.docs[0];
           const currentBalance = userDoc.data().amount || 0;
-          const newBalance = currentBalance - priceUsd;
+          const newBalance = parseFloat(
+            (currentBalance - finalPriceCalc).toFixed(2)
+          );
           await updateDoc(userDoc.ref, { amount: newBalance });
           setBalance(newBalance);
         }
 
         setMessage({
           type: "success",
-          content: `Number successfully re-bought for $${priceUsd.toFixed(
+          content: `Number successfully re-bought for $${finalPriceCalc.toFixed(
             2
           )} USD.`,
         });
+        setShowSuccess(true);
+        setSuccessMessage("Number re-bought successfully!");
       } else {
         throw new Error(data.error || "Failed to rebuy number");
       }
@@ -632,7 +653,6 @@ const Sms = () => {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("User not authenticated");
 
-      // Delete from Firestore
       const orderQuery = query(
         collection(db, "sms_orders"),
         where("orderId", "==", orderId),
@@ -645,13 +665,14 @@ const Sms = () => {
         await deleteDoc(orderDoc.ref);
       }
 
-      // Update local state
       setOrders((prev) => prev.filter((order) => order.orderId !== orderId));
 
       setMessage({
         type: "success",
         content: "Order removed successfully.",
       });
+      setShowSuccess(true);
+      setSuccessMessage("Order removed successfully!");
     } catch (error: any) {
       console.error("Error removing order:", error);
       setMessage({
@@ -806,7 +827,59 @@ const Sms = () => {
 
         {selectedService && (
           <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full border table-auto">
+            <div className="md:hidden grid grid-cols-2 gap-2">
+              <div className="bg-gray-100 p-2 rounded font-medium">Service</div>
+              <div className="p-2 flex items-center gap-2">
+                <img
+                  src={getServiceLogoUrl(selectedService.label.toLowerCase())}
+                  alt="logo"
+                  className="h-5 w-5"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).onerror = null;
+                    (e.target as HTMLImageElement).src = "/default-logo.png";
+                  }}
+                />
+                {selectedService.label}
+              </div>
+
+              <div className="bg-gray-100 p-2 rounded font-medium">Country</div>
+              <div className="p-2 flex items-center gap-2">
+                <img
+                  src={selectedCountry?.flagUrl}
+                  alt={selectedCountry?.label}
+                  className="h-5 w-5"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).onerror = null;
+                    (e.target as HTMLImageElement).src = "/default-flag.png";
+                  }}
+                />
+                {selectedCountry?.label}
+              </div>
+
+              <div className="bg-gray-100 p-2 rounded font-medium">Price</div>
+              <div className="p-2">
+                {rubToUsdRate
+                  ? `$${calculateFinalPrice(
+                      Number(selectedService.price)
+                    ).toFixed(2)} USD`
+                  : "Loading..."}
+              </div>
+
+              <div className="bg-gray-100 p-2 rounded font-medium">Stock</div>
+              <div className="p-2">{selectedService.stock || 0}</div>
+
+              <div className="bg-gray-100 p-2 rounded font-medium">Save</div>
+              <div className="p-2">
+                <button
+                  onClick={handleSave}
+                  className="flex items-center justify-center gap-1 text-green-500 hover:text-green-700"
+                >
+                  <FaSave />
+                </button>
+              </div>
+            </div>
+
+            <table className="min-w-full border table-auto hidden md:table">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border px-4 py-2">Service</th>
@@ -854,7 +927,9 @@ const Sms = () => {
 
                   <td className="border px-4 py-2">
                     {rubToUsdRate
-                      ? renderServicePrice(selectedService)
+                      ? `$${calculateFinalPrice(
+                          Number(selectedService.price)
+                        ).toFixed(2)} USD`
                       : "Loading..."}
                   </td>
 
@@ -879,10 +954,10 @@ const Sms = () => {
 
       <button
         onClick={handleRequestNumber}
-        className={`bg-blue-500 text-white px-4 py-2 rounded ${
+        className={`bg-blue-500 text-white px-4 py-2 rounded w-full md:w-auto ${
           loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
-        }`}
-        disabled={loading}
+        } ${!selectedService ? "opacity-50 cursor-not-allowed" : ""}`}
+        disabled={loading || !selectedService}
       >
         {loading ? "Processing..." : "Get Number"}
       </button>

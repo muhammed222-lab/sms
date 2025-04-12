@@ -7,6 +7,7 @@ import HowItWorks from "./components/HowItWorks";
 import "./globals.css";
 import React, { useEffect, useState } from "react";
 import WhyChooseUs from "./components/whyUs";
+import Free from "./components/free";
 import PricingSection from "./components/price";
 import FAQ from "./components/faq";
 import Cooperation from "./components/cooperation";
@@ -310,7 +311,7 @@ export default function Home() {
             <div className="mt-4 text-gray-500">- Verified User</div>
           </div>
         </main>
-
+        <Free />
         <HowItWorks />
         <Cooperation />
         <WhyChooseUs />

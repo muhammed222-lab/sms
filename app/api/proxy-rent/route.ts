@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       // For non-OK responses, read text and return an error message.
       const errorText = await response.text();
       return NextResponse.json(
-        { error: `API error: ${response.status} - ${errorText}` },
+        { error: `Error: - ${errorText}` },
         { status: response.status }
       );
     }
