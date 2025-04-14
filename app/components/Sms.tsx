@@ -5,7 +5,13 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
-import { FaSave, FaClipboard, FaSearch, FaTimes } from "react-icons/fa";
+import {
+  FaSave,
+  FaClipboard,
+  FaSearch,
+  FaTimes,
+  FaInfoCircle,
+} from "react-icons/fa";
 import { FiHelpCircle } from "react-icons/fi";
 import {
   collection,
@@ -23,6 +29,64 @@ import ActiveOrder from "./sms_components/ActiveOrder";
 import OrderHistory, { SmsOrder } from "./sms_components/OrderHistory";
 import OtpHelp from "./OtpHelp";
 import OrderEmpty from "./OrderEmpty";
+
+// Define popular services that work well with specific countries
+const RECOMMENDED_SERVICES: Record<string, string[]> = {
+  usa: [
+    "google",
+    "facebook",
+    "twitter",
+    "microsoft",
+    "amazon",
+    "whatsapp",
+    "instagram",
+    "tiktok",
+  ],
+  russia: [
+    "vkontakte",
+    "telegram",
+    "avito",
+    "yandex",
+    "wildberries",
+    "mailru",
+    "ok",
+  ],
+  ukraine: ["telegram", "olx", "rozetka", "prom", "ukrnet", "nova_poshta"],
+  india: [
+    "whatsapp",
+    "flipkart",
+    "amazon",
+    "jiomart",
+    "zomato",
+    "swiggy",
+    "paytm",
+  ],
+  brazil: ["whatsapp", "mercado", "magazineluiza", "americanas", "casasbahia"],
+  uk: ["whatsapp", "amazon", "ebay", "asos", "deliveroo", "tesco"],
+  germany: ["whatsapp", "amazon", "ebay", "zalando", "lieferando"],
+  france: ["whatsapp", "amazon", "leboncoin", "fnac", "deliveroo"],
+};
+
+// Common error messages mapping
+const ERROR_MESSAGES: Record<string, string> = {
+  "no free phones":
+    "No available numbers for this service. Please try another service or country.",
+  "not enough user balance":
+    "Insufficient balance. Please top up your account.",
+  "select country": "Please select a country first.",
+  "select operator": "Please select an operator.",
+  "bad country": "This country is not supported or invalid.",
+  "bad operator": "This operator is not supported or invalid.",
+  "no product": "This service is not available. Please try another one.",
+  "server offline": "Service temporarily unavailable. Please try again later.",
+  "400": "Invalid request. Please check your selections and try again.",
+  "401": "Authentication failed. Please refresh the page.",
+  "404": "Requested resource not found.",
+  "500": "Server error. Please try again later.",
+  "reuse not possible": "This number cannot be reused.",
+  "reuse expired": "The reuse period for this number has expired.",
+  default: "Something went wrong. Please try again.",
+};
 
 interface User {
   email: string | null;
@@ -72,12 +136,53 @@ const Sms = () => {
   const [servicePage, setServicePage] = useState(1);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [rubToUsdRate, setRubToUsdRate] = useState<number>(0.011);
+  const [recommendedServices, setRecommendedServices] = useState<string[]>([]);
+  const [savedServices, setSavedServices] = useState<any[]>([]);
   const pageSize = 20;
+
+  // Get user-friendly error message
+  const getErrorMessage = (
+    error: string | { error?: string; message?: string }
+  ): string => {
+    if (typeof error === "string") {
+      return (
+        ERROR_MESSAGES[error.toLowerCase()] ||
+        ERROR_MESSAGES[error.split(" ").join("").toLowerCase()] ||
+        ERROR_MESSAGES.default
+      );
+    }
+
+    const errorKey = error.error || error.message || "";
+    return (
+      ERROR_MESSAGES[errorKey.toLowerCase()] ||
+      ERROR_MESSAGES[errorKey.split(" ").join("").toLowerCase()] ||
+      ERROR_MESSAGES.default
+    );
+  };
 
   const calculateFinalPrice = (rubPrice: number): number => {
     const priceInUsd = rubPrice * rubToUsdRate;
     return parseFloat((priceInUsd * 1.3).toFixed(2));
   };
+
+  // Load saved services from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("savedServices");
+    if (saved) {
+      try {
+        setSavedServices(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse saved services", e);
+      }
+    }
+  }, []);
+
+  // Save services to localStorage when they change
+  useEffect(() => {
+    if (savedServices.length > 0) {
+      localStorage.setItem("savedServices", JSON.stringify(savedServices));
+    }
+  }, [savedServices]);
 
   useEffect(() => {
     const fetchExchangeRates = async () => {
@@ -94,6 +199,16 @@ const Sms = () => {
 
     fetchExchangeRates();
   }, []);
+
+  // Set recommended services when country changes
+  useEffect(() => {
+    if (selectedCountry) {
+      const countryKey = selectedCountry.value.toLowerCase();
+      setRecommendedServices(RECOMMENDED_SERVICES[countryKey] || []);
+    } else {
+      setRecommendedServices([]);
+    }
+  }, [selectedCountry]);
 
   const fetchUserSettings = async (email: string) => {
     try {
@@ -191,7 +306,7 @@ const Sms = () => {
       console.error("Error fetching countries:", error);
       setMessage({
         type: "error",
-        content: "Error loading countries from API.",
+        content: "Failed to load countries. Please refresh the page.",
       });
     }
   };
@@ -201,6 +316,7 @@ const Sms = () => {
       const currentUser = auth.currentUser;
       if (!currentUser) return;
 
+      setServicesLoading(true);
       const token = await currentUser.getIdToken();
       let url = "/api/proxy-sms?action=get-prices";
       if (country) url += `&country=${country}`;
@@ -241,13 +357,14 @@ const Sms = () => {
       console.error("Error fetching services:", error);
       setMessage({
         type: "error",
-        content: "Error loading services from API.",
+        content: "Failed to load services. Please try again.",
       });
+    } finally {
+      setServicesLoading(false);
     }
   };
 
   const loadServiceOptions = async (inputValue: string) => {
-    setServicesLoading(true);
     try {
       if (!selectedCountry) return [];
 
@@ -263,8 +380,57 @@ const Sms = () => {
     } catch (error) {
       console.error("Error loading services:", error);
       return [];
-    } finally {
-      setServicesLoading(false);
+    }
+  };
+
+  const handleSaveService = () => {
+    if (selectedService && selectedCountry) {
+      const serviceToSave = {
+        ...selectedService,
+        country: selectedCountry.value,
+        countryLabel: selectedCountry.label,
+        flagUrl: selectedCountry.flagUrl,
+        savedAt: new Date().toISOString(),
+      };
+
+      setSavedServices((prev) => {
+        // Check if service already exists
+        const exists = prev.some(
+          (s) =>
+            s.value === serviceToSave.value &&
+            s.country === serviceToSave.country
+        );
+
+        if (exists) {
+          return prev; // Don't add duplicate
+        }
+
+        const updated = [...prev, serviceToSave];
+        // Keep only the 5 most recent saves
+        return updated.slice(-5);
+      });
+
+      setSuccessMessage(
+        `${selectedService.label} saved for ${selectedCountry.label}`
+      );
+      setShowSuccess(true);
+    }
+  };
+
+  const handleLoadSavedService = (service: any) => {
+    const country = countries.find((c) => c.value === service.country);
+    if (country) {
+      setSelectedCountry(country);
+      setSelectedService({
+        label: service.label,
+        value: service.value,
+        price: service.price,
+        stock: service.stock,
+      });
+      setMessage({
+        type: "success",
+        content: `Loaded saved service: ${service.label} for ${country.label}`,
+      });
     }
   };
 
@@ -308,7 +474,7 @@ const Sms = () => {
       try {
         data = await response.json();
       } catch (e) {
-        throw new Error("Failed to parse API response");
+        throw new Error("Failed to process the response");
       }
 
       if (!response.ok) {
@@ -317,7 +483,7 @@ const Sms = () => {
 
       if (data.error === "no free phones") {
         throw new Error(
-          "No available numbers for this service. Please try another service."
+          `No available numbers for ${selectedService.label} in ${selectedCountry.label}. Try another service.`
         );
       }
 
@@ -334,6 +500,7 @@ const Sms = () => {
           )} USD. Please fund your account.`
         );
       }
+
       const orderData: SmsOrder = {
         id: Number(data.id),
         orderId: data.id.toString(),
@@ -353,7 +520,7 @@ const Sms = () => {
         originalPrice: (Number(data.price) * rubToUsdRate).toFixed(2),
         localCurrency: "USD",
         is_reused: false,
-        priceLocal: finalPriceCalc.toFixed(2), // now a valid string value
+        priceLocal: finalPriceCalc.toFixed(2),
       };
 
       await addDoc(collection(db, "sms_orders"), orderData);
@@ -387,19 +554,11 @@ const Sms = () => {
       console.error("Error requesting number:", error);
       setMessage({
         type: "error",
-        content: error.message || "Failed to request number. Please try again.",
+        content: getErrorMessage(error.message),
       });
     } finally {
       setLoading(false);
     }
-  };
-
-  const renderServicePrice = (service: any) => {
-    if (!service.price) return "Loading...";
-    const finalPriceCalc = service.price
-      ? calculateFinalPrice(Number(service.price))
-      : 0;
-    return `$${finalPriceCalc.toFixed(2)} USD`;
   };
 
   const fetchSmsCode = async (orderId: string) => {
@@ -465,7 +624,7 @@ const Sms = () => {
       console.error("Error fetching SMS code:", error);
       setMessage({
         type: "error",
-        content: error.message || "Error fetching SMS code.",
+        content: getErrorMessage(error.message),
       });
     } finally {
       setIsFetchingCode(false);
@@ -545,7 +704,7 @@ const Sms = () => {
       console.error("Error cancelling order:", error);
       setMessage({
         type: "error",
-        content: error.message || "Failed to cancel order. Please try again.",
+        content: getErrorMessage(error.message),
       });
     }
   };
@@ -605,7 +764,7 @@ const Sms = () => {
           is_reused: true,
           localCurrency: "USD",
           originalPrice: (Number(data.price) * rubToUsdRate).toFixed(2),
-          priceLocal: finalPriceCalc.toFixed(2), // Now never undefined
+          priceLocal: finalPriceCalc.toFixed(2),
         };
 
         await addDoc(collection(db, "sms_orders"), newOrder);
@@ -642,8 +801,7 @@ const Sms = () => {
       console.error("Error re-buying number:", error);
       setMessage({
         type: "error",
-        content:
-          error.message || "Failed to rebuy the number. Please try again.",
+        content: getErrorMessage(error.message),
       });
     }
   };
@@ -677,7 +835,7 @@ const Sms = () => {
       console.error("Error removing order:", error);
       setMessage({
         type: "error",
-        content: error.message || "Failed to remove order. Please try again.",
+        content: getErrorMessage(error.message),
       });
     }
   };
@@ -719,43 +877,53 @@ const Sms = () => {
       !["PENDING", "RECEIVED"].includes(order.status)
   );
 
-  const handleSave = () => {
-    if (selectedService) {
-      localStorage.setItem("savedService", JSON.stringify(selectedService));
-      setSuccessMessage("Service saved successfully.");
-      setShowSuccess(true);
-    }
-  };
-
   const renderServiceSelect = () => (
-    <AsyncSelect
-      inputId="service-select"
-      isDisabled={!selectedCountry}
-      noOptionsMessage={() =>
-        !selectedCountry ? "Please select a country first" : "No options found"
-      }
-      cacheOptions
-      defaultOptions={initialServices.slice(0, pageSize)}
-      loadOptions={loadServiceOptions}
-      onChange={setSelectedService}
-      placeholder="Search by service..."
-      isLoading={servicesLoading}
-      onMenuScrollToBottom={() => setServicePage((prev) => prev + 1)}
-      formatOptionLabel={(option: any) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={getServiceLogoUrl(option.label.toLowerCase())}
-            alt=""
-            className="w-5 h-5"
-            onError={(e) => {
-              (e.target as HTMLImageElement).onerror = null;
-              (e.target as HTMLImageElement).src = "/default-logo.png";
-            }}
-          />
-          {option.label}
+    <div className="relative">
+      <AsyncSelect
+        inputId="service-select"
+        isDisabled={!selectedCountry}
+        noOptionsMessage={() =>
+          !selectedCountry
+            ? "Please select a country first"
+            : "No options found"
+        }
+        cacheOptions
+        defaultOptions={initialServices.slice(0, pageSize)}
+        loadOptions={loadServiceOptions}
+        onChange={setSelectedService}
+        placeholder="Search by service..."
+        isLoading={servicesLoading}
+        onMenuScrollToBottom={() => setServicePage((prev) => prev + 1)}
+        formatOptionLabel={(option: any) => (
+          <div className="flex items-center gap-2">
+            <img
+              src={getServiceLogoUrl(option.label.toLowerCase())}
+              alt=""
+              className="w-5 h-5"
+              onError={(e) => {
+                (e.target as HTMLImageElement).onerror = null;
+                (e.target as HTMLImageElement).src = "/default-logo.png";
+              }}
+            />
+            {option.label}
+          </div>
+        )}
+      />
+      {selectedCountry && (
+        <div className="absolute right-2 top-2">
+          <button
+            onClick={handleSaveService}
+            disabled={!selectedService}
+            className={`text-gray-500 hover:text-blue-500 ${
+              !selectedService ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            title="Save this service for later"
+          >
+            <FaSave />
+          </button>
         </div>
       )}
-    />
+    </div>
   );
 
   return (
@@ -818,7 +986,63 @@ const Sms = () => {
           Select a service
         </label>
         {selectedCountry ? (
-          renderServiceSelect()
+          <>
+            {recommendedServices.length > 0 && (
+              <div className="mb-2">
+                <p className="text-sm text-gray-500 mb-1">
+                  Recommended for {selectedCountry.label}:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {recommendedServices.map((service) => (
+                    <button
+                      key={service}
+                      onClick={() => {
+                        const foundService = initialServices.find(
+                          (s) => s.value === service
+                        );
+                        if (foundService) {
+                          setSelectedService(foundService);
+                        }
+                      }}
+                      className={`text-xs px-2 py-1 rounded hover:bg-blue-100 ${
+                        selectedService?.value === service
+                          ? "bg-blue-500 text-white hover:bg-blue-600"
+                          : "bg-blue-50 text-blue-600"
+                      }`}
+                    >
+                      {service}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {savedServices.length > 0 && (
+              <div className="mb-2">
+                <p className="text-sm text-gray-500 mb-1">
+                  Your saved services:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {savedServices
+                    .filter((s) => s.country === selectedCountry.value)
+                    .map((service) => (
+                      <button
+                        key={`${service.value}-${service.country}`}
+                        onClick={() => handleLoadSavedService(service)}
+                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 flex items-center gap-1"
+                      >
+                        {service.label}
+                        <span className="text-xs text-gray-500">
+                          ({service.countryLabel})
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {renderServiceSelect()}
+          </>
         ) : (
           <p className="text-sm text-gray-500">
             Please select a country first.
@@ -867,16 +1091,6 @@ const Sms = () => {
 
               <div className="bg-gray-100 p-2 rounded font-medium">Stock</div>
               <div className="p-2">{selectedService.stock || 0}</div>
-
-              <div className="bg-gray-100 p-2 rounded font-medium">Save</div>
-              <div className="p-2">
-                <button
-                  onClick={handleSave}
-                  className="flex items-center justify-center gap-1 text-green-500 hover:text-green-700"
-                >
-                  <FaSave />
-                </button>
-              </div>
             </div>
 
             <table className="min-w-full border table-auto hidden md:table">
@@ -886,7 +1100,6 @@ const Sms = () => {
                   <th className="border px-4 py-2">Country</th>
                   <th className="border px-4 py-2">Price (USD)</th>
                   <th className="border px-4 py-2">Stock</th>
-                  <th className="border px-4 py-2">Save</th>
                 </tr>
               </thead>
               <tbody>
@@ -935,15 +1148,6 @@ const Sms = () => {
 
                   <td className="border px-4 py-2">
                     {selectedService.stock || 0}
-                  </td>
-
-                  <td className="border px-4 py-2 text-center">
-                    <button
-                      onClick={handleSave}
-                      className="flex items-center justify-center gap-1 text-green-500 hover:text-green-700"
-                    >
-                      <FaSave />
-                    </button>
                   </td>
                 </tr>
               </tbody>

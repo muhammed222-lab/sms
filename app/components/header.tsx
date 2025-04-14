@@ -15,21 +15,34 @@ import { IoMdClose } from "react-icons/io";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { motion, AnimatePresence } from "framer-motion";
 
+type Notification = {
+  id: string;
+  message: string;
+  amount: number;
+  type: "increase" | "decrease";
+  timestamp: number;
+  read: boolean;
+};
+
 const Header = () => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   // Local states
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("Detecting...");
-  const [currency, setCurrency] = useState("USD"); // Default to USD now
+  const [currency, setCurrency] = useState("USD");
   const [flag, setFlag] = useState("");
   const [balance, setBalance] = useState(0);
-  const [balanceDelta, setBalanceDelta] = useState(0);
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingImage, setIsLoadingImage] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [prevBalance, setPrevBalance] = useState(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // User settings
   const [userSettings, setUserSettings] = useState<{
@@ -47,6 +60,26 @@ const Header = () => {
       maximumFractionDigits: 2,
     }).format(amount);
   };
+
+  // Load notifications from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedNotifications = localStorage.getItem("notifications");
+      if (savedNotifications) {
+        const parsed = JSON.parse(savedNotifications);
+        setNotifications(parsed);
+        setUnreadCount(parsed.filter((n: Notification) => !n.read).length);
+      }
+    }
+  }, []);
+
+  // Save notifications to localStorage when they change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("notifications", JSON.stringify(notifications));
+      setUnreadCount(notifications.filter((n) => !n.read).length);
+    }
+  }, [notifications]);
 
   // Fetch user location
   useEffect(() => {
@@ -66,6 +99,34 @@ const Header = () => {
 
     fetchUserLocation();
   }, []);
+
+  // Handle balance changes and create notifications
+  const handleBalanceChange = (newBalance: number) => {
+    if (balance !== newBalance) {
+      const difference = newBalance - balance;
+
+      // Create notification
+      if (Math.abs(difference) > 0.01) {
+        // Avoid tiny changes
+        const newNotification: Notification = {
+          id: Date.now().toString(),
+          message:
+            difference > 0
+              ? `Amount was added to your balance`
+              : `You purchased a service`,
+          amount: Math.abs(difference),
+          type: difference > 0 ? "increase" : "decrease",
+          timestamp: Date.now(),
+          read: false,
+        };
+
+        setNotifications((prev) => [newNotification, ...prev]);
+      }
+
+      setPrevBalance(balance);
+      setBalance(newBalance);
+    }
+  };
 
   // Auth state and data subscriptions
   useEffect(() => {
@@ -93,14 +154,7 @@ const Header = () => {
         const unsubscribeBalance = onSnapshot(q, (snapshot) => {
           if (!snapshot.empty) {
             const newBalance = snapshot.docs[0].data().amount || 0;
-            setPrevBalance(balance);
-            setBalance(newBalance);
-
-            // Calculate delta for animation
-            if (newBalance !== balance) {
-              setBalanceDelta(newBalance - balance);
-              setTimeout(() => setBalanceDelta(0), 2000);
-            }
+            handleBalanceChange(newBalance);
           }
         });
 
@@ -116,11 +170,25 @@ const Header = () => {
     return () => unsubscribeAuth();
   }, [balance]);
 
-  // Close menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
+      }
+
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setNotificationsOpen(false);
       }
     };
 
@@ -137,14 +205,23 @@ const Header = () => {
     }
   };
 
-  // Balance change animation variants
-  const balanceVariants = {
-    initial: { y: 0, opacity: 1 },
-    animate: { y: balanceDelta > 0 ? -20 : 20, opacity: 0 },
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  const handleNotificationClick = () => {
+    setNotificationsOpen(!notificationsOpen);
+    if (notificationsOpen) {
+      markAllAsRead();
+    }
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
@@ -163,40 +240,86 @@ const Header = () => {
           {user ? (
             <>
               {/* Balance Display */}
-              <div className="relative flex items-center">
-                <div className="bg-blue-50 rounded-lg px-3 py-2 flex items-center">
-                  <span className="text-sm font-medium text-blue-800">
+              <div className="relative flex items-center space-x-4">
+                <div className="bg-blue-50 rounded-lg px-4 py-2 flex items-center shadow-inner">
+                  <span className="text-sm font-medium text-blue-800 whitespace-nowrap">
                     {formatBalance(balance)}
                   </span>
-                  {balanceDelta !== 0 && (
-                    <AnimatePresence>
-                      <motion.span
-                        key={balance}
-                        initial="initial"
-                        animate="animate"
-                        variants={balanceVariants}
-                        transition={{ duration: 0.5 }}
-                        className={`absolute -right-2 -top-4 text-xs px-1 rounded ${
-                          balanceDelta > 0
-                            ? "text-green-600 bg-green-50"
-                            : "text-red-600 bg-red-50"
-                        }`}
-                      >
-                        {balanceDelta > 0 ? "+" : ""}
-                        {formatBalance(balanceDelta)}
-                      </motion.span>
-                    </AnimatePresence>
-                  )}
                 </div>
 
                 {/* Notifications */}
-                <button className="ml-4 p-2 rounded-full hover:bg-gray-100 relative">
-                  <FaBell className="text-gray-500" />
-                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                </button>
+                <div className="relative" ref={notificationRef}>
+                  <button
+                    onClick={handleNotificationClick}
+                    className="p-2 rounded-full hover:bg-gray-100 relative transition-colors"
+                  >
+                    <FaBell className="text-gray-500" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Notifications Dropdown */}
+                  {notificationsOpen && (
+                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                      <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          Notifications
+                        </h3>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={markAllAsRead}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            Mark all as read
+                          </button>
+                          <button
+                            onClick={clearAllNotifications}
+                            className="text-xs text-red-600 hover:text-red-800"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                      </div>
+                      <div className="max-h-60 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                            No notifications
+                          </div>
+                        ) : (
+                          notifications.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className={`px-4 py-3 border-b border-gray-100 ${
+                                !notification.read ? "bg-blue-50" : ""
+                              }`}
+                            >
+                              <p className="text-sm text-gray-800">
+                                {notification.message}
+                                {notification.type === "decrease" && (
+                                  <span className="font-medium">
+                                    {" "}
+                                    {formatBalance(notification.amount)}
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {new Date(
+                                  notification.timestamp
+                                ).toLocaleString()}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* User Profile */}
-                <div className="flex items-center ml-4">
+                <div className="flex items-center" ref={dropdownRef}>
                   <div className="relative">
                     <button
                       onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -204,12 +327,16 @@ const Header = () => {
                     >
                       <div className="relative">
                         <Image
-                          src={user.photoURL || "/default-avatar.png"}
+                          src={user.photoURL || "/avatar.png"}
                           alt="User"
-                          width={32}
-                          height={32}
-                          className="rounded-full"
+                          width={36}
+                          height={36}
+                          className="rounded-full border-2 border-gray-200"
                           onLoadingComplete={() => setIsLoadingImage(false)}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/avatar.png";
+                          }}
                           style={{
                             opacity: isLoadingImage ? 0 : 1,
                             transition: "opacity 0.3s ease",
@@ -217,7 +344,7 @@ const Header = () => {
                           unoptimized={true}
                         />
                         {userSettings?.make_me_extra_private && (
-                          <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full">
+                          <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-sm">
                             <FaUserSecret className="text-xs text-gray-600" />
                           </div>
                         )}
@@ -234,9 +361,9 @@ const Header = () => {
 
                     {/* Dropdown Menu */}
                     {dropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-100">
-                        <div className="px-4 py-3 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900">
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <p className="text-sm font-medium text-gray-900 truncate">
                             {userSettings?.username || "Welcome"}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
@@ -246,21 +373,21 @@ const Header = () => {
                         <div className="py-1">
                           <Link
                             href="/dashboard"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             onClick={() => setDropdownOpen(false)}
                           >
                             Dashboard
                           </Link>
                           <Link
                             href="/dashboard/settings"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             onClick={() => setDropdownOpen(false)}
                           >
                             Settings
                           </Link>
                           <button
                             onClick={handleSignOut}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
                             Sign Out
                           </button>
@@ -275,18 +402,18 @@ const Header = () => {
             <>
               <Link
                 href="/about"
-                className="text-sm font-medium text-gray-600 hover:text-blue-600"
+                className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
               >
                 About
               </Link>
               <Link
                 href="/pricing"
-                className="text-sm font-medium text-gray-600 hover:text-blue-600"
+                className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
               >
                 Pricing
               </Link>
               <Link href="/signin">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">
                   Sign In
                 </button>
               </Link>
@@ -295,53 +422,121 @@ const Header = () => {
         </nav>
 
         {/* Mobile Navigation */}
-        <div className="flex lg:hidden items-center space-x-3">
+        <div className="flex lg:hidden items-center space-x-4">
           {user && (
             <>
-              {/* Mobile Balance */}
+              {/* Mobile Notifications */}
               <div className="relative">
-                <div className="bg-blue-50 rounded-lg px-2 py-1">
-                  <span className="text-xs font-medium text-blue-800">
-                    {formatBalance(balance).split(".")[0]}
-                  </span>
-                </div>
-                {balanceDelta !== 0 && (
-                  <AnimatePresence>
-                    <motion.span
-                      key={balance}
-                      initial="initial"
-                      animate="animate"
-                      variants={balanceVariants}
-                      transition={{ duration: 0.5 }}
-                      className={`absolute -right-2 -top-3 text-[10px] px-1 rounded ${
-                        balanceDelta > 0
-                          ? "text-green-600 bg-green-50"
-                          : "text-red-600 bg-red-50"
-                      }`}
+                <button
+                  onClick={handleNotificationClick}
+                  className="p-2 rounded-full hover:bg-gray-100 relative"
+                >
+                  <FaBell className="text-gray-500 text-lg" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Mobile Notifications Dropdown */}
+                {notificationsOpen && (
+                  <div
+                    ref={notificationRef}
+                    className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end"
+                  >
+                    <motion.div
+                      initial={{ x: "100%" }}
+                      animate={{ x: 0 }}
+                      exit={{ x: "100%" }}
+                      transition={{ type: "tween" }}
+                      className="w-4/5 h-full bg-white shadow-xl"
                     >
-                      {balanceDelta > 0 ? "+" : ""}
-                      {formatBalance(balanceDelta).replace("$", "")}
-                    </motion.span>
-                  </AnimatePresence>
+                      <div className="p-4 h-full flex flex-col">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-lg font-medium">Notifications</h3>
+                          <button
+                            onClick={() => setNotificationsOpen(false)}
+                            className="p-2 text-gray-500 hover:text-gray-700"
+                          >
+                            <IoMdClose className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        <div className="flex space-x-2 mb-4">
+                          <button
+                            onClick={markAllAsRead}
+                            className="flex-1 bg-blue-50 text-blue-600 py-2 rounded text-sm"
+                          >
+                            Mark all as read
+                          </button>
+                          <button
+                            onClick={clearAllNotifications}
+                            className="flex-1 bg-red-50 text-red-600 py-2 rounded text-sm"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto">
+                          {notifications.length === 0 ? (
+                            <div className="text-center text-gray-500 mt-8">
+                              No notifications
+                            </div>
+                          ) : (
+                            notifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                className={`p-3 border-b border-gray-100 ${
+                                  !notification.read ? "bg-blue-50" : ""
+                                }`}
+                              >
+                                <p className="text-sm text-gray-800">
+                                  {notification.message}
+                                  {notification.type === "decrease" && (
+                                    <span className="font-medium">
+                                      {" "}
+                                      {formatBalance(notification.amount)}
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {new Date(
+                                    notification.timestamp
+                                  ).toLocaleString()}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  </div>
                 )}
+              </div>
+
+              {/* Mobile Balance */}
+              <div className="bg-blue-50 rounded-lg px-3 py-1 shadow-inner">
+                <span className="text-xs font-medium text-blue-800 whitespace-nowrap">
+                  {formatBalance(balance).split(".")[0]}
+                </span>
               </div>
 
               {/* Mobile User Avatar */}
               <div className="relative">
                 <Image
-                  src={user.photoURL || "/default-avatar.png"}
+                  src={user.photoURL || "/avatar.png"}
                   alt="User"
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                  onLoadingComplete={() => setIsLoadingImage(false)}
-                  style={{
-                    opacity: isLoadingImage ? 0 : 1,
-                    transition: "opacity 0.3s ease",
+                  width={36}
+                  height={36}
+                  className="rounded-full border-2 border-gray-200"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/avatar.png";
                   }}
                 />
                 {userSettings?.make_me_extra_private && (
-                  <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full">
+                  <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-sm">
                     <FaUserSecret className="text-xs text-gray-600" />
                   </div>
                 )}
@@ -376,7 +571,7 @@ const Header = () => {
               transition={{ type: "tween" }}
               className="absolute top-0 right-0 w-4/5 h-full bg-white shadow-xl"
             >
-              <div className="p-4">
+              <div className="p-4 h-full flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                   <Image
                     src="/favicon.png"
@@ -393,25 +588,38 @@ const Header = () => {
                 </div>
 
                 {user ? (
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-1">
                     <div className="flex items-center space-x-3">
-                      <Image
-                        src={user.photoURL || "/default-avatar.png"}
-                        alt="User"
-                        width={48}
-                        height={48}
-                        className="rounded-full"
-                      />
+                      <div className="relative">
+                        <Image
+                          src={user.photoURL || "/avatar.png"}
+                          alt="User"
+                          width={48}
+                          height={48}
+                          className="rounded-full border-2 border-gray-200"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/avatar.png";
+                          }}
+                        />
+                        {userSettings?.make_me_extra_private && (
+                          <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-sm">
+                            <FaUserSecret className="text-xs text-gray-600" />
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 truncate">
                           {userSettings?.username || "Welcome"}
                         </p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="space-y-4 flex-1">
+                      <div className="bg-gray-50 p-3 rounded-lg shadow-inner">
                         <p className="text-xs text-gray-500">Balance</p>
                         <p className="text-lg font-semibold text-blue-600">
                           {formatBalance(balance)}
@@ -433,21 +641,21 @@ const Header = () => {
                       <nav className="space-y-2">
                         <Link
                           href="/dashboard"
-                          className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                          className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded transition-colors"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           Dashboard
                         </Link>
                         <Link
                           href="/dashboard/settings"
-                          className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                          className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded transition-colors"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           Settings
                         </Link>
                         <button
                           onClick={handleSignOut}
-                          className="w-full text-left py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                          className="w-full text-left py-2 px-3 text-gray-700 hover:bg-gray-50 rounded transition-colors"
                         >
                           Sign Out
                         </button>
@@ -455,28 +663,30 @@ const Header = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 flex-1">
                     <Link
                       href="/about"
-                      className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                      className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       About Us
                     </Link>
                     <Link
                       href="/pricing"
-                      className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded"
+                      className="block py-2 px-3 text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Pricing
                     </Link>
-                    <Link
-                      href="/signin"
-                      className="block py-2 px-3 text-center bg-blue-600 text-white rounded hover:bg-blue-700"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Sign In
-                    </Link>
+                    <div className="pt-4">
+                      <Link
+                        href="/signin"
+                        className="block py-2 px-3 text-center bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors shadow-sm"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Sign In
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
