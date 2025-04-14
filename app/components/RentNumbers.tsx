@@ -74,7 +74,7 @@ const RentNumbers: React.FC = () => {
                     : "bg-blue-700"
                 }`}
               >
-                Rent Number
+                Rent
               </button>
               <button
                 onClick={() => setActiveTab("orders")}
@@ -84,7 +84,7 @@ const RentNumbers: React.FC = () => {
                     : "bg-blue-700"
                 }`}
               >
-                My Orders
+                Orders
               </button>
             </div>
           </div>

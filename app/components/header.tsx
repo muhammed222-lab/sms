@@ -112,7 +112,7 @@ const Header = () => {
           id: Date.now().toString(),
           message:
             difference > 0
-              ? `Amount was added to your balance`
+              ? `Your data is up to date! (data loaded)`
               : `You purchased a service`,
           amount: Math.abs(difference),
           type: difference > 0 ? "increase" : "decrease",

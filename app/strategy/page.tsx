@@ -27,7 +27,7 @@ const StrategyPage = () => {
           {/* Step 1 */}
           <div className="bg-white border rounded-lg p-8 text-center">
             <Image
-              src="/images/strategy-step1.svg"
+              src="/deemax.png"
               alt="Step 1"
               width={100}
               height={100}
@@ -45,7 +45,7 @@ const StrategyPage = () => {
           {/* Step 2 */}
           <div className="bg-white border rounded-lg p-8 text-center">
             <Image
-              src="/images/strategy-step2.svg"
+              src="/deemax.png"
               alt="Step 2"
               width={100}
               height={100}
@@ -63,7 +63,7 @@ const StrategyPage = () => {
           {/* Step 3 */}
           <div className="bg-white border rounded-lg p-8 text-center">
             <Image
-              src="/images/strategy-step3.svg"
+              src="/deemax.png"
               alt="Step 3"
               width={100}
               height={100}

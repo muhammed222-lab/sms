@@ -13,7 +13,7 @@ const Blog = () => {
       description:
         "Discover how SmsGlobe provides a secure and efficient alternative for temporary phone numbers.",
       date: "November 10, 2024",
-      image: "/blog1.jpg",
+      image: "/deemax.png",
       link: "/blog/revolutionizing-verification",
     },
     {
@@ -22,7 +22,7 @@ const Blog = () => {
       description:
         "Learn how temporary phone numbers can protect your privacy while streamlining your workflow.",
       date: "October 25, 2024",
-      image: "/blog2.jpg",
+      image: "/deemax.png",
       link: "/blog/benefits-of-temp-numbers",
     },
     {
@@ -31,7 +31,7 @@ const Blog = () => {
       description:
         "An in-depth look at how SmsGlobe ensures secure communication for businesses and individuals.",
       date: "September 15, 2024",
-      image: "/blog3.jpg",
+      image: "/deemax.png",
       link: "/blog/secure-communication-future",
     },
   ];
