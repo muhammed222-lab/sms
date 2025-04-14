@@ -2,6 +2,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { auth } from "../firebaseConfig";
+import { onAuthStateChanged, User } from "firebase/auth";
 import {
   FaSms,
   FaMobileAlt,
@@ -27,10 +30,28 @@ import Header from "../components/header";
 import Auth from "../components/Auth";
 import Prices from "../components/prices";
 import Settings from "../components/Settings";
+import LoadingSpinner from "../components/LoadingSpinner"; // Create this component
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState("Receive SMS");
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // Check authentication state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setLoading(false);
+      } else {
+        router.push("/signin");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   // Sidebar links data
   const sidebarLinks = [
@@ -78,16 +99,30 @@ const Dashboard = () => {
 
   // Save active page to localStorage whenever it changes
   useEffect(() => {
+    if (!user) return;
+
     const storedPage = localStorage.getItem("activePage");
     if (storedPage) {
-      setActivePage(storedPage); // Set active page from localStorage
+      setActivePage(storedPage);
     }
-  }, []);
+  }, [user]);
 
   const handleTabChange = (label: string) => {
     setActivePage(label);
-    localStorage.setItem("activePage", label); // Store the active page in localStorage
+    localStorage.setItem("activePage", label);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // The router will handle the redirect
+  }
 
   return (
     <>
@@ -101,13 +136,7 @@ const Dashboard = () => {
           } flex-col lg:flex-row lg:w-64 w-full lg:relative`}
         >
           <div className="lg:hidden flex justify-between items-center p-2">
-            {/* <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-white flex items-center gap-2"
-            >
-              <FaBars />
-              <span>Menu</span>
-            </button> */}
+            {/* Mobile menu button */}
           </div>
           <div
             className={`flex flex-col lg:flex-col lg:space-y-2 space-y-2 lg:space-x-0 p-4 w-full`}
