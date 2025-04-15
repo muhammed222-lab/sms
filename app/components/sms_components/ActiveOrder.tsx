@@ -147,9 +147,21 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
     }
   }, [isActive, order.sms]);
 
-  function handleCancelOrder(event: React.MouseEvent<HTMLButtonElement>): void {
-    throw new Error("Function not implemented.");
-  }
+  const handleCancelOrder = async () => {
+    setCancelError("");
+    setCanceling(true);
+    try {
+      await onCancel(order.orderId);
+      setSuccessMsg("Order canceled successfully.");
+    } catch (error) {
+      console.error("Cancel error:", error);
+      setCancelError(
+        error instanceof Error ? error.message : "Failed to cancel order"
+      );
+    } finally {
+      setCanceling(false);
+    }
+  };
 
   return (
     <div className="p-4 bg-white shadow-md rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-b">
@@ -311,7 +323,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
                 canceling ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              <MdCancel size={18} />{" "}
+              <MdCancel size={18} />
               {canceling ? "Canceling..." : "Cancel Order"}
             </button>
           )}

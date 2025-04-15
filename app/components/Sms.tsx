@@ -103,7 +103,20 @@ interface SelectOption {
   flagUrl?: string;
   code?: string;
 }
+const hasSpecialPricing = (
+  country: string | null,
+  service: string | null
+): boolean => {
+  if (!country || !service) return false;
 
+  const specialCountries = ["usa", "uk", "nigeria"];
+  const specialService = "whatsapp";
+
+  return (
+    specialCountries.includes(country.toLowerCase()) &&
+    service.toLowerCase() === specialService
+  );
+};
 interface UserSettings {
   currency: string;
   delete_account: boolean;
@@ -160,7 +173,17 @@ const Sms = () => {
     );
   };
 
-  const calculateFinalPrice = (rubPrice: number): number => {
+  const calculateFinalPrice = (
+    rubPrice: number,
+    country?: string | null,
+    service?: string | null
+  ): number => {
+    // Apply special pricing for WhatsApp in USA/UK/Nigeria
+    if (country && service && hasSpecialPricing(country, service)) {
+      return 0.5; // Fixed $0.50 price
+    }
+
+    // Normal pricing calculation
     const priceInUsd = rubPrice * rubToUsdRate;
     return parseFloat((priceInUsd * 1.3).toFixed(2));
   };
@@ -488,9 +511,12 @@ const Sms = () => {
       }
 
       const finalPriceCalc = selectedService.price
-        ? calculateFinalPrice(Number(selectedService.price))
+        ? calculateFinalPrice(
+            Number(selectedService.price),
+            selectedCountry?.value ?? null,
+            selectedService.value
+          )
         : 0;
-
       if (balance < finalPriceCalc) {
         throw new Error(
           `Insufficient balance. You need $${finalPriceCalc.toFixed(
@@ -686,12 +712,17 @@ const Sms = () => {
         const orderDoc = orderSnapshot.docs[0];
         const orderData = orderDoc.data();
 
-        const refundAmount = parseFloat(orderData.price);
+        // Calculate refund amount based on what was actually charged
+        const refundAmount = parseFloat(
+          orderData.priceLocal || orderData.price
+        );
 
         await updateDoc(orderDoc.ref, {
           status: "CANCELED",
+          sms: orderData.sms || null, // Preserve existing SMS if any
         });
 
+        // Refund user balance
         const userBalanceQuery = query(
           collection(db, "userDeposits"),
           where("email", "==", currentUser.email)
@@ -701,15 +732,22 @@ const Sms = () => {
         if (!userBalanceSnapshot.empty) {
           const userDoc = userBalanceSnapshot.docs[0];
           const currentBalance = userDoc.data().amount || 0;
-          const newBalance = currentBalance + refundAmount;
+          const newBalance = parseFloat(
+            (currentBalance + refundAmount).toFixed(2)
+          );
           await updateDoc(userDoc.ref, { amount: newBalance });
           setBalance(newBalance);
         }
 
+        // Update local state
         setOrders((prev) =>
           prev.map((order) =>
             order.orderId === orderId
-              ? { ...order, status: "CANCELED", sms: order.sms }
+              ? {
+                  ...order,
+                  status: "CANCELED",
+                  sms: order.sms || null,
+                }
               : order
           )
         );
@@ -731,7 +769,6 @@ const Sms = () => {
       });
     }
   };
-
   const rebuyNumber = async (order: SmsOrder) => {
     try {
       const currentUser = auth.currentUser;
@@ -755,7 +792,11 @@ const Sms = () => {
 
       if (data.id) {
         const finalPriceCalc = data.price
-          ? calculateFinalPrice(Number(data.price))
+          ? calculateFinalPrice(
+              Number(data.price),
+              order.country,
+              order.service
+            )
           : 0;
 
         if (balance < finalPriceCalc) {
@@ -1105,7 +1146,12 @@ const Sms = () => {
 
               <div className="bg-gray-100 p-2 rounded font-medium">Price</div>
               <div className="p-2">
-                {rubToUsdRate
+                {hasSpecialPricing(
+                  selectedCountry?.value ?? null,
+                  selectedService.value
+                )
+                  ? `$0.50 USD`
+                  : rubToUsdRate
                   ? `$${calculateFinalPrice(
                       Number(selectedService.price)
                     ).toFixed(2)} USD`
@@ -1162,7 +1208,12 @@ const Sms = () => {
                   </td>
 
                   <td className="border px-4 py-2">
-                    {rubToUsdRate
+                    {hasSpecialPricing(
+                      selectedCountry?.value ?? null,
+                      selectedService.value
+                    )
+                      ? `$0.50 USD`
+                      : rubToUsdRate
                       ? `$${calculateFinalPrice(
                           Number(selectedService.price)
                         ).toFixed(2)} USD`
