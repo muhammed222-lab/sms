@@ -1,9 +1,9 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { FiCopy } from "react-icons/fi";
-import { MdCancel, MdRefresh, MdCheck } from "react-icons/md";
+import { MdCancel, MdRefresh, MdCheck, MdDone } from "react-icons/md";
 import { FaSave, FaTrash } from "react-icons/fa";
 import FailedNotification from "./FailedNotification";
 import SuccessNotification from "./SuccessNotification";
@@ -33,6 +33,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
   const [canceling, setCanceling] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [rebuying, setRebuying] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const [cancelError, setCancelError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [copiedNumber, setCopiedNumber] = useState(false);
@@ -40,9 +41,9 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
 
   // Determine order status
   const isCanceled = order.status === "CANCELED";
-  const isExpired =
-    new Date(order.expires).getTime() <= Date.now() && !isCanceled;
+  const isExpired = new Date(order.expires).getTime() <= Date.now();
   const isActive = !isCanceled && !isExpired;
+  const hasSms = !!order.sms;
 
   const handleRefreshSms = async () => {
     setSmsLoading(true);
@@ -57,19 +58,21 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
     }
   };
 
-  const handleCancelOrder = async () => {
-    setCancelError("");
-    setCanceling(true);
+  const handleCompleteOrder = async () => {
+    setCompleting(true);
     try {
-      await onCancel(order.orderId);
-      setSuccessMsg("Order canceled successfully. Refund processing...");
+      // You might want to update order status to "COMPLETED" here
+      setSuccessMsg("Order marked as completed.");
+      setTimeout(() => {
+        handleRemoveOrder();
+      }, 1500); // Give user time to see the completion message
     } catch (error) {
-      console.error("Cancel error:", error);
+      console.error("Complete error:", error);
       setCancelError(
-        error instanceof Error ? error.message : "Failed to cancel order"
+        error instanceof Error ? error.message : "Failed to complete order"
       );
     } finally {
-      setCanceling(false);
+      setCompleting(false);
     }
   };
 
@@ -83,6 +86,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
       setCancelError(
         error instanceof Error ? error.message : "Failed to remove order"
       );
+    } finally {
       setRemoving(false);
     }
   };
@@ -122,10 +126,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
         if (smsText) {
           await navigator.clipboard.writeText(smsText);
         }
-        onCopy &&
-          onCopy(
-            typeof order.sms === "string" ? order.sms : order.sms?.text || ""
-          );
+        onCopy && onCopy(smsText || "");
         setCopiedSms(true);
         setSuccessMsg("SMS copied!");
         setTimeout(() => setCopiedSms(false), 2000);
@@ -134,6 +135,21 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
       }
     }
   };
+
+  // Auto-refresh SMS when it's not received yet
+  useEffect(() => {
+    if (isActive && !order.sms) {
+      const interval = setInterval(() => {
+        handleRefreshSms();
+      }, 10000); // Refresh every 10 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [isActive, order.sms]);
+
+  function handleCancelOrder(event: React.MouseEvent<HTMLButtonElement>): void {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <div className="p-4 bg-white shadow-md rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-b">
@@ -179,7 +195,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
             <span className="font-semibold">Canceled</span>
           </div>
         )}
-        {isExpired && (
+        {isExpired && !isCanceled && (
           <div className="flex items-center gap-1 text-orange-600">
             <MdCancel size={18} />
             <span className="font-semibold">Expired</span>
@@ -217,7 +233,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
                 )}
               </button>
             ) : (
-              !isCanceled && (
+              isActive && (
                 <button
                   onClick={handleRefreshSms}
                   disabled={smsLoading}
@@ -233,7 +249,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
               )
             )}
           </div>
-          {!order.sms && !isCanceled && (
+          {!order.sms && isActive && (
             <div className="text-xs text-gray-500">
               SMS will appear here when received
             </div>
@@ -241,7 +257,7 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {!isActive ? (
+          {isCanceled || isExpired ? (
             <>
               <button
                 onClick={handleRebuyNumber}
@@ -264,14 +280,35 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
                 {removing ? "Removing..." : "Remove"}
               </button>
             </>
+          ) : hasSms ? (
+            <>
+              <button
+                onClick={handleCompleteOrder}
+                disabled={completing}
+                className={`px-3 py-2 bg-green-500 text-white rounded-md flex items-center gap-1 hover:bg-green-600 ${
+                  completing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                <MdDone size={18} />
+                {completing ? "Completing..." : "Complete"}
+              </button>
+              <button
+                onClick={handleRemoveOrder}
+                disabled={removing}
+                className={`px-3 py-2 bg-gray-200 text-red-600 rounded-md flex items-center gap-1 hover:bg-gray-300 ${
+                  removing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                <FaTrash size={18} />
+                {removing ? "Removing..." : "Remove"}
+              </button>
+            </>
           ) : (
             <button
               onClick={handleCancelOrder}
-              disabled={order.sms !== null || canceling}
+              disabled={canceling}
               className={`px-3 py-2 bg-red-500 text-white rounded-md flex items-center gap-1 hover:bg-red-600 ${
-                order.sms !== null || canceling
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
+                canceling ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               <MdCancel size={18} />{" "}

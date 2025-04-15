@@ -582,10 +582,29 @@ const Sms = () => {
       }
 
       const data = await response.json();
+      console.log("5sim API Response:", data); // Debug log
 
-      if (data.sms && data.sms.length > 0) {
-        const sms = data.sms[0];
+      // Handle 5sim's different response formats
+      let smsCode = null;
+      let smsStatus = "PENDING";
 
+      // Format 1: SMS in array with code/text
+      if (Array.isArray(data.sms) && data.sms.length > 0) {
+        smsCode = data.sms[0].code || data.sms[0].text;
+        smsStatus = "RECEIVED";
+      }
+      // Format 2: Direct SMS text
+      else if (typeof data.sms === "string") {
+        smsCode = data.sms;
+        smsStatus = "RECEIVED";
+      }
+      // Format 3: 5sim's alternative format
+      else if (data.text) {
+        smsCode = data.text;
+        smsStatus = "RECEIVED";
+      }
+
+      if (smsCode) {
         const orderQuery = query(
           collection(db, "sms_orders"),
           where("orderId", "==", orderId),
@@ -596,15 +615,15 @@ const Sms = () => {
         if (!orderSnapshot.empty) {
           const orderDoc = orderSnapshot.docs[0];
           await updateDoc(orderDoc.ref, {
-            sms: sms.code,
-            status: "RECEIVED",
+            sms: smsCode,
+            status: smsStatus,
           });
         }
 
         setOrders((prev) =>
           prev.map((order) =>
             order.orderId === orderId
-              ? { ...order, sms: sms.code, status: "RECEIVED" }
+              ? { ...order, sms: smsCode, status: smsStatus }
               : order
           )
         );
@@ -612,13 +631,17 @@ const Sms = () => {
         setMessage({ type: "success", content: "SMS code received." });
         setShowSuccess(true);
         setSuccessMessage("SMS code received successfully!");
-      } else if (data.error_code === "wait_sms") {
+      }
+      // Handle waiting states
+      else if (data.status === "PENDING" || data.error_code === "wait_sms") {
         setMessage({
           type: "info",
           content: "Waiting for SMS. Code will show here once received.",
         });
-      } else {
-        throw new Error(data.error || "Failed to fetch SMS.");
+      }
+      // Handle other cases
+      else {
+        throw new Error(data.error || data.message || "No SMS received yet");
       }
     } catch (error: any) {
       console.error("Error fetching SMS code:", error);
