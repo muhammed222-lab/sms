@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../firebaseConfig";
 import {
@@ -8,8 +10,21 @@ import {
   DocumentData,
 } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { FaCopy, FaDownload } from "react-icons/fa";
+import {
+  FaCopy,
+  FaDownload,
+  FaSearch,
+  FaShare,
+  FaFilePdf,
+  FaFileAlt,
+  FaFileCsv,
+} from "react-icons/fa";
 import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { CSVLink } from "react-csv";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 interface CryptoTransaction {
   address: string;
@@ -32,8 +47,13 @@ interface CryptoTransaction {
 const CryptoData: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<CryptoTransaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<
+    CryptoTransaction[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -76,7 +96,15 @@ const CryptoData: React.FC = () => {
             transactionsData.push(transaction);
           });
 
+          // Sort by date (newest first)
+          transactionsData.sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          );
+
           setTransactions(transactionsData);
+          setFilteredTransactions(transactionsData);
           setLoading(false);
         } catch (error) {
           console.error("Error fetching transactions:", error);
@@ -88,117 +116,330 @@ const CryptoData: React.FC = () => {
     fetchTransactions();
   }, [user]);
 
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredTransactions(transactions);
+    } else {
+      const filtered = transactions.filter(
+        (transaction) =>
+          transaction.order_id
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          transaction.amount.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          transaction.currency
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          transaction.payment_status
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          transaction.txid.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredTransactions(filtered);
+    }
+  }, [searchTerm, transactions]);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert("Copied to clipboard!");
+    toast.success("Copied to clipboard!", {
+      position: "top-right",
+      autoClose: 2000,
+    });
   };
 
-  const downloadAsTxt = () => {
-    const element = document.createElement("a");
-    const file = new Blob([JSON.stringify(transactions, null, 2)], {
-      type: "text/plain",
+  const shareTransaction = (transaction: CryptoTransaction) => {
+    const shareData = {
+      title: `Transaction ${transaction.order_id}`,
+      text: `Crypto Transaction Details:
+Order ID: ${transaction.order_id}
+Amount: ${transaction.amount} ${transaction.currency}
+Status: ${transaction.payment_status}
+Date: ${formatDate(transaction.created_at)}`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(console.error);
+    } else {
+      copyToClipboard(shareData.text);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
-    element.href = URL.createObjectURL(file);
-    element.download = "transactions.txt";
-    document.body.appendChild(element);
-    element.click();
   };
 
   const downloadAsPdf = () => {
     const doc = new jsPDF();
-    let y = 10;
-    transactions.forEach((transaction, index) => {
-      doc.text(`Transaction ${index + 1}`, 10, y);
-      doc.text(`Order ID: ${transaction.order_id}`, 10, y + 10);
-      doc.text(`Amount: ${transaction.amount}`, 10, y + 20);
-      doc.text(`Currency: ${transaction.currency}`, 10, y + 30);
-      doc.text(`Status: ${transaction.payment_status}`, 10, y + 40);
-      doc.text(
-        `Created At: ${new Date(transaction.created_at).toLocaleString()}`,
-        10,
-        y + 50
-      );
-      doc.text(
-        `Updated At: ${new Date(transaction.updated_at).toLocaleString()}`,
-        10,
-        y + 60
-      );
-      y += 70;
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text("Crypto Transactions", 14, 15);
+
+    // Prepare data for the table
+    const tableData = filteredTransactions.map((transaction) => [
+      transaction.order_id,
+      `${transaction.amount} ${transaction.currency}`,
+      transaction.payment_status,
+      formatDate(transaction.created_at),
+      formatDate(transaction.updated_at),
+    ]);
+
+    // Use autoTable directly
+    autoTable(doc, {
+      head: [["Order ID", "Amount", "Status", "Created At", "Updated At"]],
+      body: tableData,
+      startY: 25,
+      styles: {
+        cellPadding: 3,
+        fontSize: 10,
+        valign: "middle",
+        halign: "left",
+      },
+      headStyles: {
+        fillColor: "#3B82F6",
+        textColor: "#FFFFFF",
+        fontStyle: "bold",
+      },
+      alternateRowStyles: {
+        fillColor: "#F3F4F6",
+      },
     });
-    doc.save("transactions.pdf");
+
+    doc.save("crypto_transactions.pdf");
+    setShowDropdown(false);
+  };
+
+  const downloadAsCsv = () => {
+    const csvData = filteredTransactions.map((transaction) => ({
+      "Order ID": transaction.order_id,
+      Amount: transaction.amount,
+      Currency: transaction.currency,
+      Status: transaction.payment_status,
+      "Created At": formatDate(transaction.created_at),
+      "Updated At": formatDate(transaction.updated_at),
+      "Transaction ID": transaction.txid,
+    }));
+
+    return csvData;
+  };
+
+  const toggleRowSelection = (uuid: string) => {
+    setSelectedRows((prev) =>
+      prev.includes(uuid) ? prev.filter((id) => id !== uuid) : [...prev, uuid]
+    );
   };
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4 max-w-5x2">
-      <h2 className="text-2xl font-bold mb-4">Crypto Transactions</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200">
-          <thead>
-            <tr>
-              <th className="py-2 px-4 border-b">Order ID</th>
-              <th className="py-2 px-4 border-b">Amount</th>
-              <th className="py-2 px-4 border-b">Currency</th>
-              <th className="py-2 px-4 border-b">Status</th>
-              <th className="py-2 px-4 border-b">Created At</th>
-              <th className="py-2 px-4 border-b">Updated At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((transaction) => (
-              <tr key={transaction.uuid}>
-                <td className="py-2 px-4 border-b flex items-center">
-                  {transaction.order_id}
-                  <button
-                    onClick={() => copyToClipboard(transaction.order_id)}
-                    className="ml-2 text-blue-500"
-                  >
-                    <FaCopy />
-                  </button>
-                </td>
-                <td className="py-2 px-4 border-b">{transaction.amount}</td>
-                <td className="py-2 px-4 border-b">{transaction.currency}</td>
-                <td className="py-2 px-4 border-b">
-                  {transaction.payment_status}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {new Date(transaction.created_at).toLocaleString()}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {new Date(transaction.updated_at).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="relative mt-4">
-        <button
-          onClick={() => setShowDropdown(!showDropdown)}
-          className="p-2 bg-green-500 text-white rounded"
-        >
-          <FaDownload className="inline mr-2" /> Download
-        </button>
-        {showDropdown && (
-          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg">
-            <button
-              onClick={downloadAsTxt}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-            >
-              Save as TXT
-            </button>
-            <button
-              onClick={downloadAsPdf}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-            >
-              Save as PDF
-            </button>
+    <div className="p-4 max-w-7xl mx-auto">
+      <ToastContainer />
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Crypto Transactions
+        </h2>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-grow md:flex-grow-0">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaSearch className="text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        )}
+
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <FaDownload />
+              <span className="hidden sm:inline">Export</span>
+              {showDropdown ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <div className="py-1">
+                  <CSVLink
+                    data={downloadAsCsv()}
+                    filename="crypto_transactions.csv"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    <FaFileCsv className="text-green-600" />
+                    Download as CSV
+                  </CSVLink>
+                  <button
+                    onClick={downloadAsPdf}
+                    className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
+                  >
+                    <FaFilePdf className="text-red-600" />
+                    Download as PDF
+                  </button>
+                  <button
+                    onClick={() => {
+                      copyToClipboard(
+                        JSON.stringify(filteredTransactions, null, 2)
+                      );
+                      setShowDropdown(false);
+                    }}
+                    className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
+                  >
+                    <FaFileAlt className="text-blue-600" />
+                    Copy as Text
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {filteredTransactions.length === 0 ? (
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <p className="text-gray-500 text-lg">
+            {searchTerm
+              ? "No transactions match your search"
+              : "No transactions found"}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Order ID
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Amount
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Created At
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Updated At
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredTransactions.map((transaction) => (
+                  <tr
+                    key={transaction.uuid}
+                    className={`hover:bg-gray-50 ${
+                      selectedRows.includes(transaction.uuid)
+                        ? "bg-blue-50"
+                        : ""
+                    }`}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-900">
+                          {transaction.order_id}
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(transaction.order_id)}
+                          className="ml-2 text-gray-400 hover:text-blue-600"
+                          aria-label="Copy order ID"
+                        >
+                          <FaCopy size={14} />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        {transaction.amount} {transaction.currency}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          transaction.payment_status === "completed"
+                            ? "bg-green-100 text-green-800"
+                            : transaction.payment_status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {transaction.payment_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(transaction.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(transaction.updated_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end items-center gap-2">
+                        <button
+                          onClick={() => shareTransaction(transaction)}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
+                          aria-label="Share transaction"
+                        >
+                          <FaShare size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {filteredTransactions.length > 0 && (
+        <div className="mt-4 text-sm text-gray-500">
+          Showing {filteredTransactions.length} of {transactions.length}{" "}
+          transactions
+        </div>
+      )}
     </div>
   );
 };

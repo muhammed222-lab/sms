@@ -203,3 +203,19 @@ textarea {
     overflow-y: auto !important;
   }
 }
+
+@keyframes spinner-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.5);
+  }
+}
+
+.animate-spinner-dot {
+  animation: spinner-dot 1.2s infinite ease-in-out;
+}

@@ -1,134 +1,206 @@
 import React from "react";
 import Link from "next/link";
 import Header from "../components/header";
+import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+
 const ServicesPricing = () => {
   const pricingPlans = [
     {
-      title: "Basic",
-      price: "$3",
+      title: "Pay-As-You-Go",
+      price: "$1 - $3 per number",
       description:
         "Ideal for individuals who need temporary numbers occasionally.",
       features: [
-        "1 Temporary Number",
-        "Basic Support",
-        "Access to 10+ Countries",
+        "Purchase numbers individually",
+        "Basic email support",
+        "Access to 10+ countries",
+        "Numbers start at just $0.03",
       ],
-      buttonText: "Choose Basic",
+      buttonText: "Fund Your Account",
     },
     {
-      title: "Pro",
-      price: "$9",
+      title: "Bulk Purchases",
+      price: "$3 - $10 per batch",
       description: "Perfect for frequent users needing multiple verifications.",
       features: [
-        "5 Temporary Numbers",
-        "Priority Support",
-        "Access to 30+ Countries",
+        "5-20 numbers per purchase",
+        "Priority support",
+        "Access to 30+ countries",
+        "Better rates for bulk purchases",
       ],
-      buttonText: "Choose Pro",
+      buttonText: "Fund Your Account",
       isPopular: true,
     },
     {
-      title: "Enterprise",
-      price: "$29",
-      description: "Best for businesses requiring high-volume verifications.",
+      title: "Number Rental",
+      price: "$20 - $30 per month",
+      description:
+        "Best for businesses requiring dedicated numbers for longer periods.",
       features: [
-        "Unlimited Numbers",
-        "Dedicated Account Manager",
-        "Access to All Countries",
+        "Dedicated numbers for your use",
+        "24/7 dedicated support",
+        "Access to all countries",
+        "Custom rental periods available",
       ],
-      buttonText: "Choose Enterprise",
+      buttonText: "Fund Your Account",
     },
   ];
 
   return (
     <>
       <Header />
-      <div className="relative w-[80%] m-auto min-h-[500px]">
-        {/* Content Container */}
-        <div className="container mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Left Content */}
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-bold">
-                Our Services
-                <br />& Pricing
-              </h1>
-              <p className="text-gray-700 text-lg max-w-md">
-                Sign up now and get a free number to experience the convenience
-                and security of our temporary phone number service.
+      <div className="relative w-full max-w-7xl mx-auto min-h-screen px-4 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Flexible Pricing Based on Your Needs
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            No monthly subscriptions - simply deposit funds and use what you
+            need. Your balance never expires.
+          </p>
+        </div>
+
+        {/* How It Works Section */}
+        <div className=" rounded-xl p-8 mb-16">
+          <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">
+            How Our Deposit System Works
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-red-600">1</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Deposit Funds</h3>
+              <p className="text-gray-600">
+                Add any amount to your account balance (minimum $1)
               </p>
-              <Link
-                href="/get-started"
-                className="inline-block bg-red-500 text-white px-8 py-3 rounded-full text-lg font-medium hover:bg-red-600 transition-colors"
-              >
-                Get Started Now
-              </Link>
             </div>
-
-            {/* Right Content - Pricing Circle */}
-            <div className="relative">
-              {/* Decorative Blobs */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 bg-blue-400 rounded-full opacity-50 blur-lg absolute -left-4"></div>
-                <div className="w-32 h-32 bg-purple-400 rounded-full opacity-50 blur-lg absolute -top-4"></div>
-                <div className="w-32 h-32 bg-green-400 rounded-full opacity-50 blur-lg absolute -right-4"></div>
-                <div className="w-32 h-32 bg-indigo-400 rounded-full opacity-50 blur-lg absolute -bottom-4"></div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-red-600">2</span>
               </div>
-
-              {/* Price Circle */}
-              <div className="relative w-48 h-48 bg-white rounded-full mx-auto flex flex-col items-center justify-center shadow-lg">
-                <p className="text-sm font-medium">Start from</p>
-                <p className="text-4xl font-bold">$3</p>
+              <h3 className="text-xl font-semibold mb-2">Purchase Numbers</h3>
+              <p className="text-gray-600">
+                Use your balance to buy numbers as you need them
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-red-600">3</span>
               </div>
+              <h3 className="text-xl font-semibold mb-2">Use & Repeat</h3>
+              <p className="text-gray-600">
+                Your balance stays until you use it - no expiration
+              </p>
             </div>
           </div>
         </div>
 
         {/* Pricing Cards */}
-        <div className="container mx-auto px-4 py-16">
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+            Choose Your Usage Style
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {pricingPlans.map((plan, index) => (
               <div
                 key={index}
-                className={`p-6 border rounded-lg shadow-lg ${
-                  plan.isPopular ? "border-red-500" : ""
+                className={`relative p-8 rounded-xl border-2 ${
+                  plan.isPopular
+                    ? "border-red-500 shadow-xl bg-white"
+                    : "border-gray-200 bg-white"
                 }`}
               >
                 {plan.isPopular && (
-                  <div className="bg-red-500 text-white px-4 py-1 text-sm rounded-full inline-block mb-4">
-                    Most Popular
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-1 text-sm font-bold rounded-full">
+                    MOST POPULAR
                   </div>
                 )}
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
                   {plan.title}
                 </h2>
-                <p className="text-4xl font-bold text-gray-800 my-4">
+                <p className="text-3xl font-bold text-gray-900 mb-4">
                   {plan.price}
                 </p>
-                <p className="text-gray-600">{plan.description}</p>
-                <ul className="mt-4 space-y-2">
+                <p className="text-gray-600 mb-6">{plan.description}</p>
+                <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center">
-                      <i className="fas fa-check text-green-600 mr-2"></i>
-                      {feature}
+                    <li key={idx} className="flex items-start">
+                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-                <button className="mt-6 bg-red-500 text-white px-6 py-2 rounded-full w-full hover:bg-red-600 transition-colors">
+                <Link
+                  href="/deposit"
+                  className={`w-full flex items-center justify-center ${
+                    plan.isPopular
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-gray-800 hover:bg-gray-900"
+                  } text-white py-3 px-6 rounded-lg font-medium transition-colors`}
+                >
                   {plan.buttonText}
-                </button>
+                  <ArrowRightIcon className="w-5 h-5 ml-2" />
+                </Link>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Decorative Dots Pattern */}
-        <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
-          <div className="grid grid-cols-5 gap-2">
-            {[...Array(25)].map((_, i) => (
-              <div key={i} className="w-2 h-2 bg-gray-400 rounded-full"></div>
-            ))}
+        {/* FAQ Section */}
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4">
+            <div className="border-b border-gray-200 pb-4">
+              <h3 className="text-xl font-semibold mb-2">
+                Is this a subscription service?
+              </h3>
+              <p className="text-gray-600">
+                No! We operate on a deposit-based system. You add funds to your
+                account balance, and then use those funds to purchase numbers as
+                you need them. Your balance never expires.
+              </p>
+            </div>
+            <div className="border-b border-gray-200 pb-4">
+              <h3 className="text-xl font-semibold mb-2">
+                How much should I deposit?
+              </h3>
+              <p className="text-gray-600">
+                You can deposit any amount (minimum $1). Numbers start at just
+                $0.03, so even a small deposit can get you started. Frequent
+                users typically deposit $10-20 at a time.
+              </p>
+            </div>
+            <div className="border-b border-gray-200 pb-4">
+              <h3 className="text-xl font-semibold mb-2">
+                Can I get a refund on unused balance?
+              </h3>
+              <p className="text-gray-600">
+                Yes! Unused funds can be refunded to your original payment
+                method at any time, minus any transaction fees.
+              </p>
+            </div>
           </div>
+        </div>
+
+        {/* Final CTA */}
+        <div className="mt-16 text-center">
+          <h2 className="text-3xl font-bold mb-4 text-gray-800">
+            Ready to Get Started?
+          </h2>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Deposit funds today and gain access to virtual numbers from around
+            the world.
+          </p>
+          <Link
+            href="/deposit"
+            className="inline-block bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg text-lg font-bold transition-colors shadow-lg"
+          >
+            Deposit Funds Now
+          </Link>
         </div>
       </div>
     </>

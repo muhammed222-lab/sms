@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ import {
   getDocs,
   query,
   where,
+  serverTimestamp,
 } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
@@ -106,13 +108,96 @@ const SignUp = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const checkUserDepositExists = async (email: string) => {
-    const q = query(
-      collection(db, "userDeposits"),
-      where("email", "==", email)
-    );
+  // Check if referral bonus was already applied to this user
+  const checkReferralBonusApplied = async (email: string) => {
+    const q = query(collection(db, "refers"), where("user_email", "==", email));
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
+  };
+
+  // Process referral bonus securely
+  const processReferralBonus = async (
+    userEmail: string,
+    userName: string,
+    userId: string
+  ) => {
+    if (!referrer) return; // No referral, exit early
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        // Check if bonus was already applied to prevent duplicate bonuses
+        const bonusApplied = await checkReferralBonusApplied(userEmail);
+        if (bonusApplied) {
+          throw new Error("Referral bonus already applied for this user");
+        }
+
+        // Create referral record with all required fields
+        const referDocRef = doc(collection(db, "refers"));
+        transaction.set(referDocRef, {
+          user_email: userEmail,
+          user_name: userName,
+          refer_by_email: referrer.email,
+          refer_by_name: referrer.name,
+          refer_date: serverTimestamp(),
+          commission: 1.26,
+          bonus_applied: true,
+          status: "completed",
+        });
+
+        // Update new user's balance
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await transaction.get(userDocRef);
+
+        if (!userDoc.exists()) {
+          throw new Error("User document not found");
+        }
+
+        transaction.update(userDocRef, {
+          balance: 1.26, // Set directly to 1.26 as per requirements
+        });
+
+        // Add bonus record to userDeposits
+        const depositDocRef = doc(collection(db, "userDeposits"));
+        transaction.set(depositDocRef, {
+          email: userEmail,
+          amount: 1.26,
+          date: serverTimestamp(),
+          type: "referral_bonus",
+          referrer: referrer.email,
+          status: "completed",
+          userId: userId,
+        });
+      });
+
+      // Clear referrer from local storage on success
+      localStorage.removeItem("referrer");
+      setReferrer(null);
+
+      // Show celebration
+      setShowBonusConfetti(true);
+      setTimeout(() => setShowBonusConfetti(false), 5000);
+
+      toast.success(
+        <div className="flex items-center">
+          <FaGift className="mr-2 text-yellow-500" />
+          <span>You&apos;ve received a $1.26 referral bonus!</span>
+        </div>,
+        {
+          autoClose: 5000,
+          closeButton: true,
+          className: "border-2 border-green-500",
+        }
+      );
+    } catch (referralError) {
+      console.error("Referral processing error:", referralError);
+      toast.warn(
+        "Referral bonus could not be applied: " +
+          (referralError instanceof Error
+            ? referralError.message
+            : "Unknown error"),
+        { autoClose: 5000 }
+      );
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -146,93 +231,24 @@ const SignUp = () => {
         first_name: firstName,
         email,
         currency: "ngn",
-        date: new Date().toISOString(),
+        date: serverTimestamp(),
         verified: false,
-        balance: 0,
+        balance: 0, // Initial balance 0, will be updated if referral exists
         referral_balance: 0,
       });
 
-      // Add user to 'userDeposits' collection
+      // Add initial user deposit record
       await addDoc(collection(db, "userDeposits"), {
         email,
         amount: 0.0,
-        date: new Date().toISOString(),
+        date: serverTimestamp(),
+        status: "initial",
+        userId: userCredential.user.uid,
       });
 
-      // If referrer data exists, save to 'refers' collection and give bonus
+      // Process referral if exists
       if (referrer) {
-        try {
-          await runTransaction(db, async (transaction) => {
-            // First check if user deposit exists to prevent duplicate bonuses
-            const depositExists = await checkUserDepositExists(email);
-            if (depositExists) {
-              throw new Error("User deposit already exists");
-            }
-
-            // Add referral record
-            const referDocRef = await addDoc(collection(db, "refers"), {
-              user_email: email,
-              user_name: firstName,
-              refer_by_email: referrer.email,
-              refer_by_name: referrer.name,
-              refer_date: new Date(),
-              commission: 1.26, // $1.26 referral bonus
-              status: "pending",
-            });
-
-            // Update referrer's balance (if you still want to give something to referrer)
-            const referrerDocRef = doc(db, "users", referrer.code);
-            const referrerDoc = await transaction.get(referrerDocRef);
-
-            if (referrerDoc.exists()) {
-              const currentBalance = referrerDoc.data().referral_balance || 0;
-              transaction.update(referrerDocRef, {
-                referral_balance: currentBalance + 0.5, // Example: give referrer $0.5
-              });
-            }
-
-            // Give new user a $1.26 bonus
-            const newUserDocRef = doc(db, "users", userCredential.user.uid);
-            transaction.update(newUserDocRef, {
-              balance: 1.26,
-            });
-
-            // Add bonus record to userDeposits
-            await addDoc(collection(db, "userDeposits"), {
-              email,
-              amount: 1.26,
-              date: new Date().toISOString(),
-              type: "referral_bonus",
-              referrer: referrer.email,
-            });
-          });
-
-          // Clear referrer from local storage
-          localStorage.removeItem("referrer");
-          setReferrer(null);
-
-          // Show celebration
-          setShowBonusConfetti(true);
-          setTimeout(() => setShowBonusConfetti(false), 5000);
-
-          toast.success(
-            <div className="flex items-center">
-              <FaGift className="mr-2 text-yellow-500" />
-              <span>You&apos;ve received a $1.26 referral bonus!</span>
-            </div>,
-            {
-              autoClose: 5000,
-              closeButton: true,
-              className: "border-2 border-green-500",
-            }
-          );
-        } catch (referralError) {
-          console.error("Referral processing error:", referralError);
-          toast.warn(
-            "Referral bonus could not be applied, but account was created",
-            { autoClose: 5000 }
-          );
-        }
+        await processReferralBonus(email, firstName, userCredential.user.uid);
       }
 
       toast.success(
@@ -294,96 +310,31 @@ const SignUp = () => {
 
       // Add user to 'users' collection
       await setDoc(doc(db, "users", user.uid), {
-        first_name: user.displayName,
+        first_name: user.displayName || "",
         email: user.email,
         currency: "ngn",
-        date: new Date().toISOString(),
+        date: serverTimestamp(),
         verified: user.emailVerified,
-        balance: 0,
+        balance: 0, // Initial balance 0, will be updated if referral exists
         referral_balance: 0,
       });
 
-      // Add user to 'userDeposits' collection
+      // Add initial user deposit record
       await addDoc(collection(db, "userDeposits"), {
         email: user.email,
         amount: 0.0,
-        date: new Date().toISOString(),
+        date: serverTimestamp(),
+        status: "initial",
+        userId: user.uid,
       });
 
-      // If referrer data exists, save to 'refers' collection and give bonus
-      if (referrer) {
-        try {
-          await runTransaction(db, async (transaction) => {
-            // First check if user deposit exists to prevent duplicate bonuses
-            const depositExists = await checkUserDepositExists(user.email!);
-            if (depositExists) {
-              throw new Error("User deposit already exists");
-            }
-
-            // Add referral record
-            const referDocRef = await addDoc(collection(db, "refers"), {
-              user_email: user.email,
-              user_name: user.displayName,
-              refer_by_email: referrer.email,
-              refer_by_name: referrer.name,
-              refer_date: new Date(),
-              commission: 1.26, // $1.26 referral bonus
-              status: "pending",
-            });
-
-            // Update referrer's balance (if you still want to give something to referrer)
-            const referrerDocRef = doc(db, "users", referrer.code);
-            const referrerDoc = await transaction.get(referrerDocRef);
-
-            if (referrerDoc.exists()) {
-              const currentBalance = referrerDoc.data().referral_balance || 0;
-              transaction.update(referrerDocRef, {
-                referral_balance: currentBalance + 0.5, // Example: give referrer $0.5
-              });
-            }
-
-            // Give new user a $1.26 bonus
-            const newUserDocRef = doc(db, "users", user.uid);
-            transaction.update(newUserDocRef, {
-              balance: 1.26,
-            });
-
-            // Add bonus record to userDeposits
-            await addDoc(collection(db, "userDeposits"), {
-              email: user.email,
-              amount: 1.26,
-              date: new Date().toISOString(),
-              type: "referral_bonus",
-              referrer: referrer.email,
-            });
-          });
-
-          // Clear referrer from local storage
-          localStorage.removeItem("referrer");
-          setReferrer(null);
-
-          // Show celebration
-          setShowBonusConfetti(true);
-          setTimeout(() => setShowBonusConfetti(false), 5000);
-
-          toast.success(
-            <div className="flex items-center">
-              <FaGift className="mr-2 text-yellow-500" />
-              <span>You&apos;ve received a $1.26 referral bonus!</span>
-            </div>,
-            {
-              autoClose: 5000,
-              closeButton: true,
-              className: "border-2 border-green-500",
-            }
-          );
-        } catch (referralError) {
-          console.error("Referral processing error:", referralError);
-          toast.warn(
-            "Referral bonus could not be applied, but sign-in was successful",
-            { autoClose: 5000 }
-          );
-        }
+      // Process referral if exists
+      if (referrer && user.email) {
+        await processReferralBonus(
+          user.email,
+          user.displayName || "",
+          user.uid
+        );
       }
 
       toast.success("Successfully signed in with Google!", { autoClose: 3000 });

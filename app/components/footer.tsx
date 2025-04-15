@@ -3,6 +3,12 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import emailjs from "@emailjs/browser";
+import {
+  FaInstagram,
+  FaTwitter,
+  FaFacebookF,
+  FaTelegramPlane,
+} from "react-icons/fa";
 // import { FaSun, FaMoon } from "react-icons/fa"; // Icons for Light and Dark Mode
 // import Mode from "./Mode";
 
@@ -17,6 +23,34 @@ const Footer = () => {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regex.test(email);
   };
+
+  // Define social links array
+  const socialLinks = [
+    {
+      name: "Instagram",
+      url: "https://instagram.com/smsglobe",
+      icon: <FaInstagram className="text-xl" />,
+      color: "bg-gradient-to-r from-purple-500 to-pink-500",
+    },
+    {
+      name: "Twitter",
+      url: "https://x.com/smsglobe84278",
+      icon: <FaTwitter className="text-xl" />,
+      color: "bg-blue-400",
+    },
+    {
+      name: "Facebook",
+      url: "https://www.facebook.com/share/1HZvHH4Hnn/?mibextid=wwXIfr",
+      icon: <FaFacebookF className="text-xl" />,
+      color: "bg-blue-600",
+    },
+    {
+      name: "Telegram",
+      url: "#",
+      icon: <FaTelegramPlane className="text-xl" />,
+      color: "bg-blue-500",
+    },
+  ];
 
   // Handle the form submission
   const handleSubscribe = (e: React.FormEvent) => {
@@ -105,6 +139,21 @@ const Footer = () => {
             Providing reliable, secure, and private verification solutions
             worldwide.
           </p>
+          {/* Social Media Icons */}
+          <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+            {socialLinks.map((social, index) => (
+              <Link
+                key={index}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${social.color} text-white p-2 rounded-full hover:opacity-90 transition-all`}
+                aria-label={social.name}
+              >
+                {social.icon}
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Newsletter */}
