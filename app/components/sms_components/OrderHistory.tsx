@@ -263,7 +263,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
       {/* Search Bar */}
       <div className="p-4 border-b border-gray-200">
         <div className="relative">
@@ -650,7 +650,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
             </div>
             <div>
               <nav
-                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                className="relative z-0 inline-flex rounded-md -space-x-px"
                 aria-label="Pagination"
               >
                 <button
