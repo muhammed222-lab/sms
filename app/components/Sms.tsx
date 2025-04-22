@@ -21,6 +21,8 @@ import {
   updateDoc,
   addDoc,
   deleteDoc,
+  doc,
+  setDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
@@ -776,7 +778,9 @@ const Sms = () => {
 
       const token = await currentUser.getIdToken();
       const response = await fetch(
-        `/api/proxy-sms?action=reuse-number&product=${order.product}&number=${order.number}`,
+        `/api/getsms/reuse?product=${encodeURIComponent(
+          order.product
+        )}&number=${encodeURIComponent(order.number.replace("+", ""))}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -784,88 +788,67 @@ const Sms = () => {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to rebuy number");
-      }
-
       const data = await response.json();
 
-      if (data.id) {
-        const finalPriceCalc = data.price
-          ? calculateFinalPrice(
-              Number(data.price),
-              order.country,
-              order.service
-            )
-          : 0;
-
-        if (balance < finalPriceCalc) {
-          throw new Error(
-            `Insufficient balance. You need $${finalPriceCalc.toFixed(
-              2
-            )} USD. Current balance: $${balance.toFixed(
-              2
-            )} USD. Please fund your account.`
-          );
-        }
-
-        const newOrder: SmsOrder = {
-          id: Number(data.id),
-          orderId: data.id.toString(),
-          phone: data.phone,
-          operator: data.operator || order.operator,
-          product: order.product,
-          price: finalPriceCalc.toFixed(2),
-          status: data.status || "PENDING",
-          expires: data.expires,
-          sms: null,
-          created_at: new Date().toISOString(),
-          country: data.country || order.country,
-          number: data.phone,
-          user_email: currentUser.email || "",
-          service: order.service,
-          priceRub: Number(data.price).toString(),
-          is_reused: true,
-          localCurrency: "USD",
-          originalPrice: (Number(data.price) * rubToUsdRate).toFixed(2),
-          priceLocal: finalPriceCalc.toFixed(2),
-        };
-
-        await addDoc(collection(db, "sms_orders"), newOrder);
-        setOrders((prev) => [...prev, newOrder]);
-
-        const userBalanceQuery = query(
-          collection(db, "userDeposits"),
-          where("email", "==", currentUser.email)
-        );
-        const userBalanceSnapshot = await getDocs(userBalanceQuery);
-
-        if (!userBalanceSnapshot.empty) {
-          const userDoc = userBalanceSnapshot.docs[0];
-          const currentBalance = userDoc.data().amount || 0;
-          const newBalance = parseFloat(
-            (currentBalance - finalPriceCalc).toFixed(2)
-          );
-          await updateDoc(userDoc.ref, { amount: newBalance });
-          setBalance(newBalance);
-        }
-
-        setMessage({
-          type: "success",
-          content: `Number successfully re-bought for $${finalPriceCalc.toFixed(
-            2
-          )} USD.`,
-        });
-        setShowSuccess(true);
-        setSuccessMessage("Number re-bought successfully!");
-      } else {
+      if (!response.ok) {
         throw new Error(data.error || "Failed to rebuy number");
       }
+
+      // Handle successful rebuy
+      const newOrder: SmsOrder = {
+        id: data.id,
+        orderId: data.id.toString(),
+        phone: data.phone,
+        operator: data.operator || order.operator,
+        product: order.product,
+        price: data.price.toString(),
+        status: data.status || "PENDING",
+        expires: data.expires,
+        sms: null,
+        created_at: new Date().toISOString(),
+        country: data.country || order.country,
+        number: data.phone,
+        user_email: currentUser.email || "",
+        service: order.service,
+        priceRub: data.price.toString(),
+        is_reused: true,
+        localCurrency: "USD",
+        originalPrice: (Number(data.price) * rubToUsdRate).toFixed(2),
+        priceLocal: (Number(data.price) * rubToUsdRate).toFixed(2),
+      };
+
+      // Save to database and update state
+      await setDoc(doc(db, "sms_orders", newOrder.orderId), newOrder);
+      setOrders((prev) => [...prev, newOrder]);
+
+      // Update balance
+      const userBalanceQuery = query(
+        collection(db, "userDeposits"),
+        where("email", "==", currentUser.email)
+      );
+      const userBalanceSnapshot = await getDocs(userBalanceQuery);
+
+      if (!userBalanceSnapshot.empty) {
+        const userDoc = userBalanceSnapshot.docs[0];
+        const currentBalance = userDoc.data().amount || 0;
+        const newBalance = parseFloat(
+          (currentBalance - Number(data.price) * rubToUsdRate).toFixed(2)
+        );
+        await updateDoc(userDoc.ref, { amount: newBalance });
+        setBalance(newBalance);
+      }
+
+      setMessage({
+        type: "success",
+        content: `Number successfully re-bought for $${(
+          Number(data.price) * rubToUsdRate
+        ).toFixed(2)} USD.`,
+      });
     } catch (error: any) {
       console.error("Error re-buying number:", error);
       setMessage({
         type: "error",
-        content: getErrorMessage(error.message),
+        content: error.message || "Failed to rebuy number",
       });
     }
   };

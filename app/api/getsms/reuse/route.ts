@@ -1,37 +1,68 @@
 import { NextResponse } from "next/server";
 
-const REUSE_URL = "https://5sim.net/v1/user/reuse";
-const getHeaders = (contentType?: string) => {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    Authorization: `Bearer ${process.env.FIVESIM_API_KEY}`,
-  };
-  if (contentType) headers["Content-Type"] = contentType;
-  return headers;
-};
-
-export async function GET(req: Request) {
+export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const product = searchParams.get("product");
     const number = searchParams.get("number");
+
     if (!product || !number) {
       return NextResponse.json(
-        { error: "Missing product or number" },
+        { error: "Product name and phone number are required" },
         { status: 400 }
       );
     }
-    const url = `${REUSE_URL}/${product}/${number}`;
-    const response = await fetch(url, { headers: getHeaders() });
-    if (!response.ok) {
+
+    const apiKey = process.env.NEXT_PUBLIC_FIVESIM_API_KEY;
+    if (!apiKey) {
       return NextResponse.json(
-        { error: "Failed to reuse number" },
+        { error: "API key not configured" },
+        { status: 500 }
+      );
+    }
+
+    const response = await fetch(
+      `https://5sim.net/v1/user/reuse/${product}/${number}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      let errorMessage = "Failed to rebuy number";
+
+      // Handle specific error cases
+      if (response.status === 400) {
+        if (errorData.error === "reuse not possible") {
+          errorMessage = "This number is not available for reusing";
+        } else if (errorData.error === "reuse false") {
+          errorMessage = "Reusing this number is not allowed";
+        } else if (errorData.error === "reuse expired") {
+          errorMessage = "The reuse period for this number has expired";
+        } else if (errorData.error === "not enough user balance") {
+          errorMessage = "Insufficient balance to rebuy this number";
+        } else if (errorData.error === "no free phones") {
+          errorMessage = "No available numbers for this service";
+        }
+      }
+
+      return NextResponse.json(
+        { error: errorMessage, details: errorData },
         { status: response.status }
       );
     }
+
     const data = await response.json();
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+  } catch (error) {
+    console.error("Error in reuse endpoint:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

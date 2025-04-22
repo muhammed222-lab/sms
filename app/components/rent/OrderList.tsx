@@ -1,8 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/rent/OrderList.tsx
+// components/rent/OrderList.tsx
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import {
+  FiClock,
+  FiPhone,
+  FiCheckCircle,
+  FiXCircle,
+  FiAlertCircle,
+} from "react-icons/fi";
 
 interface OrderListProps {
   orders: any[];
@@ -19,78 +31,141 @@ const OrderList: React.FC<OrderListProps> = ({
   rubleToUSDRate,
   balance,
 }) => {
+  // Status icon mapping
+  const statusIcons = {
+    PENDING: <FiClock className="text-yellow-500" />,
+    FINISHED: <FiCheckCircle className="text-green-500" />,
+    CANCELED: <FiXCircle className="text-gray-500" />,
+    BANNED: <FiAlertCircle className="text-red-500" />,
+  };
+
+  // Get time remaining until expiration
+  const getTimeRemaining = (expires: string) => {
+    const expirationDate = new Date(expires);
+    const now = new Date();
+    const diffInSeconds = Math.floor(
+      (expirationDate.getTime() - now.getTime()) / 1000
+    );
+
+    if (diffInSeconds <= 0) return "Expired";
+
+    if (diffInSeconds < 60)
+      return `Expires in ${diffInSeconds} sec${diffInSeconds !== 1 ? "s" : ""}`;
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `Expires in ${minutes} min${minutes !== 1 ? "s" : ""}`;
+    }
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      const minutes = Math.floor((diffInSeconds % 3600) / 60);
+      return `Expires in ${hours}h ${minutes}m`;
+    }
+    const days = Math.floor(diffInSeconds / 86400);
+    const hours = Math.floor((diffInSeconds % 86400) / 3600);
+    return `Expires in ${days}d ${hours}h`;
+  };
+
+  // Format expiration date nicely
+  const formatExpirationDate = (expires: string) => {
+    return new Date(expires).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
-    <>
+    <div className="space-y-4">
       {orders.length > 0 && (
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-          <p className="font-medium">
-            Available Balance: $ {Number(balance).toFixed(2)}
+        <div className="p-4 bg-white rounded-lg border border-gray-100">
+          <p className="font-medium text-gray-700">
+            Available Balance:{" "}
+            <span className="text-blue-600">${Number(balance).toFixed(2)}</span>
           </p>
         </div>
       )}
 
       {orders.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-4 border">Phone</th>
-                <th className="py-2 px-4 border">Service</th>
-                <th className="py-2 px-4 border">Status</th>
-                <th className="py-2 px-4 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="py-2 px-4 border text-center">
-                    {order.phone}
-                  </td>
-                  <td className="py-2 px-4 border text-center">
-                    {order.product}
-                  </td>
-                  <td className="py-2 px-4 border text-center">
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <div
+              key={order.id}
+              className="bg-white rounded-lg border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+              onClick={() => onSelectOrder(order)}
+            >
+              <div className="p-4 flex justify-between items-start">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-50 rounded-full">
+                    <FiPhone className="text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">{order.phone}</h3>
+                    <p className="text-sm text-gray-500">{order.product}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center space-x-1">
+                    {statusIcons[order.status as keyof typeof statusIcons]}
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
+                      className={`text-xs font-medium px-2 py-1 rounded-full ${
                         order.status === "PENDING"
-                          ? "bg-yellow-100 text-yellow-800"
+                          ? "bg-yellow-50 text-yellow-700"
                           : order.status === "FINISHED"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-green-50 text-green-700"
                           : order.status === "CANCELED"
-                          ? "bg-gray-100 text-gray-800"
-                          : order.status === "BANNED"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-gray-50 text-gray-700"
+                          : "bg-red-50 text-red-700"
                       }`}
                     >
                       {order.status}
                     </span>
-                  </td>
-                  <td className="py-2 px-4 border text-center">
-                    <button
-                      onClick={() => onSelectOrder(order)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <span className="text-xs text-gray-400 mt-1">
+                    {getTimeRemaining(order.expires)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                <div className="text-sm text-gray-500">
+                  Until: {formatExpirationDate(order.expires)}
+                </div>
+                <button
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectOrder(order);
+                  }}
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-12">
           {loading ? (
-            <div className="flex justify-center">
-              <AiOutlineLoading3Quarters className="animate-spin text-2xl" />
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <AiOutlineLoading3Quarters className="animate-spin text-2xl text-gray-400" />
+              <p className="text-gray-500">Loading orders...</p>
             </div>
           ) : (
-            "You haven't rented any numbers yet"
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <FiPhone className="text-2xl text-gray-400" />
+              <p className="text-gray-500">
+                You haven&apos;t rented any numbers yet
+              </p>
+              <p className="text-sm text-gray-400">
+                Your orders will appear here
+              </p>
+            </div>
           )}
         </div>
       )}
-    </>
+    </div>
   );
 };
 
