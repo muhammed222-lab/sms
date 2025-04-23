@@ -1,6 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import {
   FaCopy,
@@ -12,6 +15,7 @@ import {
   FaTrash,
   FaRedo,
   FaBan,
+  FaShoppingCart,
 } from "react-icons/fa";
 import { FiRefreshCw } from "react-icons/fi";
 import { RiRssFill } from "react-icons/ri";
@@ -47,7 +51,8 @@ export interface OrderHistoryProps {
   onRefresh: (orderId: string) => Promise<void>;
   onCancel: (orderId: string) => Promise<void>;
   onRemove: (orderId: string) => Promise<void>;
-  onRebuy?: (order: SmsOrder) => Promise<void>;
+  onRebuy: (order: SmsOrder) => Promise<void>;
+  onBuyNext: (order: SmsOrder) => Promise<void>;
 }
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({
@@ -56,11 +61,15 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
   onCancel,
   onRemove,
   onRebuy,
+  onBuyNext,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [loadingActions, setLoadingActions] = useState<Record<string, boolean>>(
+    {}
+  );
   const ordersPerPage = 5;
 
   // Utility functions for flags and service icons
@@ -184,6 +193,36 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
     }
   };
 
+  const handleRebuy = async (order: SmsOrder) => {
+    setLoadingActions((prev) => ({
+      ...prev,
+      [`rebuy-${order.orderId}`]: true,
+    }));
+    try {
+      await onRebuy(order);
+    } finally {
+      setLoadingActions((prev) => ({
+        ...prev,
+        [`rebuy-${order.orderId}`]: false,
+      }));
+    }
+  };
+
+  const handleBuyNext = async (order: SmsOrder) => {
+    setLoadingActions((prev) => ({
+      ...prev,
+      [`buynext-${order.orderId}`]: true,
+    }));
+    try {
+      await onBuyNext(order);
+    } finally {
+      setLoadingActions((prev) => ({
+        ...prev,
+        [`buynext-${order.orderId}`]: false,
+      }));
+    }
+  };
+
   const renderSmsContent = (order: SmsOrder) => {
     if (!order.sms) return null;
 
@@ -260,6 +299,16 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
 
   const toggleExpandOrder = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
+  };
+
+  const canRebuy = (order: SmsOrder) => {
+    // Only allow rebuy for certain statuses
+    return ["FINISHED", "TIMEOUT", "BANNED"].includes(order.status);
+  };
+
+  const canBuyNext = (order: SmsOrder) => {
+    // Allow buying next number for any status except PENDING
+    return order.status !== "PENDING";
   };
 
   return (
@@ -380,7 +429,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex space-x-2 pt-2">
+                    <div className="flex flex-wrap gap-2 pt-2">
                       <button
                         onClick={() => onRefresh(order.orderId)}
                         className="flex items-center text-sm text-blue-600 hover:text-blue-800"
@@ -395,6 +444,40 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
                           title="Cancel Order"
                         >
                           <FaTimes className="mr-1" /> Cancel
+                        </button>
+                      )}
+                      {canRebuy(order) && (
+                        <button
+                          onClick={() => handleRebuy(order)}
+                          disabled={loadingActions[`rebuy-${order.orderId}`]}
+                          className={`flex items-center text-sm ${
+                            loadingActions[`rebuy-${order.orderId}`]
+                              ? "text-gray-500"
+                              : "text-green-600 hover:text-green-800"
+                          }`}
+                          title="Rebuy Same Number"
+                        >
+                          <FaRedo className="mr-1" />
+                          {loadingActions[`rebuy-${order.orderId}`]
+                            ? "Processing..."
+                            : "Rebuy"}
+                        </button>
+                      )}
+                      {canBuyNext(order) && (
+                        <button
+                          onClick={() => handleBuyNext(order)}
+                          disabled={loadingActions[`buynext-${order.orderId}`]}
+                          className={`flex items-center text-sm ${
+                            loadingActions[`buynext-${order.orderId}`]
+                              ? "text-gray-500"
+                              : "text-purple-600 hover:text-purple-800"
+                          }`}
+                          title="Buy Next Available Number"
+                        >
+                          <FaShoppingCart className="mr-1" />
+                          {loadingActions[`buynext-${order.orderId}`]
+                            ? "Processing..."
+                            : "Buy Next"}
                         </button>
                       )}
                       <button
@@ -573,6 +656,36 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
                             title="Cancel Order"
                           >
                             <FaTimes />
+                          </button>
+                        )}
+                        {canRebuy(order) && (
+                          <button
+                            onClick={() => handleRebuy(order)}
+                            disabled={loadingActions[`rebuy-${order.orderId}`]}
+                            className={`${
+                              loadingActions[`rebuy-${order.orderId}`]
+                                ? "text-gray-400"
+                                : "text-green-600 hover:text-green-900"
+                            }`}
+                            title="Rebuy Same Number"
+                          >
+                            <FaRedo />
+                          </button>
+                        )}
+                        {canBuyNext(order) && (
+                          <button
+                            onClick={() => handleBuyNext(order)}
+                            disabled={
+                              loadingActions[`buynext-${order.orderId}`]
+                            }
+                            className={`${
+                              loadingActions[`buynext-${order.orderId}`]
+                                ? "text-gray-400"
+                                : "text-purple-600 hover:text-purple-900"
+                            }`}
+                            title="Buy Next Available Number"
+                          >
+                            <FaShoppingCart />
                           </button>
                         )}
                         <button

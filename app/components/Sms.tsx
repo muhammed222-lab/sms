@@ -788,10 +788,21 @@ const Sms = () => {
         }
       );
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        // Fallback to plain text if JSON parsing fails
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to rebuy number");
+        throw new Error(
+          typeof data === "string"
+            ? data
+            : data.error || "Failed to rebuy number"
+        );
       }
 
       // Handle successful rebuy
@@ -849,6 +860,99 @@ const Sms = () => {
       setMessage({
         type: "error",
         content: error.message || "Failed to rebuy number",
+      });
+    }
+  };
+  const buyNextNumber = async (order: SmsOrder) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
+
+      const token = await currentUser.getIdToken();
+      const response = await fetch(
+        `/api/proxy-sms?action=buy-activation&country=${order.country}&operator=any&product=${order.product}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        throw new Error("Failed to process the response");
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to purchase number");
+      }
+
+      // Use the saved price from the original order (already in USD)
+      const finalPrice = Number(order.price);
+      if (balance < finalPrice) {
+        throw new Error(
+          `Insufficient balance. You need $${finalPrice.toFixed(
+            2
+          )} USD. Current balance: $${balance.toFixed(
+            2
+          )} USD. Please fund your account.`
+        );
+      }
+
+      const newOrder: SmsOrder = {
+        id: Number(data.id),
+        orderId: data.id.toString(),
+        phone: data.phone,
+        operator: data.operator || order.operator,
+        product: order.product,
+        price: finalPrice.toString(),
+        status: data.status || "PENDING",
+        expires: data.expires,
+        sms: null,
+        created_at: new Date().toISOString(),
+        country: data.country || order.country,
+        number: data.phone,
+        user_email: currentUser.email || "",
+        service: order.product,
+        priceRub: data.price.toString(),
+        is_reused: false,
+        localCurrency: "USD",
+        originalPrice: finalPrice.toFixed(2), // already in USD
+        priceLocal: finalPrice.toFixed(2),
+      };
+
+      await setDoc(doc(db, "sms_orders", newOrder.orderId), newOrder);
+      setOrders((prev) => [...prev, newOrder]);
+
+      // Update balance
+      const userBalanceQuery = query(
+        collection(db, "userDeposits"),
+        where("email", "==", currentUser.email)
+      );
+      const userBalanceSnapshot = await getDocs(userBalanceQuery);
+      if (!userBalanceSnapshot.empty) {
+        const userDoc = userBalanceSnapshot.docs[0];
+        const currentBalance = userDoc.data().amount || 0;
+        const newBalance = parseFloat((currentBalance - finalPrice).toFixed(2));
+        await updateDoc(userDoc.ref, { amount: newBalance });
+        setBalance(newBalance);
+      }
+
+      setMessage({
+        type: "success",
+        content: `Number purchased successfully for $${finalPrice.toFixed(
+          2
+        )} USD.`,
+      });
+    } catch (error: any) {
+      console.error("Error buying next number:", error);
+      setMessage({
+        type: "error",
+        content: error.message || "Failed to purchase number",
       });
     }
   };
@@ -1292,6 +1396,7 @@ const Sms = () => {
               onCancel={cancelOrder}
               onRemove={removeOrder}
               onRebuy={rebuyNumber}
+              onBuyNext={buyNextNumber} // <-- updated callback for buy next
             />
           ) : (
             <p className="text-gray-500 text-center">No order history found.</p>
