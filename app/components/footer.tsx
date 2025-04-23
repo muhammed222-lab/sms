@@ -46,7 +46,7 @@ const Footer = () => {
     },
     {
       name: "Telegram",
-      url: "#",
+      url: "t.me/smsglobe",
       icon: <FaTelegramPlane className="text-xl" />,
       color: "bg-blue-500",
     },
