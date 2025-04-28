@@ -20,7 +20,7 @@ interface StatisticData {
 }
 
 const INITIAL_PRODUCTS_LIMIT = 5;
-const INITIAL_COUNTRIES_LIMIT = 10;
+const INITIAL_COUNTRIES_LIMIT = 5;
 
 // A small mapping from country name to ISO code (in lowercase)
 // Extend this mapping as needed.

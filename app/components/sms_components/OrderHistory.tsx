@@ -85,6 +85,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
   };
 
   // Filter and search orders
+  // Filter, search, and sort orders by creation date (most recent first)
   const filteredOrders = orders
     .filter(
       (order) =>
@@ -103,7 +104,11 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
           order.sms.code &&
           order.sms.code.toLowerCase().includes(searchLower))
       );
-    });
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;

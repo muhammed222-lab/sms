@@ -17,6 +17,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Header from "./components/header";
 import dynamic from "next/dynamic";
 import HowItWorksGallery from "./components/HowItWorksGallery";
+import ServicesCountries from "./components/other/ServicesCountries";
 
 // Dynamically import the globe component with no SSR to prevent hydration issues
 const Globe = dynamic(() => import("./components/Globe"), {
@@ -278,7 +279,7 @@ export default function Home() {
                   </button>
                   <button
                     className="cta-btn py-4 px-8 rounded-xl border border-gray-300 hover:bg-gray-100 transition duration-30"
-                    onClick={() => router.push("/about")}
+                    onClick={() => router.push("/how-it-works")}
                   >
                     See How It Works →
                   </button>
@@ -314,6 +315,7 @@ export default function Home() {
         </main>
         <Free />
         <HowItWorks />
+        <ServicesCountries />
         <Cooperation />
         <WhyChooseUs />
         <HowItWorksGallery />

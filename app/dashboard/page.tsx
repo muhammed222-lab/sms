@@ -18,6 +18,7 @@ import {
   FaHistory,
   FaMoneyBillWave,
   FaCog,
+  FaEnvelope,
 } from "react-icons/fa";
 import DashboardBalance from "../components/DashboardBalance";
 import RentNumbers from "../components/RentNumbers";
@@ -31,6 +32,7 @@ import Auth from "../components/Auth";
 import Prices from "../components/prices";
 import Settings from "../components/Settings";
 import LoadingSpinner from "../components/LoadingSpinner"; // Create this component
+import TempMail from "../components/TempMail";
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -57,6 +59,7 @@ const Dashboard = () => {
   const sidebarLinks = [
     { label: "Receive SMS", id: "sms", icon: <FaSms /> },
     { label: "Rent Numbers", id: "rent", icon: <FaMobileAlt /> },
+    { label: "Temp Mail", id: "mail", icon: <FaEnvelope /> },
     { label: "Pricing", id: "pric", icon: <FaMoneyBillWave /> },
     { label: "Profile", id: "profile", icon: <FaUser /> },
     { label: "Payment History", id: "history", icon: <FaHistory /> },
@@ -75,6 +78,8 @@ const Dashboard = () => {
         return <DashboardBalance />;
       case "Rent Numbers":
         return <RentNumbers />;
+      case "Temp Mail":
+        return <TempMail />;
       case "Pricing":
         return <Prices />;
       case "Profile":

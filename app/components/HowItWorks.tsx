@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebaseConfig"; // Import Firebase auth
 import Explanation from "./other/Explanation";
 import Statistic from "./other/Statistic";
+import HowItWorksGallery from "./HowItWorksGallery";
 
 export default function HowItWorks() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -111,6 +112,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <Explanation />
+            <HowItWorksGallery />
             <Statistic />
           </div>
         </div>

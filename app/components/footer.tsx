@@ -9,22 +9,18 @@ import {
   FaFacebookF,
   FaTelegramPlane,
 } from "react-icons/fa";
-// import { FaSun, FaMoon } from "react-icons/fa"; // Icons for Light and Dark Mode
-// import Mode from "./Mode";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(""); // Success message state
+  const [success, setSuccess] = useState("");
 
-  // Validate email format
   const validateEmail = (email: string) => {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regex.test(email);
   };
 
-  // Define social links array
   const socialLinks = [
     {
       name: "Instagram",
@@ -46,35 +42,31 @@ const Footer = () => {
     },
     {
       name: "Telegram",
-      url: "t.me/smsglobe",
+      url: "https://www.t.me/smsglobe",
       icon: <FaTelegramPlane className="text-xl" />,
       color: "bg-blue-500",
     },
   ];
 
-  // Handle the form submission
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(""); // Reset error on new submission
-    setSuccess(""); // Reset success message on new submission
+    setError("");
+    setSuccess("");
 
-    // Validate email
     if (!validateEmail(email)) {
       setLoading(false);
       setError("Please enter a valid email address.");
       return;
     }
 
-    const date = new Date().toLocaleDateString(); // Get the current date
+    const date = new Date().toLocaleDateString();
 
-    // Template parameters for admin email (notification)
     const adminTemplateParams = {
-      email: email, // User's email
-      date: date, // Subscription date
+      email: email,
+      date: date,
     };
 
-    // Send email to admin (Deemax Team)
     emailjs
       .send(
         "service_fcfp3h6",
@@ -85,14 +77,12 @@ const Footer = () => {
       .then((response) => {
         console.log("Admin notification sent successfully:", response);
 
-        // Template parameters for user confirmation email
         const userTemplateParams = {
-          from_name: email, // User's email as the name
-          from_email: email, // User's email
-          date: date, // Subscription date
+          from_name: email,
+          from_email: email,
+          date: date,
         };
 
-        // Send confirmation email to the user
         emailjs
           .send(
             "service_fcfp3h6",
@@ -103,44 +93,40 @@ const Footer = () => {
           .then((userResponse) => {
             console.log("User confirmation sent successfully:", userResponse);
             setLoading(false);
-            setSuccess("Thank you for subscribing!"); // Show success message
-            setEmail(""); // Clear the email input field
+            setSuccess("Thank you for subscribing!");
+            setEmail("");
           })
           .catch((err) => {
             console.error("User email send failed:", err);
-            setError("Failed to send email to user.");
+            setError("Failed to send confirmation email.");
             setLoading(false);
           });
       })
       .catch((err) => {
         console.error("Admin email send failed:", err);
-        setError("Failed to send email to admin.");
+        setError("Failed to process your subscription.");
         setLoading(false);
       });
   };
 
-  // Check the saved theme in localStorage or use device preference
-
-  // Toggle theme between light, dark, and save in localStorage
-
   return (
-    <footer className="px-4 py-8 md:px-8 w-[80%] m-auto">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="px-4 py-8 w-full max-w-7xl mx-auto ">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Logo and Description */}
-        <div className="col-span-1">
+        <div className="col-span-1 flex flex-col items-center lg:items-start">
           <Image
             src="/deemax.png"
             alt="Deemax Logo"
             width={150}
             height={50}
             className="mb-4 rounded-3xl"
+            priority
           />
-          <p className="text-gray-700 mb-4">
+          <p className="text-gray-700 mb-4 text-center lg:text-left">
             Providing reliable, secure, and private verification solutions
             worldwide.
           </p>
-          {/* Social Media Icons */}
-          <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+          <div className="flex gap-4">
             {socialLinks.map((social, index) => (
               <Link
                 key={index}
@@ -156,52 +142,63 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Newsletter */}
-        <div className="col-span-1 md:col-span-3">
+        {/* Newsletter and Links */}
+        <div className="col-span-1 lg:col-span-3">
           <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4">
+            <h3 className="text-xl font-semibold mb-4 text-center lg:text-left">
               Subscribe to our newsletter
             </h3>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
+            <form
+              onSubmit={handleSubscribe}
+              className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl mx-auto lg:mx-0"
+            >
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you-mail@gmail.com"
-                className="flex-1 px-4 py-2 rounded-md border border-gray-300 focus:outline-none"
+                placeholder="your-email@gmail.com"
+                className="flex-1 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 required
               />
               <button
                 type="submit"
                 disabled={loading}
                 className={`${
-                  loading ? "bg-gray-400" : "bg-red-500"
-                } text-white px-6 py-2 rounded-md hover:bg-red-600 transition-colors`}
+                  loading ? "bg-gray-400" : "bg-red-500 hover:bg-red-600"
+                } text-white px-6 py-2 rounded-md transition-colors whitespace-nowrap`}
               >
                 {loading ? "Subscribing..." : "Subscribe"}
               </button>
             </form>
-            {error && <p className="text-red-500 mt-2">{error}</p>}
-            {success && <p className="text-green-500 mt-2">{success}</p>}{" "}
-            {/* Success message */}
+            {error && (
+              <p className="text-red-500 mt-2 text-sm text-center lg:text-left">
+                {error}
+              </p>
+            )}
+            {success && (
+              <p className="text-green-500 mt-2 text-sm text-center lg:text-left">
+                {success}
+              </p>
+            )}
           </div>
 
-          {/* Theme toggle button for light, dark, and device modes */}
           {/* Links Sections */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Our Links */}
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            <div className="text-center sm:text-left">
               <h4 className="text-red-500 font-semibold mb-4">Our Links</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/" className="text-gray-600 hover:text-gray-900">
+                  <Link
+                    href="/"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                  >
                     Home
                   </Link>
                 </li>
                 <li>
                   <Link
                     href="/about"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     About Us
                   </Link>
@@ -209,7 +206,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/services"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Services
                   </Link>
@@ -217,7 +214,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/blog"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Blog
                   </Link>
@@ -225,14 +222,13 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* Our Services */}
-            <div>
+            <div className="text-center sm:text-left">
               <h4 className="text-red-500 font-semibold mb-4">Our Services</h4>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="/strategy"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Strategy
                   </Link>
@@ -240,7 +236,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/research"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Research
                   </Link>
@@ -248,7 +244,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/pricing"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Pricing
                   </Link>
@@ -256,14 +252,13 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* Other Links */}
-            <div>
+            <div className="text-center sm:text-left">
               <h4 className="text-red-500 font-semibold mb-4">Other Links</h4>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="/faq"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     FAQ
                   </Link>
@@ -271,7 +266,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/contact"
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Contact Us | support@smsglobe.net
                   </Link>
@@ -282,14 +277,14 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Terms and Conditions */}
-      <div className="mt-8 pt-8 border-t border-gray-200">
-        <Link href="/terms" className="text-gray-600 hover:text-gray-900">
+      <div className="mt-8 pt-8 border-t border-gray-200 text-center lg:text-left">
+        <Link
+          href="/terms"
+          className="text-gray-600 hover:text-gray-900 transition-colors"
+        >
           Terms and Conditions
         </Link>
       </div>
-
-      {/* <Mode /> */}
     </footer>
   );
 };
