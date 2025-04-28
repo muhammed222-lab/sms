@@ -318,7 +318,6 @@ export default function Home() {
         <ServicesCountries />
         <Cooperation />
         <WhyChooseUs />
-        <HowItWorksGallery />
         <PricingSection />
         <FAQ />
       </div>
