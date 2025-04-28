@@ -127,7 +127,7 @@ const TempMail = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  Smaglobe Temp Mail
+                  Smsglobe Temp Mail
                 </h1>
                 <p className="mt-2 opacity-90">
                   Secure, disposable emails for your online needs
