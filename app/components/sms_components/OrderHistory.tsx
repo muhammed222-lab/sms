@@ -308,7 +308,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
 
   const canRebuy = (order: SmsOrder) => {
     // Only allow rebuy for certain statuses
-    return ["FINISHED", "TIMEOUT", "BANNED"].includes(order.status);
+    return order.status !== "PENDING";
   };
 
   const canBuyNext = (order: SmsOrder) => {

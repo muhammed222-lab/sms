@@ -61,7 +61,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error in reuse endpoint:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Sorry, reuse not possible" },
       { status: 500 }
     );
   }

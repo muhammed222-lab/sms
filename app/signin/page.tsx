@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -8,14 +9,17 @@ import {
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import Image from "next/image";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const SignIn = () => {
   const [email, setEmail] = useState<string>("");
@@ -24,10 +28,12 @@ const SignIn = () => {
     email?: string;
     password?: string;
     general?: string;
+    recaptcha?: string;
   }>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const router = useRouter();
 
   // Load saved credentials if "remember me" was checked
@@ -52,6 +58,10 @@ const SignIn = () => {
 
     if (!password) {
       newErrors.password = "Password is required";
+    }
+
+    if (!recaptchaToken) {
+      newErrors.recaptcha = "Please verify you're not a robot";
     }
 
     setErrors(newErrors);
@@ -145,8 +155,49 @@ const SignIn = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    if (!recaptchaToken) {
+      setErrors({ ...errors, recaptcha: "Please verify you're not a robot" });
+      return;
+    }
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      // Set persistence based on remember me
+      await setPersistence(
+        auth,
+        rememberMe ? browserLocalPersistence : browserSessionPersistence
+      );
+
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      toast.success("Successfully signed in with Google!", { autoClose: 3000 });
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Google signin error:", err);
+
+      if (err instanceof FirebaseError) {
+        let errorMessage = "Failed to sign in with Google. Please try again.";
+
+        if (err.code === "auth/account-exists-with-different-credential") {
+          errorMessage =
+            "An account already exists with this email. Please sign in with email/password.";
+        }
+
+        toast.error(errorMessage, { autoClose: 5000 });
+      } else {
+        toast.error("An unexpected error occurred.", { autoClose: 5000 });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+    <div className="flex items-center justify-center min-h-screen p-4">
       <ToastContainer position="top-center" />
 
       <motion.div
@@ -260,6 +311,25 @@ const SignIn = () => {
             </button>
           </div>
 
+          {/* reCAPTCHA */}
+          <div className="flex justify-center">
+            <ReCAPTCHA
+              sitekey={
+                process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "your-site-key"
+              }
+              onChange={(token: React.SetStateAction<string | null>) =>
+                setRecaptchaToken(token)
+              }
+              onExpired={() => setRecaptchaToken(null)}
+              onErrored={() => setRecaptchaToken(null)}
+            />
+          </div>
+          {errors.recaptcha && (
+            <p className="text-sm text-red-600 text-center">
+              {errors.recaptcha}
+            </p>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
@@ -297,6 +367,26 @@ const SignIn = () => {
             )}
           </button>
         </form>
+
+        {/* Divider */}
+        <div className="my-6 relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">OR</span>
+          </div>
+        </div>
+
+        {/* Google Sign-In */}
+        <button
+          className="w-full flex items-center justify-center bg-white border border-gray-300 text-gray-700 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+          onClick={handleGoogleSignIn}
+          disabled={loading}
+        >
+          <FaGoogle className="mr-3 text-red-500" />
+          Continue with Google
+        </button>
 
         {/* Sign Up Redirect */}
         <p className="text-center mt-6 text-sm text-gray-600">
