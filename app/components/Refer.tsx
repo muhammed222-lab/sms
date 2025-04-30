@@ -30,7 +30,7 @@ import debounce from "lodash.debounce";
 import Select from "react-select";
 import { MdAccountBalance } from "react-icons/md";
 import emailjs from "@emailjs/browser";
-import { FiUserPlus, FiChevronRight, FiChevronDown } from "react-icons/fi";
+
 interface Bank {
   id: number;
   code: string;
@@ -449,20 +449,7 @@ const Refer: React.FC = () => {
 
     return `${maskedUsername}@${domain}`;
   };
-  const maskEmail = (email: string) => {
-    if (!email) return "";
 
-    const [username, domain] = email.split("@");
-    if (!username || !domain) return email; // fallback
-
-    // Always show first 2 chars and replace the rest with exactly 2 asterisks
-    const maskedUsername =
-      username.length > 2
-        ? `${username.substring(0, 2)}**`
-        : `${username.charAt(0)}*`;
-
-    return `${maskedUsername}@${domain}`;
-  };
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6">
       {/* Exchange Rate Display */}
@@ -788,143 +775,106 @@ const Refer: React.FC = () => {
         )}
       </motion.div>
 
-      {/* Invited Users Section */}
+      {/* Invited Users */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 shadow-sm"
+        className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200"
       >
         <div className="flex justify-between items-center mb-4 sm:mb-6">
-          <div>
-            <h4 className="text-lg sm:text-xl font-bold text-gray-800">
-              Your Invited Users
-            </h4>
-            <p className="text-sm text-gray-500 mt-1">
-              Users who joined using your referral link
-            </p>
-          </div>
-          <span className="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-medium">
+          <h4 className="text-lg sm:text-xl font-bold text-gray-800">
+            Your Invited Users
+          </h4>
+          <span className="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full">
             Total: {invitedUsers.length}
           </span>
         </div>
 
         {fetchingInvites ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-4 sm:py-8">
             <FaSpinner className="animate-spin text-blue-500 text-2xl" />
           </div>
         ) : invitedUsers.length === 0 ? (
-          <div className="text-center py-8 border border-dashed border-gray-300 rounded-lg">
-            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-              <FiUserPlus className="text-gray-400 text-xl" />
-            </div>
-            <h5 className="text-gray-500 font-medium mb-1">
-              No invited users yet
-            </h5>
-            <p className="text-sm text-gray-400 max-w-xs mx-auto">
-              Share your referral link to invite friends and earn commissions
+          <div className="text-center py-4 sm:py-8">
+            <p className="text-gray-500 mb-2">
+              You haven&apos;t invited any users yet
             </p>
-            <button className="mt-3 text-sm text-blue-600 font-medium hover:text-blue-800">
-              Copy referral link
-            </button>
+            <p className="text-sm text-gray-400">
+              Share your referral link to invite users and start earning
+              commissions
+            </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {invitedUsers.map((user, index) => (
-              <motion.div
-                key={user.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow"
-              >
-                <div className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center">
-                      <div className="relative">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
-                          <FiUser className="text-blue-600" />
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    User
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Date
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {invitedUsers.map((user, index) => (
+                  <motion.tr
+                    key={user.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                          <FiUser />
                         </div>
-                        {user.commission > 0 && (
-                          <div className="absolute -top-1 -right-1 bg-green-500 rounded-full w-4 h-4 flex items-center justify-center">
-                            <FiDollarSign className="text-white text-xs" />
-                          </div>
-                        )}
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900">
+                            {user.name || "Anonymous"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatEmail(user.email)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="ml-3">
-                        <h5 className="font-medium text-gray-900">
-                          {user.name || "Anonymous User"}
-                        </h5>
-                        <p className="text-sm text-gray-500">
-                          {maskEmail(user.email)}
-                        </p>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-500 flex items-center">
+                        <FiCalendar className="mr-1" />
+                        {user.referDate}
                       </div>
-                    </div>
-                    <div className="text-right">
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full ${
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           user.commission > 0
                             ? "bg-green-100 text-green-800"
                             : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {user.commission > 0
-                          ? "Earned $" + user.commission
-                          : "Pending"}
+                        {user.status}
                       </span>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {user.referDate}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Expandable Details */}
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <p className="text-gray-500">Joined</p>
-                        <p className="font-medium">
-                          {user.joinDate || user.referDate}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Status</p>
-                        <p className="font-medium">{user.status}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Commission</p>
-                        <p className="font-medium">
-                          ${user.commission.toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Last Activity</p>
-                        <p className="font-medium">
-                          {user.lastActivity || "--"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      className="mt-3 text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                      onClick={() => {
-                        /* Add click handler */
-                      }}
-                    >
-                      View full details <FiChevronRight className="ml-1" />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {invitedUsers.length > 5 && (
-          <div className="mt-4 text-center">
-            <button className="text-sm text-blue-600 font-medium hover:text-blue-800 flex items-center justify-center mx-auto">
-              Load more <FiChevronDown className="ml-1" />
-            </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </motion.div>
