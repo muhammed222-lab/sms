@@ -151,7 +151,7 @@ const InvitePage: React.FC = () => {
                       Exclusive Bonus
                     </h3>
                     <p className="text-gray-600 text-sm">
-                      Get $2.00 free credit on your first deposit
+                      Get $1.26 free credit on your first deposit
                     </p>
                   </div>
                 </div>

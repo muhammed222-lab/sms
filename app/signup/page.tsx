@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -65,15 +66,26 @@ const SignUp = () => {
     specialChar: false,
   });
   const [showBonusConfetti, setShowBonusConfetti] = useState(false);
+  const [isLocalhost, setIsLocalhost] = useState(false);
 
   const router = useRouter();
+
+  // Check if running on localhost
+  useEffect(() => {
+    setIsLocalhost(
+      window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+    );
+  }, []);
 
   // Check for referrer details in local storage
   useEffect(() => {
     const referrerData = localStorage.getItem("referrer");
     if (referrerData) {
       try {
-        setReferrer(JSON.parse(referrerData));
+        const parsedData = JSON.parse(referrerData);
+        console.log("Loaded referrer from localStorage:", parsedData);
+        setReferrer(parsedData);
       } catch (e) {
         console.error("Error parsing referrer data", e);
       }
@@ -99,81 +111,114 @@ const SignUp = () => {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       newErrors.email = "Invalid email format";
     if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
     if (password !== confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
-    if (!recaptchaToken)
+    if (!isLocalhost && !recaptchaToken)
       newErrors.recaptcha = "Please verify you're not a robot";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Check if referral bonus was already applied to this user
-  const checkReferralBonusApplied = async (email: string) => {
-    const q = query(collection(db, "refers"), where("user_email", "==", email));
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
-  };
-
-  // Process referral bonus securely
+  // Process referral bonus securely with proper transaction order
   const processReferralBonus = async (
     userEmail: string,
     userName: string,
     userId: string
   ) => {
-    if (!referrer) return; // No referral, exit early
+    if (!referrer) {
+      console.log("No referrer found - skipping referral bonus");
+      return;
+    }
+
+    console.log("Processing referral bonus for:", userEmail);
+    console.log("Referrer data:", referrer);
 
     try {
       await runTransaction(db, async (transaction) => {
-        // Check if bonus was already applied to prevent duplicate bonuses
-        const bonusApplied = await checkReferralBonusApplied(userEmail);
-        if (bonusApplied) {
+        console.log("Transaction started - checking for existing referrals");
+
+        // 1. Check for existing referrals to prevent duplicates
+        const referralQuery = query(
+          collection(db, "refers"),
+          where("user_email", "==", userEmail)
+        );
+        const referralSnapshot = await getDocs(referralQuery);
+
+        if (!referralSnapshot.empty) {
+          const existingRef = referralSnapshot.docs[0].data();
+          console.warn("Duplicate referral detected:", existingRef);
           throw new Error("Referral bonus already applied for this user");
         }
 
-        // Create referral record with all required fields
-        const referDocRef = doc(collection(db, "refers"));
-        transaction.set(referDocRef, {
+        // 2. Get user document to check current balance
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await transaction.get(userDocRef);
+
+        if (!userDoc.exists()) {
+          console.error("User document not found for ID:", userId);
+          throw new Error("User document not found");
+        }
+
+        const currentBalance = userDoc.data()?.balance || 0;
+        const bonusAmount = 1.26;
+
+        // 3. Prepare all data for the transaction
+        const referralData = {
           user_email: userEmail,
           user_name: userName,
           refer_by_email: referrer.email,
           refer_by_name: referrer.name,
           refer_date: serverTimestamp(),
-          commission: 1.26,
+          commission: bonusAmount,
           bonus_applied: true,
           status: "completed",
-        });
+          referring_code: referrer.code || "no-code",
+          user_id: userId,
+        };
 
-        // Update new user's balance
-        const userDocRef = doc(db, "users", userId);
-        const userDoc = await transaction.get(userDocRef);
-
-        if (!userDoc.exists()) {
-          throw new Error("User document not found");
-        }
-
-        transaction.update(userDocRef, {
-          balance: 1.26, // Set directly to 1.26 as per requirements
-        });
-
-        // Add bonus record to userDeposits
-        const depositDocRef = doc(collection(db, "userDeposits"));
-        transaction.set(depositDocRef, {
+        const depositData = {
           email: userEmail,
-          amount: 1.26,
+          amount: bonusAmount,
           date: serverTimestamp(),
           type: "referral_bonus",
           referrer: referrer.email,
           status: "completed",
           userId: userId,
+          referral_code: referrer.code || "no-code",
+          // Add these additional fields for better tracking
+          transaction_id: `ref-${Date.now()}`,
+          description: `Referral bonus from ${referrer.email}`,
+          balance_before: currentBalance,
+          balance_after: currentBalance + bonusAmount,
+        };
+
+        // 4. Perform all writes in a single transaction
+        const referDocRef = doc(collection(db, "refers"));
+        transaction.set(referDocRef, referralData);
+
+        // Add to existing balance instead of setting it
+        transaction.update(userDocRef, {
+          balance: currentBalance + bonusAmount,
+          last_referral_update: serverTimestamp(),
+          // Optionally track total referral earnings
+          total_referral_earnings:
+            (userDoc.data()?.total_referral_earnings || 0) + bonusAmount,
         });
+
+        const depositDocRef = doc(collection(db, "userDeposits"));
+        transaction.set(depositDocRef, depositData);
+
+        console.log("All transaction writes completed");
       });
 
       // Clear referrer from local storage on success
       localStorage.removeItem("referrer");
       setReferrer(null);
 
-      // Show celebration
+      console.log("Referral processed successfully");
       setShowBonusConfetti(true);
       setTimeout(() => setShowBonusConfetti(false), 5000);
 
@@ -190,13 +235,14 @@ const SignUp = () => {
       );
     } catch (referralError) {
       console.error("Referral processing error:", referralError);
-      toast.warn(
-        "Referral bonus could not be applied: " +
-          (referralError instanceof Error
-            ? referralError.message
-            : "Unknown error"),
-        { autoClose: 5000 }
-      );
+      const errorMessage =
+        referralError instanceof Error
+          ? referralError.message
+          : "Unknown error during referral processing";
+
+      toast.warn(`Referral bonus could not be applied: ${errorMessage}`, {
+        autoClose: 5000,
+      });
     }
   };
 
@@ -214,6 +260,7 @@ const SignUp = () => {
         rememberMe ? browserLocalPersistence : browserSessionPersistence
       );
 
+      console.log("Creating user with email:", email);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -226,6 +273,7 @@ const SignUp = () => {
 
       await sendEmailVerification(userCredential.user);
 
+      console.log("Creating user document for:", userCredential.user.uid);
       // Add user to 'users' collection
       await setDoc(doc(db, "users", userCredential.user.uid), {
         first_name: firstName,
@@ -235,6 +283,7 @@ const SignUp = () => {
         verified: false,
         balance: 0, // Initial balance 0, will be updated if referral exists
         referral_balance: 0,
+        last_updated: serverTimestamp(),
       });
 
       // Add initial user deposit record
@@ -248,7 +297,10 @@ const SignUp = () => {
 
       // Process referral if exists
       if (referrer) {
+        console.log("Processing referral for new user");
         await processReferralBonus(email, firstName, userCredential.user.uid);
+      } else {
+        console.log("No referral to process");
       }
 
       toast.success(
@@ -260,9 +312,8 @@ const SignUp = () => {
     } catch (err) {
       console.error("Signup error:", err);
 
+      let errorMessage = "An error occurred. Please try again.";
       if (err instanceof FirebaseError) {
-        let errorMessage = "An error occurred. Please try again.";
-
         switch (err.code) {
           case "auth/email-already-in-use":
             errorMessage = "This email is already in use.";
@@ -277,18 +328,16 @@ const SignUp = () => {
             errorMessage = "Email/password accounts are not enabled.";
             break;
         }
-
-        toast.error(errorMessage, { autoClose: 5000 });
-      } else {
-        toast.error("An unexpected error occurred.", { autoClose: 5000 });
       }
+
+      toast.error(errorMessage, { autoClose: 5000 });
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    if (!recaptchaToken) {
+    if (!isLocalhost && !recaptchaToken) {
       setErrors({ ...errors, recaptcha: "Please verify you're not a robot" });
       return;
     }
@@ -306,7 +355,9 @@ const SignUp = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+
       if (!user.email) throw new Error("No email from Google provider");
+      console.log("Google sign-in successful for:", user.email);
 
       // Add user to 'users' collection
       await setDoc(doc(db, "users", user.uid), {
@@ -315,8 +366,9 @@ const SignUp = () => {
         currency: "ngn",
         date: serverTimestamp(),
         verified: user.emailVerified,
-        balance: 0, // Initial balance 0, will be updated if referral exists
+        balance: 0,
         referral_balance: 0,
+        last_updated: serverTimestamp(),
       });
 
       // Add initial user deposit record
@@ -330,6 +382,7 @@ const SignUp = () => {
 
       // Process referral if exists
       if (referrer && user.email) {
+        console.log("Processing referral for Google sign-in user");
         await processReferralBonus(
           user.email,
           user.displayName || "",
@@ -342,18 +395,15 @@ const SignUp = () => {
     } catch (err) {
       console.error("Google signin error:", err);
 
+      let errorMessage = "Failed to sign in with Google. Please try again.";
       if (err instanceof FirebaseError) {
-        let errorMessage = "Failed to sign in with Google. Please try again.";
-
         if (err.code === "auth/account-exists-with-different-credential") {
           errorMessage =
             "An account already exists with this email. Please sign in with email/password.";
         }
-
-        toast.error(errorMessage, { autoClose: 5000 });
-      } else {
-        toast.error("An unexpected error occurred.", { autoClose: 5000 });
       }
+
+      toast.error(errorMessage, { autoClose: 5000 });
     } finally {
       setLoading(false);
     }
@@ -592,22 +642,25 @@ const SignUp = () => {
           </div>
 
           {/* reCAPTCHA */}
-          <div className="flex justify-center">
-            <ReCAPTCHA
-              sitekey={
-                process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "your-site-key"
-              }
-              onChange={(token: React.SetStateAction<string | null>) =>
-                setRecaptchaToken(token)
-              }
-              onExpired={() => setRecaptchaToken(null)}
-              onErrored={() => setRecaptchaToken(null)}
-            />
-          </div>
-          {errors.recaptcha && (
-            <p className="text-sm text-red-600 text-center">
-              {errors.recaptcha}
-            </p>
+          {!isLocalhost && (
+            <>
+              <div className="flex justify-center">
+                <ReCAPTCHA
+                  sitekey={
+                    process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+                    "your-site-key"
+                  }
+                  onChange={setRecaptchaToken}
+                  onExpired={() => setRecaptchaToken(null)}
+                  onErrored={() => setRecaptchaToken(null)}
+                />
+              </div>
+              {errors.recaptcha && (
+                <p className="text-sm text-red-600 text-center">
+                  {errors.recaptcha}
+                </p>
+              )}
+            </>
           )}
 
           {/* Submit Button */}
@@ -647,7 +700,6 @@ const SignUp = () => {
             )}
           </button>
         </form>
-
         {/* Divider */}
         <div className="my-6 relative">
           <div className="absolute inset-0 flex items-center">

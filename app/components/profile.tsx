@@ -141,313 +141,335 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl border max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-2xl font-bold text-gray-800">Account Settings</h3>
-        {user && (
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-              {user.email?.charAt(0).toUpperCase()}
+    <div className="min-h-screen  py-4 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            Account Settings
+          </h1>
+          <p className="mt-3 text-xl text-gray-500">
+            Manage your profile and Referral settings
+          </p>
+        </div>
+
+        {/* Main Card */}
+        <div className="bg-white border rounded-2xl overflow-hidden">
+          {/* Profile Header */}
+          <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold">
+                {user?.email?.charAt(0).toUpperCase() || "U"}
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {firstName || "User"} {lastName}
+                </h2>
+                <p className="text-gray-500">{email}</p>
+              </div>
             </div>
-            <span className="ml-3 font-medium text-gray-700">
-              {firstName || "User"}
-            </span>
           </div>
-        )}
-      </div>
 
-      {/* Tabs */}
-      <div className="flex justify-between mb-8 border-b border-gray-200">
-        <button
-          className={`px-6 py-3 focus:outline-none relative ${
-            activeTab === "profile"
-              ? "text-blue-600"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          onClick={() => setActiveTab("profile")}
-        >
-          <div className="flex items-center">
-            <FiUser className="mr-2" />
-            Profile
-          </div>
-          {activeTab === "profile" && (
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t"
-              layoutId="underline"
-            />
-          )}
-        </button>
-        <button
-          className={`px-6 py-3 focus:outline-none relative ${
-            activeTab === "refer"
-              ? "text-blue-600"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          onClick={() => setActiveTab("refer")}
-        >
-          <div className="flex items-center">
-            <FiShare2 className="mr-2" />
-            Referral
-          </div>
-          {activeTab === "refer" && (
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t"
-              layoutId="underline"
-            />
-          )}
-        </button>
-        <button
-          className={`px-6 py-3 focus:outline-none relative ${
-            activeTab === "rewards"
-              ? "text-blue-600"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          onClick={() => setActiveTab("rewards")}
-        >
-          <div className="flex items-center">
-            <FiGift className="mr-2" />
-            Overview
-          </div>
-          {activeTab === "rewards" && (
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t"
-              layoutId="underline"
-            />
-          )}
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      <motion.div
-        key={activeTab}
-        initial="hidden"
-        animate="visible"
-        variants={tabVariants}
-        transition={{ duration: 0.3 }}
-        className="min-h-[400px]"
-      >
-        {activeTab === "profile" && (
-          <div className="space-y-8">
-            <div className="bg-white p-6 rounded-xl border border-gray-100">
-              <h4 className="text-lg font-semibold mb-4 flex items-center">
-                <FiUser className="mr-2 text-blue-500" />
-                Personal Information
-              </h4>
-
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    placeholder="First Name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    placeholder="Last Name"
-                  />
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiMail className="text-gray-400" />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    placeholder="Email Address"
-                  />
-                </div>
-              </div>
-
+          {/* Tabs */}
+          <div className="px-8 border-b border-gray-200">
+            <nav className="flex space-x-8">
               <button
-                onClick={handleProfileUpdate}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex justify-center items-center"
+                onClick={() => setActiveTab("profile")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  activeTab === "profile"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
               >
-                {isLoading ? (
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                ) : null}
-                Update Profile
+                <FiUser className="h-5 w-5" />
+                <span>Profile</span>
               </button>
-
-              {message && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`mt-4 p-3 rounded-lg text-center ${
-                    message.includes("successfully")
-                      ? "bg-green-50 text-green-700"
-                      : "bg-red-50 text-red-700"
-                  }`}
-                >
-                  {message}
-                </motion.div>
-              )}
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-100">
-              <h4 className="text-lg font-semibold mb-4 flex items-center">
-                <FiLock className="mr-2 text-blue-500" />
-                Password Settings
-              </h4>
-
-              {!showPasswordFields ? (
-                <button
-                  onClick={() => setShowPasswordFields(true)}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-lg transition"
-                >
-                  Change Password
-                </button>
-              ) : (
-                <>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Current Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiLock className="text-gray-400" />
-                      </div>
-                      <input
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full pl-10 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                        placeholder="Current Password"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      New Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiLock className="text-gray-400" />
-                      </div>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full pl-10 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                        placeholder="New Password"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={handlePasswordUpdate}
-                      disabled={isLoading}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex justify-center items-center"
-                    >
-                      {isLoading ? (
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                      ) : null}
-                      Update Password
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setShowPasswordFields(false);
-                        setCurrentPassword("");
-                        setNewPassword("");
-                      }}
-                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-lg transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={handleForgotPassword}
-                    className="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition"
-                  >
-                    Forgot Password?
-                  </button>
-
-                  {passwordMessage && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`mt-4 p-3 rounded-lg text-center ${
-                        passwordMessage.includes("successfully") ||
-                        passwordMessage.includes("sent")
-                          ? "bg-green-50 text-green-700"
-                          : "bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {passwordMessage}
-                    </motion.div>
-                  )}
-                </>
-              )}
-            </div>
+              <button
+                onClick={() => setActiveTab("refer")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  activeTab === "refer"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <FiShare2 className="h-5 w-5" />
+                <span>Referral</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("rewards")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  activeTab === "rewards"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <FiGift className="h-5 w-5" />
+                <span>Overview</span>
+              </button>
+            </nav>
           </div>
-        )}
 
-        {activeTab === "refer" && <Refer />}
-        {activeTab === "rewards" && <Rewards />}
-      </motion.div>
+          {/* Tab Content */}
+          <div className="px-4 py-4">
+            <motion.div
+              key={activeTab}
+              initial="hidden"
+              animate="visible"
+              variants={tabVariants}
+              transition={{ duration: 0.3 }}
+            >
+              {activeTab === "profile" && (
+                <div className="space-y-8">
+                  {/* Personal Information Card */}
+                  <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <FiUser className="mr-2 text-blue-500" />
+                        Personal Information
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Update your basic profile details
+                      </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6 mb-8">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
+                          placeholder="First Name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
+                          placeholder="Last Name"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mb-8">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FiMail className="text-gray-400" />
+                        </div>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full pl-10 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
+                          placeholder="Email Address"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleProfileUpdate}
+                        disabled={isLoading}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center min-w-[120px]"
+                      >
+                        {isLoading ? (
+                          <>
+                            <svg
+                              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            Updating...
+                          </>
+                        ) : (
+                          "Save Changes"
+                        )}
+                      </button>
+                    </div>
+
+                    {message && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`mt-4 p-3 rounded-lg ${
+                          message.includes("successfully")
+                            ? "bg-green-50 text-green-700"
+                            : "bg-red-50 text-red-700"
+                        }`}
+                      >
+                        {message}
+                      </motion.div>
+                    )}
+                  </div>
+
+                  {/* Password Settings Card */}
+                  <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <FiLock className="mr-2 text-blue-500" />
+                        Password Settings
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Change your password or reset it if forgotten
+                      </p>
+                    </div>
+
+                    {!showPasswordFields ? (
+                      <button
+                        onClick={() => setShowPasswordFields(true)}
+                        className="w-full py-3 px-4 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition flex items-center justify-center"
+                      >
+                        <FiLock className="mr-2" />
+                        Change Password
+                      </button>
+                    ) : (
+                      <>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Current Password
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiLock className="text-gray-400" />
+                              </div>
+                              <input
+                                type="password"
+                                value={currentPassword}
+                                onChange={(e) =>
+                                  setCurrentPassword(e.target.value)
+                                }
+                                className="w-full pl-10 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
+                                placeholder="Current Password"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              New Password
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiLock className="text-gray-400" />
+                              </div>
+                              <input
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full pl-10 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
+                                placeholder="New Password"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                          <button
+                            onClick={handlePasswordUpdate}
+                            disabled={isLoading}
+                            className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition flex items-center justify-center"
+                          >
+                            {isLoading ? (
+                              <>
+                                <svg
+                                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Updating...
+                              </>
+                            ) : (
+                              "Update Password"
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setShowPasswordFields(false);
+                              setCurrentPassword("");
+                              setNewPassword("");
+                            }}
+                            className="flex-1 py-3 px-4 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={handleForgotPassword}
+                          className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition"
+                        >
+                          Forgot Password?
+                        </button>
+
+                        {passwordMessage && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`mt-4 p-3 rounded-lg ${
+                              passwordMessage.includes("successfully") ||
+                              passwordMessage.includes("sent")
+                                ? "bg-green-50 text-green-700"
+                                : "bg-red-50 text-red-700"
+                            }`}
+                          >
+                            {passwordMessage}
+                          </motion.div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "refer" && <Refer />}
+              {activeTab === "rewards" && <Rewards />}
+            </motion.div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

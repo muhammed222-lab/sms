@@ -518,7 +518,7 @@ const Header = () => {
               {/* Mobile Balance */}
               <div className="bg-blue-50 rounded-lg px-3 py-1 shadow-inner">
                 <span className="text-xs font-medium text-blue-800 whitespace-nowrap">
-                  {formatBalance(balance).split(".")[0]}
+                  {formatBalance(balance)}
                 </span>
               </div>
 

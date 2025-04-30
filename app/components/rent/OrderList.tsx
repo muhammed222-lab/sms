@@ -1,11 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// components/rent/OrderList.tsx
-// components/rent/OrderList.tsx
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
@@ -75,9 +69,16 @@ const OrderList: React.FC<OrderListProps> = ({
     });
   };
 
+  // Sort orders by received date (most recent first)
+  // Replace "receivedAt" with the correct date property if needed.
+  const sortedOrders = [...orders].sort(
+    (a, b) =>
+      new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()
+  );
+
   return (
     <div className="space-y-4">
-      {orders.length > 0 && (
+      {sortedOrders.length > 0 && (
         <div className="p-4 bg-white rounded-lg border border-gray-100">
           <p className="font-medium text-gray-700">
             Available Balance:{" "}
@@ -86,9 +87,9 @@ const OrderList: React.FC<OrderListProps> = ({
         </div>
       )}
 
-      {orders.length > 0 ? (
+      {sortedOrders.length > 0 ? (
         <div className="space-y-4">
-          {orders.map((order) => (
+          {sortedOrders.map((order) => (
             <div
               key={order.id}
               className="bg-white rounded-lg border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"

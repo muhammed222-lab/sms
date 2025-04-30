@@ -132,7 +132,7 @@ const Dashboard = () => {
   return (
     <>
       <Header />
-      <Auth />
+      {/* <Auth /> */}
       <div className="min-h-screen flex flex-col lg:flex-row">
         {/* Sidebar (Responsive as Tabs on Mobile) */}
         <nav
