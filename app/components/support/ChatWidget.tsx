@@ -142,7 +142,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-4 md:bottom-10 md:right-10 bg-blue-500 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-50 flex items-center"
+        className="fixed bottom-20 right-4 md:bottom-10 md:right-10 bg-blue-500 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-50 flex items-center"
         aria-label="Open chat"
       >
         <div className="relative">
