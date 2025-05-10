@@ -328,7 +328,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           </button>
         </form>
         <p className="text-xs text-gray-500 mt-2 text-center">
-          Press Enter to send, Shift+Enter for new line
+          Press Enter to send and Shift+Enter for new line
         </p>
       </div>
     </div>
