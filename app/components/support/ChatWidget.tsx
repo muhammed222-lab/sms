@@ -4,7 +4,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { FiCopy, FiMail, FiMaximize, FiMinimize, FiX } from "react-icons/fi";
+import {
+  FiCopy,
+  FiMail,
+  FiMaximize,
+  FiMinimize,
+  FiX,
+  FiMessageSquare,
+} from "react-icons/fi";
 import { MdStop } from "react-icons/md";
 import Link from "next/link";
 
@@ -52,6 +59,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [inputMessage, setInputMessage] = useState("");
   const [isFullPage, setIsFullPage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -60,6 +68,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    // Focus input when opening or when AI finishes responding
+    if (isOpen && !isAIResponding && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen, isAIResponding]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +112,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
       </p>
     ));
   };
+
   const filteredMessages = React.useMemo(() => {
     if (!activeConversation) return [];
 
@@ -111,98 +127,111 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
   }, [messages, activeConversation, user?.email]);
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   if (!isOpen && !isFullPage) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center fixed bottom-36 right-10 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-50"
+        className="fixed bottom-6 right-4 md:bottom-10 md:right-10 bg-blue-500 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-50 flex items-center"
+        aria-label="Open chat"
       >
         <div className="relative">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
+          <FiMessageSquare size={24} />
           {unreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
               {unreadCount}
             </span>
           )}
         </div>
-        <p className="ml-2">Smsglobe AI</p>
+        <span className="ml-2 hidden md:inline">Ask</span>
       </button>
     );
   }
 
-  function getUserAvatar(): string | undefined {
-    throw new Error("Function not implemented.");
-  }
+  const getUserAvatar = () => {
+    // Implement your avatar logic here
+    return "/default-avatar.png";
+  };
 
   return (
     <div
-      className={`${
-        isFullPage
-          ? "fixed inset-0 z-50 bg-white"
-          : "fixed bottom-72 right-6 w-full max-w-md h-[calc(100vh-150px)] max-h-[600px] shadow-xl rounded-lg overflow-hidden z-50 bg-white flex flex-col"
-      }`}
+      className={`
+        ${
+          isFullPage
+            ? "fixed inset-0 z-50 bg-white"
+            : `
+          fixed bottom-0 right-0 md:bottom-20 md:right-6 
+          w-full md:w-96 h-[calc(100vh-60px)] md:h-[500px] 
+          shadow-xl rounded-t-lg md:rounded-lg overflow-hidden z-50 bg-white flex flex-col
+        `
+        }
+      `}
+      style={isFullPage ? {} : { maxHeight: "90vh" }}
     >
-      <div className="bg-blue-500 text-white p-4 flex justify-between items-center">
-        <h3 className="font-semibold text-lg">
-          {activeConversation ? "Support Chat" : "New Conversation"}
+      {/* Header */}
+      <div className="bg-blue-500 text-white p-3 md:p-4 flex justify-between items-center">
+        <h3 className="font-semibold text-base md:text-lg">
+          {activeConversation ? "SMS Globe Support" : "New Conversation"}
         </h3>
         <div className="flex space-x-2">
-          <button
-            onClick={() => setIsFullPage(!isFullPage)}
-            className="p-1 text-white hover:text-blue-100 rounded-full"
-            title={isFullPage ? "Minimize" : "Go Full Page"}
-          >
-            {isFullPage ? <FiMinimize size={18} /> : <FiMaximize size={18} />}
-          </button>
+          {!isMobile && (
+            <button
+              onClick={() => setIsFullPage(!isFullPage)}
+              className="p-1 text-white hover:text-blue-100 rounded-full"
+              title={isFullPage ? "Minimize" : "Go Full Page"}
+              aria-label={isFullPage ? "Minimize" : "Go Full Page"}
+            >
+              {isFullPage ? <FiMinimize size={18} /> : <FiMaximize size={18} />}
+            </button>
+          )}
           <button
             onClick={() =>
               isFullPage ? setIsFullPage(false) : setIsOpen(false)
             }
             className="p-1 text-white hover:text-blue-100 rounded-full"
             title="Close"
+            aria-label="Close chat"
           >
             <FiX size={18} />
           </button>
         </div>
       </div>
 
+      {/* Messages area */}
       <div
-        className={`flex-1 overflow-y-auto p-4 bg-gray-50 ${
+        className={`flex-1 overflow-y-auto p-3 md:p-4 bg-gray-50 ${
           isFullPage ? "h-[calc(100vh-120px)]" : ""
         }`}
       >
         {filteredMessages.length === 0 && !isAIResponding && (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8">
+          <div className="h-full flex flex-col items-center justify-center text-center p-4 md:p-8">
             <img
               src="/favicon-16x16.png"
               alt="SMS Globe Logo"
-              className="w-16 h-16 mb-4"
+              className="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4"
             />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
               Welcome to SMS Globe Support
             </h3>
-            <p className="text-gray-500 max-w-md">
-              How can we help you today? Ask about our bulk SMS services, API
-              integration, or pricing plans.
+            <p className="text-sm md:text-base text-gray-500 max-w-md">
+              How can we help you today? Ask about our bulk SMS services,
+              pricing plans, or account support.
             </p>
           </div>
         )}
 
-        <div className="space-y-4">
-          {messages.map((message) => (
+        <div className="space-y-3 md:space-y-4">
+          {filteredMessages.map((message) => (
             <div
               key={message.id}
               className={`flex ${
@@ -219,18 +248,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                           : getUserAvatar()
                       }
                       alt="Avatar"
-                      className="w-8 h-8 rounded-full mt-1"
+                      className="w-6 h-6 md:w-8 md:h-8 rounded-full mt-1"
                     />
                   </div>
                 )}
                 <div
-                  className={`rounded-xl px-4 py-3 ${
+                  className={`rounded-lg md:rounded-xl px-3 py-2 md:px-4 md:py-3 ${
                     message.sender === user?.email
                       ? "bg-blue-500 text-white rounded-br-none"
                       : "bg-white border rounded-bl-none"
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">
+                  <div className="whitespace-pre-wrap text-sm md:text-base">
                     {formatMessageText(message.content)}
                   </div>
                   <div className="flex justify-between items-center mt-1">
@@ -256,6 +285,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                           : "text-gray-500 hover:text-gray-700"
                       }`}
                       title="Copy message"
+                      aria-label="Copy message"
                     >
                       <FiCopy size={14} />
                     </button>
@@ -271,10 +301,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   <img
                     src="/favicon-16x16.png"
                     alt="AI Avatar"
-                    className="w-8 h-8 rounded-full mt-1"
+                    className="w-6 h-6 md:w-8 md:h-8 rounded-full mt-1"
                   />
                 </div>
-                <div className="bg-white border rounded-xl px-4 py-3 rounded-bl-none">
+                <div className="bg-white border rounded-lg md:rounded-xl px-3 py-2 md:px-4 md:py-3 rounded-bl-none">
                   <div className="flex items-center space-x-2">
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
@@ -289,9 +319,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                     </div>
                     <button
                       onClick={() => {}}
-                      className="text-red-500 flex items-center text-sm"
+                      className="text-red-500 flex items-center text-xs md:text-sm"
                     >
-                      <MdStop size={18} className="mr-1" />
+                      <MdStop size={16} className="mr-1" />
                       Stop
                     </button>
                   </div>
@@ -303,14 +333,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         </div>
       </div>
 
-      <div className="bg-white border-t p-4">
+      {/* Input area */}
+      <div className="bg-white border-t p-3 md:p-4">
         <form onSubmit={handleSendMessage} className="flex space-x-2">
           <input
             type="text"
+            ref={inputRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 border rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border rounded-full px-3 py-2 md:px-4 md:py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
             disabled={isAIResponding}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -318,17 +350,19 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 handleSendMessage(e);
               }
             }}
+            aria-label="Type your message"
           />
           <button
             type="submit"
             disabled={!inputMessage.trim() || isAIResponding}
-            className="bg-blue-500 text-white rounded-full px-4 py-3 disabled:opacity-50 hover:bg-blue-600 transition-colors"
+            className="bg-blue-500 text-white rounded-full px-3 py-2 md:px-4 md:py-3 disabled:opacity-50 hover:bg-blue-600 transition-colors text-sm md:text-base"
+            aria-label="Send message"
           >
-            {isAIResponding ? "Sending..." : "Send"}
+            {isAIResponding ? "..." : "Send"}
           </button>
         </form>
         <p className="text-xs text-gray-500 mt-2 text-center">
-          Press Enter to send and Shift+Enter for new line
+          Press Enter to send, Shift+Enter for new line
         </p>
       </div>
     </div>

@@ -727,7 +727,7 @@ const TempMail = () => {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Email List Sidebar */}
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden lg:col-span-1 h-fit sticky top-6">
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden lg:col-span-1 h-fit top-6">
             <div className="p-4 border-b">
               <h2 className="font-semibold text-lg flex items-center gap-2">
                 <FiMail />
