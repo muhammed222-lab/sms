@@ -115,7 +115,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center fixed bottom-60 right-10 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-50"
+        className="flex items-center justify-center fixed bottom-36 right-10 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-50"
       >
         <div className="relative">
           <svg
