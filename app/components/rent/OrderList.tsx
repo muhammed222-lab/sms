@@ -70,10 +70,8 @@ const OrderList: React.FC<OrderListProps> = ({
   };
 
   // Sort orders by received date (most recent first)
-  // Replace "receivedAt" with the correct date property if needed.
   const sortedOrders = [...orders].sort(
-    (a, b) =>
-      new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   return (

@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import emailjs from "@emailjs/browser";
 import {
   FaInstagram,
   FaTwitter,
@@ -48,67 +48,6 @@ const Footer = () => {
     },
   ];
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    if (!validateEmail(email)) {
-      setLoading(false);
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    const date = new Date().toLocaleDateString();
-
-    const adminTemplateParams = {
-      email: email,
-      date: date,
-    };
-
-    emailjs
-      .send(
-        "service_fcfp3h6",
-        "template_riibwa6",
-        adminTemplateParams,
-        "rHzdi_ODUDr3TnYNl"
-      )
-      .then((response) => {
-        console.log("Admin notification sent successfully:", response);
-
-        const userTemplateParams = {
-          from_name: email,
-          from_email: email,
-          date: date,
-        };
-
-        emailjs
-          .send(
-            "service_fcfp3h6",
-            "template_ov63lab",
-            userTemplateParams,
-            "rHzdi_ODUDr3TnYNl"
-          )
-          .then((userResponse) => {
-            console.log("User confirmation sent successfully:", userResponse);
-            setLoading(false);
-            setSuccess("Thank you for subscribing!");
-            setEmail("");
-          })
-          .catch((err) => {
-            console.error("User email send failed:", err);
-            setError("Failed to send confirmation email.");
-            setLoading(false);
-          });
-      })
-      .catch((err) => {
-        console.error("Admin email send failed:", err);
-        setError("Failed to process your subscription.");
-        setLoading(false);
-      });
-  };
-
   return (
     <footer className="px-4 py-8 w-full max-w-7xl mx-auto ">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -144,44 +83,6 @@ const Footer = () => {
 
         {/* Newsletter and Links */}
         <div className="col-span-1 lg:col-span-3">
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-center lg:text-left">
-              Subscribe to our newsletter
-            </h3>
-            <form
-              onSubmit={handleSubscribe}
-              className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl mx-auto lg:mx-0"
-            >
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your-email@gmail.com"
-                className="flex-1 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                required
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className={`${
-                  loading ? "bg-gray-400" : "bg-red-500 hover:bg-red-600"
-                } text-white px-6 py-2 rounded-md transition-colors whitespace-nowrap`}
-              >
-                {loading ? "Subscribing..." : "Subscribe"}
-              </button>
-            </form>
-            {error && (
-              <p className="text-red-500 mt-2 text-sm text-center lg:text-left">
-                {error}
-              </p>
-            )}
-            {success && (
-              <p className="text-green-500 mt-2 text-sm text-center lg:text-left">
-                {success}
-              </p>
-            )}
-          </div>
-
           {/* Links Sections */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center sm:text-left">
@@ -269,6 +170,14 @@ const Footer = () => {
                     className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Contact Us | support@smsglobe.net
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/assistance"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    Have more question? (Start conversation )
                   </Link>
                 </li>
               </ul>

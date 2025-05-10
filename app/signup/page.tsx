@@ -410,7 +410,7 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4 relative">
+    <div className="flex items-center justify-center min-h-screen p-4 relative">
       {showBonusConfetti && (
         <Confetti
           width={typeof window !== "undefined" ? window.innerWidth : 300}

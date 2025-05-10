@@ -4,6 +4,7 @@ import "./globals.css";
 import Footer from "./components/footer";
 import { AuthProvider } from "./components/AuthProvider";
 import Chat from "./components/chat";
+import Support from "./components/support/support";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -144,6 +145,7 @@ export default function RootLayout({
         >
           {children}
           <Chat />
+          <Support />
           <Footer />
         </body>
       </html>

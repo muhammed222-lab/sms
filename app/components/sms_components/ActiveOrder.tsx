@@ -227,7 +227,6 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
           )}
           {order.number}
         </button>
-
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="text-gray-500">
@@ -236,7 +235,23 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
                 ? order.sms
                 : order.sms?.text || "Pending"}
             </span>
-            {order.sms ? (
+            {/* Always show refresh button if order is active */}
+            {isActive && (
+              <button
+                onClick={handleRefreshSms}
+                disabled={smsLoading}
+                className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                title="Refresh SMS"
+              >
+                <MdRefresh
+                  className={`${smsLoading ? "animate-spin" : ""}`}
+                  size={20}
+                />
+                <span className="text-xs">Refresh</span>
+              </button>
+            )}
+            {/* Show copy button only if SMS exists */}
+            {order.sms && (
               <button onClick={handleCopySms} className="flex items-center">
                 {copiedSms ? (
                   <MdCheck className="text-green-500" size={20} />
@@ -244,21 +259,6 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
                   <FiCopy className="text-blue-500" size={20} />
                 )}
               </button>
-            ) : (
-              isActive && (
-                <button
-                  onClick={handleRefreshSms}
-                  disabled={smsLoading}
-                  className="flex items-center"
-                >
-                  <MdRefresh
-                    className={`text-blue-500 ${
-                      smsLoading ? "animate-spin" : ""
-                    }`}
-                    size={20}
-                  />
-                </button>
-              )
             )}
           </div>
           {!order.sms && isActive && (
@@ -267,7 +267,6 @@ const ActiveOrder: React.FC<ActiveOrderProps> = ({
             </div>
           )}
         </div>
-
         <div className="flex items-center gap-2">
           {isCanceled || isExpired ? (
             <>

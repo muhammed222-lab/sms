@@ -1,6 +1,6 @@
-# Deemax
+# SMSGLOBE.NET
 
-Deemax is a modern web application that offers temporary number rentals for verification purposes, secure bank account verification, and a robust referral program. Built with Next.js and React, Deemax leverages Firebase for authentication and Firestore for data management while integrating with external services such as Flutterwave APIs.
+Smsglobe is a modern web application that offers temporary number rentals for verification purposes, secure bank account verification, and a robust referral program. Built with Next.js and React, Deemax leverages Firebase for authentication and Firestore for data management while integrating with external services such as Flutterwave APIs.
 
 ## Features
 
@@ -66,4 +66,3 @@ Contributions are welcome. Feel free to open an issue or submit a pull request w
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-

@@ -60,7 +60,8 @@ const SignIn = () => {
       newErrors.password = "Password is required";
     }
 
-    if (!recaptchaToken) {
+    // Skip captcha validation if on localhost
+    if (!isLocalhost() && !recaptchaToken) {
       newErrors.recaptcha = "Please verify you're not a robot";
     }
 
@@ -156,7 +157,7 @@ const SignIn = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!recaptchaToken) {
+    if (!isLocalhost() && !recaptchaToken) {
       setErrors({ ...errors, recaptcha: "Please verify you're not a robot" });
       return;
     }
@@ -195,7 +196,15 @@ const SignIn = () => {
       setLoading(false);
     }
   };
-
+  const isLocalhost = () => {
+    if (typeof window !== "undefined") {
+      return (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      );
+    }
+    return false;
+  };
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <ToastContainer position="top-center" />
@@ -312,18 +321,20 @@ const SignIn = () => {
           </div>
 
           {/* reCAPTCHA */}
-          <div className="flex justify-center">
-            <ReCAPTCHA
-              sitekey={
-                process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "your-site-key"
-              }
-              onChange={(token: React.SetStateAction<string | null>) =>
-                setRecaptchaToken(token)
-              }
-              onExpired={() => setRecaptchaToken(null)}
-              onErrored={() => setRecaptchaToken(null)}
-            />
-          </div>
+          {!isLocalhost() && (
+            <div className="flex justify-center">
+              <ReCAPTCHA
+                sitekey={
+                  process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "your-site-key"
+                }
+                onChange={(token: React.SetStateAction<string | null>) =>
+                  setRecaptchaToken(token)
+                }
+                onExpired={() => setRecaptchaToken(null)}
+                onErrored={() => setRecaptchaToken(null)}
+              />
+            </div>
+          )}
           {errors.recaptcha && (
             <p className="text-sm text-red-600 text-center">
               {errors.recaptcha}
